@@ -864,7 +864,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "eframe_template"
+name = "eframe_on_mac"
 version = "0.1.0"
 dependencies = [
  "eframe",
