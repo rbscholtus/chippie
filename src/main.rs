@@ -9,7 +9,7 @@ fn main() -> eframe::Result {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([640.0, 480.0])
-            .with_min_inner_size([320.0, 240.0])
+            .with_min_inner_size([320.0, 160.0])
             .with_icon(
                 // NOTE: Adding an icon is optional
                 eframe::icon_data::from_png_bytes(&include_bytes!("../assets/icon-256.png")[..])
@@ -17,8 +17,12 @@ fn main() -> eframe::Result {
             ),
         ..Default::default()
     };
+
+    use eframe_on_mac::get_data;
+    get_data();
+
     eframe::run_native(
-        "eframe template",
+        "Chippie",
         native_options,
         Box::new(|cc| {
             // This gives us image support:

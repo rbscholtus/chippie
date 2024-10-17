@@ -185,18 +185,18 @@ impl CPU {
         }
     }
 
-    pub fn step_n_micros(&mut self, num_micros: u32) -> u32 {
+    pub fn tick_n_micros(&mut self, num_micros: u32) -> u32 {
         // println!("to do {:?} micros", num_micros);
 
         let mut micros_done: u32 = 0;
         while micros_done < num_micros {
-            micros_done += self.step();
+            micros_done += self.tick();
         }
 
         micros_done
     }
 
-    pub fn step(&mut self) -> u32 {
+    pub fn tick(&mut self) -> u32 {
         let opcode: u16 = self.get_op();
         self.pc += 2;
 

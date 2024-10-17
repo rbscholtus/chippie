@@ -13,3 +13,5 @@ target_wasm
 .lycheecache
 assets2
 roms
+out.txt
+data

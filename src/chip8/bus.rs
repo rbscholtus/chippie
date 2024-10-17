@@ -53,8 +53,8 @@ impl Bus {
         };
         new_bus.load_font();
 
-        let rom_data = read_binary_file("roms/1-chip8-logo.ch8").unwrap();
-        new_bus.load_rom(&rom_data);
+        //let rom_data = read_binary_file("roms/1-chip8-logo.ch8").unwrap();
+        // new_bus.load_rom(&rom_data);
 
         new_bus
     }

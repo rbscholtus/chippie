@@ -11,21 +11,24 @@ static COLOR_OFF: Lazy<Color32> = Lazy::new(|| Color32::from_rgba_premultiplied(
 #[derive(Debug, Clone, Copy)]
 pub struct GPU {
     pub buffer: [u64; 32],
-    pub dirty: [bool; 32],
+    // dirty_lines: [bool; 32],
+    // pub dirty: bool,
 }
 
 impl GPU {
     pub fn new() -> Self {
         GPU {
             buffer: [0; 32],
-            dirty: [true; 32],
+            // dirty_lines: [true; 32],
+            // dirty: true,
         }
     }
 
     pub fn clear(&mut self) {
         for i in 0..32 {
             self.buffer[i] = 0;
-            self.dirty[i] = true;
+            // self.dirty_lines[i] = true;
+            // self.dirty = true;
         }
     }
 
@@ -35,9 +38,10 @@ impl GPU {
         y %= 32;
 
         // any data in the sprite will flip a bit, mark the line as dirty
-        if sprite_data > 0 {
-            self.dirty[y as usize] = true;
-        }
+        // if sprite_data > 0 {
+        //     self.dirty_lines[y as usize] = true;
+        //     self.dirty = true;
+        // }
 
         // shift the sprite to the right x coordinate, wrap around if needed
         let mask = match x <= 56 {
@@ -56,9 +60,10 @@ impl GPU {
         if y > 31 {
             return false;
         }
-        if sprite_data > 0 {
-            self.dirty[y as usize] = true;
-        }
+        // if sprite_data > 0 {
+        //     self.dirty_lines[y as usize] = true;
+        //     self.dirty = true;
+        // }
 
         // shift the sprite to the desired x coordinate
         let mask = if x <= 56 {
@@ -93,6 +98,11 @@ impl Into<ImageData> for GPU {
             size: [64, 32],
             pixels: pixel_data,
         };
+
+        // for i in 0..self.dirty_lines.len() {
+        //     self.dirty_lines[i] = false;
+        // }
+        // self.dirty = false;
 
         ImageData::Color(Arc::new(color_image))
     }
