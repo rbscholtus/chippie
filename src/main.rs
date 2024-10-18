@@ -18,8 +18,8 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
 
-    use eframe_on_mac::get_data;
-    get_data();
+    // use eframe_on_mac::get_data;
+    // get_data();
 
     eframe::run_native(
         "Chippie",

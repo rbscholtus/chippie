@@ -2,7 +2,7 @@
 use crate::chip8;
 use crate::roms_db;
 use crate::PROGRAMS;
-use egui::{menu, Key, TextureOptions, Vec2};
+use egui::{menu, Key, Pos2, TextureOptions, Vec2};
 use once_cell::sync::Lazy;
 use sha1::{Digest, Sha1};
 use web_time::{Duration, Instant};
@@ -22,6 +22,13 @@ fn calculate_sha1(data: &Vec<u8>) -> String {
     let result = hasher.finalize();
     hex::encode(result)
 }
+
+// fn optvec_to_string(authors: &Option<Vec<String>>) -> String {
+//     match authors {
+//         Some(vec) => vec.join(", "),
+//         None => String::new(), // or you can return "No authors" or similar
+//     }
+// }
 
 struct KeyMapper {
     key_map: [Key; 16],
@@ -76,7 +83,7 @@ impl KeyMapper {
     }
 }
 
-pub struct TemplateApp {
+pub struct TemplateApp<'a> {
     paused: bool,
     ticks_per_frame: u32,
     updates: u32,
@@ -87,9 +94,12 @@ pub struct TemplateApp {
     image_texture: Option<egui::TextureHandle>,
     chip8: chip8::CPU,
     keys: KeyMapper,
+    program_info: Option<&'a roms_db::Program>,
+    show_popup: bool,
+    start_clicked: bool,
 }
 
-impl Default for TemplateApp {
+impl Default for TemplateApp<'_> {
     fn default() -> Self {
         Self {
             paused: true,
@@ -102,18 +112,21 @@ impl Default for TemplateApp {
             image_texture: None,
             chip8: chip8::CPU::new(),
             keys: KeyMapper::new(None),
+            program_info: None,
+            show_popup: false,
+            start_clicked: false,
         }
     }
 }
 
-impl TemplateApp {
+impl TemplateApp<'_> {
     /// Called once before the first frame.
     pub fn new(_: &eframe::CreationContext<'_>) -> Self {
         Default::default()
     }
 }
 
-impl eframe::App for TemplateApp {
+impl eframe::App for TemplateApp<'_> {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.input(|x| {
@@ -136,10 +149,22 @@ impl eframe::App for TemplateApp {
                 self.show_emu(ctx, ui);
                 ctx.request_repaint_after(self.next_update - Instant::now());
             });
+
+        // Show the popup window when `show_popup` is true
+        if self.show_popup {
+            if let Some(rom) = self.program_info {
+                self.show_rom_popup(ctx, rom);
+            }
+            if !self.show_popup || self.start_clicked {
+                self.paused = false;
+                self.show_popup = false;
+                self.start_clicked = false;
+            }
+        }
     }
 }
 
-impl TemplateApp {
+impl TemplateApp<'_> {
     fn proc_input(&mut self, _ctx: &egui::Context, x: &egui::InputState) {
         if x.key_pressed(egui::Key::Space) {
             self.paused = !self.paused;
@@ -181,11 +206,26 @@ impl TemplateApp {
                             self.chip8.bus.load_rom(data);
                             let hash = calculate_sha1(data);
                             let id = (*roms_db::HASHES)[&hash];
-                            let info = (*PROGRAMS).get(id as usize);
-                            println!("{:?}", info);
+                            self.program_info = (*PROGRAMS).get(id as usize);
+                            self.show_popup = true;
+                            self.start_clicked = false;
                         }
                         ui.close_menu();
                     }
+                }
+
+                // ui.separator();
+            });
+
+            ui.menu_button("Color", |ui| {
+                if ui.button("From ROM (if any)").clicked() {
+                    todo!()
+                }
+                if ui.button("B/W").clicked() {
+                    todo!()
+                }
+                if ui.button("Timendus").clicked() {
+                    todo!()
                 }
             });
 
@@ -201,6 +241,129 @@ impl TemplateApp {
             ui.label("Speed:");
             ui.add(egui::Slider::new(&mut self.ticks_per_frame, 1..=256).text("ticks/sec"));
         });
+    }
+
+    fn show_rom_popup(&mut self, ctx: &egui::Context, rom: &roms_db::Program) {
+        let avl_rect = ctx.screen_rect();
+        let pos_rect = Pos2::new(avl_rect.width() * 0.15, avl_rect.height() * 0.1);
+        let size_vec = Vec2::new(avl_rect.width() * 0.7, avl_rect.height() * 0.8);
+
+        egui::Window::new(rom.get_title())
+            .fixed_pos(pos_rect)
+            .fixed_size(size_vec)
+            .resizable(false)
+            .collapsible(false)
+            .title_bar(false)
+            .open(&mut self.show_popup)
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                    // header
+                    ui.label(egui::RichText::new(rom.get_title()).heading().strong());
+                    // ui.heading(rom.get_title());
+
+                    // basic program metadata
+                    egui::Grid::new("my_grid").num_columns(2).show(ui, |ui| {
+                        ui.label("Title:");
+                        ui.label(rom.get_title());
+                        ui.end_row();
+                        ui.label("Description:");
+                        ui.add(egui::Label::new(rom.get_description()).wrap());
+                        ui.end_row();
+                        ui.label("Released:");
+                        ui.label(rom.get_release());
+                        ui.end_row();
+                        ui.label("Author(s):");
+                        ui.label(rom.get_authors());
+                        ui.end_row();
+                        if let Some(copy) = rom.get_copyright() {
+                            ui.label("Copyright:");
+                            ui.label(copy);
+                            ui.end_row();
+                        }
+                        if let Some(origin) = rom.get_origin() {
+                            ui.label("Origin:");
+                            ui.label(origin);
+                            ui.end_row();
+                        }
+                        if let Some(urls) = rom.get_urls() {
+                            for i in 0..urls.len() {
+                                ui.label(if i == 0 { "URL:" } else { "" });
+                                ui.hyperlink(&urls[i]);
+                                ui.end_row();
+                            }
+                        }
+                    });
+
+                    // Display ROM files
+                    for (romhash, romfile) in &rom.roms {
+                        ui.add_space(10.0);
+                        ui.add(egui::Label::new(
+                            egui::RichText::new(format!("ROM ({})", romhash)).strong(),
+                        ));
+                        // ui.heading(format!("ROM ({})", romhash));
+                        egui::Grid::new(format!("rom{}", romhash))
+                            .num_columns(2)
+                            .show(ui, |ui| {
+                                ui.label("File:");
+                                ui.label(romfile.get_file());
+                                ui.end_row();
+                                ui.label("Platforms:");
+                                ui.label(romfile.get_platforms());
+                                ui.end_row();
+                                if let Some(tickrate) = romfile.get_tickrate() {
+                                    ui.label("Tickrate:");
+                                    ui.label(format!("{}", tickrate));
+                                    ui.end_row();
+                                }
+                                if let Some(colors) = romfile.get_colors() {
+                                    ui.label("Colors:");
+                                    ui.label(colors);
+                                    ui.end_row();
+                                }
+                                if let Some(keys) = romfile.get_keys() {
+                                    ui.label("Keys:");
+                                    ui.label(keys);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_description() {
+                                    ui.label("Description:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_embedded_title() {
+                                    ui.label("Embedded title:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_release() {
+                                    ui.label("Released:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_touch_input_mode() {
+                                    ui.label("Touch input mode:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_font_style() {
+                                    ui.label("Font style:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                                if let Some(desc) = romfile.get_screen_rotation() {
+                                    ui.label("Screen rotation:");
+                                    ui.label(desc);
+                                    ui.end_row();
+                                }
+                            });
+                    }
+
+                    ui.add_space(10.0);
+                    if ui.button("Start!").clicked() {
+                        self.start_clicked = true;
+                    };
+                });
+            });
     }
 
     fn show_stats_bar(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
