@@ -1,8 +1,6 @@
 #![allow(dead_code)]
-use crate::chip8;
-use crate::roms_db;
-use crate::PROGRAMS;
-use egui::{menu, Key, Pos2, TextureOptions, Vec2};
+use crate::{chip8, keys, roms_db};
+use egui::{menu, Pos2, TextureOptions, Vec2};
 use once_cell::sync::Lazy;
 use sha1::{Digest, Sha1};
 use web_time::{Duration, Instant};
@@ -23,69 +21,9 @@ fn calculate_sha1(data: &Vec<u8>) -> String {
     hex::encode(result)
 }
 
-// fn optvec_to_string(authors: &Option<Vec<String>>) -> String {
-//     match authors {
-//         Some(vec) => vec.join(", "),
-//         None => String::new(), // or you can return "No authors" or similar
-//     }
-// }
-
-struct KeyMapper {
-    key_map: [Key; 16],
-}
-
-impl KeyMapper {
-    // Constant key map for COSMAC ELF
-    pub const COSMAC_ELF: [Key; 16] = [
-        Key::X,
-        Key::Num1,
-        Key::Num2,
-        Key::Num3,
-        Key::Q,
-        Key::W,
-        Key::E,
-        Key::A,
-        Key::S,
-        Key::D,
-        Key::Z,
-        Key::C,
-        Key::Num4,
-        Key::R,
-        Key::F,
-        Key::V,
-    ];
-
-    // Constant key map for DREAM 6800
-    pub const DREAM_6800: [Key; 16] = [
-        Key::Num1,
-        Key::Num2,
-        Key::Num3,
-        Key::Num4,
-        Key::Q,
-        Key::W,
-        Key::E,
-        Key::R,
-        Key::A,
-        Key::S,
-        Key::D,
-        Key::F,
-        Key::Z,
-        Key::X,
-        Key::C,
-        Key::V,
-    ];
-
-    // Create a new KeyMapper with a custom or default key map
-    fn new(key_map: Option<[Key; 16]>) -> Self {
-        Self {
-            key_map: key_map.unwrap_or(Self::COSMAC_ELF),
-        }
-    }
-}
-
 pub struct TemplateApp<'a> {
     paused: bool,
-    ticks_per_frame: u32,
+    ticks_per_frame: u16,
     updates: u32,
     begin_updates_time: Instant,
     frames: u32,
@@ -93,7 +31,7 @@ pub struct TemplateApp<'a> {
     next_update: Instant,
     image_texture: Option<egui::TextureHandle>,
     chip8: chip8::CPU,
-    keys: KeyMapper,
+    keys: keys::KeyMapper,
     program_info: Option<&'a roms_db::Program>,
     show_popup: bool,
     start_clicked: bool,
@@ -111,7 +49,7 @@ impl Default for TemplateApp<'_> {
             next_update: Instant::now() + *FRAME_DURATION,
             image_texture: None,
             chip8: chip8::CPU::new(),
-            keys: KeyMapper::new(None),
+            keys: keys::KeyMapper::new(None),
             program_info: None,
             show_popup: false,
             start_clicked: false,
@@ -192,7 +130,7 @@ impl TemplateApp<'_> {
 
     fn show_menu(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
         menu::bar(ui, |ui| {
-            ui.menu_button("ROM", |ui| {
+            ui.menu_button("File", |ui| {
                 // Collect the filenames into a vector and sort them
                 let mut filenames: Vec<&str> = roms_db::ROMS.keys().cloned().collect();
                 filenames.sort();
@@ -206,7 +144,7 @@ impl TemplateApp<'_> {
                             self.chip8.bus.load_rom(data);
                             let hash = calculate_sha1(data);
                             let id = (*roms_db::HASHES)[&hash];
-                            self.program_info = (*PROGRAMS).get(id as usize);
+                            self.program_info = (*roms_db::PROGRAMS).get(id as usize);
                             self.show_popup = true;
                             self.start_clicked = false;
                         }
