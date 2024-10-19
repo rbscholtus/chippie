@@ -15,8 +15,8 @@ pub mod gpu;
 
 // Re-exporting common components for easier access.
 pub use bus::Bus;
-pub use cpu::CPU;
-pub use gpu::GPU;
+pub use cpu::Cpu;
+pub use gpu::Gpu;
 
 /// Extracts the least significant nibble (lowest 4 bits) from the given opcode.
 #[macro_export]

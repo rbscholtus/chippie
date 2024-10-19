@@ -1,10 +1,9 @@
-#![allow(dead_code)]
 use crate::chip8;
 use crate::{N, NN, NNN, X, Y};
 
 use std::fmt;
 
-pub struct CPU {
+pub struct Cpu {
     pub bus: chip8::Bus,
     pub keys_down: [bool; 16],
     pub pc: u16,
@@ -16,9 +15,9 @@ pub struct CPU {
     key_pressed: Option<usize>,
 }
 
-impl CPU {
+impl Cpu {
     pub fn new() -> Self {
-        let mut cpu = CPU {
+        let mut cpu = Cpu {
             bus: chip8::Bus::new(),
             keys_down: [false; 16],
             pc: 0x200,
@@ -35,7 +34,7 @@ impl CPU {
     }
 }
 
-impl fmt::Debug for CPU {
+impl fmt::Debug for Cpu {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Start the struct formatting
         let mut debug_struct = f.debug_struct("CPU");
@@ -77,11 +76,12 @@ impl fmt::Debug for CPU {
     }
 }
 
+#[allow(dead_code)]
 pub fn fmt_opcode(opcode: u16) -> String {
     match opcode & 0xf000 {
         0x0000 => match opcode & 0xfff {
-            0x0e0 => format!("00E0 Clear"),
-            0x0ee => format!("00EE Return"),
+            0x0e0 => "00E0 Clear".to_string(),
+            0x0ee => "00EE Return".to_string(),
             _ => "0___ Not implemented".to_string(),
         },
         0x1000 => format!("1NNN Jump to {}", NNN!(opcode)),
@@ -140,7 +140,7 @@ pub fn fmt_opcode(opcode: u16) -> String {
         0x9000 => format!("9XY0 Skip if V{} not equals V{}", X!(opcode), Y!(opcode)),
         0xa000 => format!("ANNN Set I to {}", NNN!(opcode)),
         0xb000 => format!("BNNN Jump to {} + V0", NNN!(opcode)),
-        0xc000 => format!("CNNN Not implemented yet"),
+        0xc000 => "CNNN Not implemented yet".to_string(),
         0xd000 => format!(
             "DXYN Display {} rows at V{},V{} with carry",
             N!(opcode),
@@ -176,7 +176,7 @@ pub fn fmt_opcode(opcode: u16) -> String {
     }
 }
 
-impl CPU {
+impl Cpu {
     pub fn get_op(&self) -> u16 {
         ((self.bus.read_byte(self.pc) as u16) << 8) | (self.bus.read_byte(self.pc + 1) as u16)
     }
@@ -457,7 +457,7 @@ impl CPU {
                     .keys_down
                     .iter()
                     .enumerate()
-                    .find_map(|(index, &value)| value.then(|| index));
+                    .find_map(|(index, &value)| value.then_some(index));
             }
             Some(key) => {
                 if self.keys_down[key] {

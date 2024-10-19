@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-use super::gpu::GPU;
+use super::gpu::Gpu;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Read};
@@ -26,6 +25,7 @@ const FONT_BYTES: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
+#[allow(dead_code)]
 fn read_binary_file(path: &str) -> io::Result<Vec<u8>> {
     let mut file = File::open(path)?;
     let mut buffer = Vec::new();
@@ -35,26 +35,16 @@ fn read_binary_file(path: &str) -> io::Result<Vec<u8>> {
 
 pub struct Bus {
     pub memory: [u8; MEMORY_SIZE],
-    pub gpu: GPU,
+    pub gpu: Gpu,
 }
-
-/* impl fmt::Debug for Bus {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Do nothing
-        Ok(())
-    }
-} */
 
 impl Bus {
     pub fn new() -> Self {
         let mut new_bus = Bus {
             memory: [0; MEMORY_SIZE],
-            gpu: GPU::new(),
+            gpu: Gpu::new(),
         };
         new_bus.load_font();
-
-        //let rom_data = read_binary_file("roms/1-chip8-logo.ch8").unwrap();
-        // new_bus.load_rom(&rom_data);
 
         new_bus
     }
@@ -73,9 +63,9 @@ impl Bus {
         self.memory[0x50..0xa0].copy_from_slice(&FONT_BYTES);
     }
 
-    pub fn load_rom(&mut self, source: &Vec<u8>) {
+    pub fn load_rom(&mut self, source: &[u8]) {
         let to_idx = 0x200 + source.len();
-        self.memory[0x200..to_idx].copy_from_slice(&source);
+        self.memory[0x200..to_idx].copy_from_slice(source);
     }
 
     pub fn display(&mut self, x_coord: u8, y_coord: u8, address: u16) -> bool {

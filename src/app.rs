@@ -1,8 +1,10 @@
-#![allow(dead_code)]
 use crate::{chip8, keys, roms_db};
-use egui::{menu, Color32, Context, Pos2, RichText, TextureOptions, Vec2, Vec2b};
+use egui::{
+    menu, Color32, ColorImage, Context, ImageData, Pos2, RichText, TextureOptions, Vec2, Vec2b,
+};
 use once_cell::sync::Lazy;
 use sha1::{Digest, Sha1};
+use std::sync::Arc;
 use web_time::{Duration, Instant};
 
 // Constants
@@ -29,8 +31,10 @@ pub struct TemplateApp<'a> {
     frames: u32,
     begin_time: Instant,
     next_update: Instant,
+    color_on: Color32,
+    color_off: Color32,
     image_texture: Option<egui::TextureHandle>,
-    chip8: chip8::CPU,
+    chip8: chip8::Cpu,
     keys: keys::KeyMapper,
     hash: Option<String>,
     program_info: Option<&'a roms_db::Program>,
@@ -49,8 +53,10 @@ impl Default for TemplateApp<'_> {
             frames: 0,
             begin_time: Instant::now(),
             next_update: Instant::now() + *FRAME_DURATION,
+            color_on: Color32::WHITE,
+            color_off: Color32::BLACK,
             image_texture: None,
-            chip8: chip8::CPU::new(),
+            chip8: chip8::Cpu::new(),
             keys: keys::KeyMapper::new(None),
             hash: None,
             program_info: None,
@@ -106,21 +112,6 @@ impl eframe::App for TemplateApp<'_> {
     }
 }
 
-fn change_highlight_style(ctx: &Context) {
-    let mut visuals = ctx.style().visuals.clone();
-
-    // Change the highlight color
-    visuals.widgets.active.bg_fill = Color32::from_black_alpha(0); // Background color for active widgets
-    visuals.widgets.hovered.bg_fill = Color32::from_black_alpha(0); // Background color for hovered widgets
-    visuals.widgets.inactive.bg_fill = Color32::from_black_alpha(0); // Background color for inactive widgets
-
-    visuals.widgets.hovered.bg_fill = Color32::RED; // Change to red on highlight
-    visuals.widgets.active.bg_fill = Color32::from_black_alpha(0); // Maintain transparent background
-
-    // Set the modified visuals back to the context
-    // ctx.set_style(ctx.style().clone().with_visuals(visuals));
-}
-
 impl TemplateApp<'_> {
     fn proc_input(&mut self, _ctx: &Context, x: &egui::InputState) {
         // SPACE runs/pauses the emu
@@ -171,9 +162,11 @@ impl TemplateApp<'_> {
                                 self.rom_info = self
                                     .program_info
                                     .and_then(|pr_info| pr_info.roms.get(&hash));
-                                self.rom_info
-                                    .and_then(|rinfo| rinfo.get_tickrate())
-                                    .map(|ticks| self.ticks_per_frame = ticks);
+                                if let Some(ticks) =
+                                    self.rom_info.and_then(|rinfo| rinfo.get_tickrate())
+                                {
+                                    self.ticks_per_frame = ticks
+                                }
                                 self.hash = Some(hash);
 
                                 // show popup next frame
@@ -185,12 +178,8 @@ impl TemplateApp<'_> {
                             }
 
                             // create new emu with the same colors
-                            let old_color1 = self.chip8.bus.gpu.color_on;
-                            let old_color2 = self.chip8.bus.gpu.color_off;
-                            self.chip8 = chip8::cpu::CPU::new();
+                            self.chip8 = chip8::cpu::Cpu::new();
                             self.chip8.bus.load_rom(bindata);
-                            self.chip8.bus.gpu.color_on = old_color1;
-                            self.chip8.bus.gpu.color_off = old_color2;
 
                             ui.close_menu();
                         }
@@ -218,9 +207,11 @@ impl TemplateApp<'_> {
                                 self.rom_info = self
                                     .program_info
                                     .and_then(|pr_info| pr_info.roms.get(&hash));
-                                self.rom_info
-                                    .and_then(|rinfo| rinfo.get_tickrate())
-                                    .map(|ticks| self.ticks_per_frame = ticks);
+                                if let Some(ticks) =
+                                    self.rom_info.and_then(|rinfo| rinfo.get_tickrate())
+                                {
+                                    self.ticks_per_frame = ticks
+                                }
                                 self.hash = Some(hash);
 
                                 // show popup next frame
@@ -232,12 +223,8 @@ impl TemplateApp<'_> {
                             }
 
                             // create new emu with the same colors
-                            let old_color1 = self.chip8.bus.gpu.color_on;
-                            let old_color2 = self.chip8.bus.gpu.color_off;
-                            self.chip8 = chip8::cpu::CPU::new();
+                            self.chip8 = chip8::cpu::Cpu::new();
                             self.chip8.bus.load_rom(bindata);
-                            self.chip8.bus.gpu.color_on = old_color1;
-                            self.chip8.bus.gpu.color_off = old_color2;
 
                             ui.close_menu();
                         }
@@ -256,18 +243,18 @@ impl TemplateApp<'_> {
                     // todo!()
                 } */
                 if ui.button("B/W").clicked() {
-                    self.chip8.bus.gpu.color_on = Color32::WHITE;
-                    self.chip8.bus.gpu.color_off = Color32::BLACK;
+                    self.color_on = Color32::WHITE;
+                    self.color_off = Color32::BLACK;
                     ui.close_menu();
                 }
                 if ui.button("Orange").clicked() {
-                    self.chip8.bus.gpu.color_on = Color32::from_rgb(0xFF, 0xAA, 0);
-                    self.chip8.bus.gpu.color_off = Color32::BLACK;
+                    self.color_on = Color32::from_rgb(0xFF, 0xAA, 0);
+                    self.color_off = Color32::BLACK;
                     ui.close_menu();
                 }
                 if ui.button("Timendus").clicked() {
-                    self.chip8.bus.gpu.color_on = Color32::from_rgb(0xFF, 0xCC, 0x01);
-                    self.chip8.bus.gpu.color_off = Color32::from_rgb(0x99, 0x66, 0x01);
+                    self.color_on = Color32::from_rgb(0xFF, 0xCC, 0x01);
+                    self.color_off = Color32::from_rgb(0x99, 0x66, 0x01);
                     ui.close_menu();
                 }
             });
@@ -348,9 +335,9 @@ impl TemplateApp<'_> {
                             ui.end_row();
                         }
                         if let Some(urls) = program.get_urls() {
-                            for i in 0..urls.len() {
+                            for (i, url) in urls.iter().enumerate() {
                                 ui.label(if i == 0 { "URL:" } else { "" });
-                                ui.hyperlink(&urls[i]);
+                                ui.hyperlink(url);
                                 ui.end_row();
                             }
                         }
@@ -481,11 +468,18 @@ impl TemplateApp<'_> {
     fn show_emu_image(&mut self, ctx: &Context, ui: &mut egui::Ui, image_size: Vec2) {
         // Load new or update the existing framebuffer texture
         let image_texture = self.image_texture.get_or_insert_with(|| {
-            ctx.load_texture("gpu", self.chip8.bus.gpu, TextureOptions::NEAREST)
+            ctx.load_texture(
+                "gpu",
+                gpu_to_image_data(&self.chip8.bus.gpu.buffer, self.color_on, self.color_off),
+                TextureOptions::NEAREST,
+            )
         });
 
         // Update the framebuffer texture
-        image_texture.set(self.chip8.bus.gpu, TextureOptions::NEAREST);
+        image_texture.set(
+            gpu_to_image_data(&self.chip8.bus.gpu.buffer, self.color_on, self.color_off),
+            TextureOptions::NEAREST,
+        );
 
         // Draw the texture in the UI
         ui.image((
@@ -495,4 +489,26 @@ impl TemplateApp<'_> {
 
         self.frames += 1;
     }
+}
+
+fn gpu_to_image_data(buffer: &[u64; 32], color_on: Color32, color_off: Color32) -> ImageData {
+    let mut pixel_data: Vec<Color32> = Vec::with_capacity(64 * 32);
+    for buff_line in buffer.iter() {
+        let mut mask = 1 << 63;
+        for _ in 0..64 {
+            pixel_data.push(if buff_line & mask > 0 {
+                color_on
+            } else {
+                color_off
+            });
+            mask >>= 1;
+        }
+    }
+
+    let color_image = ColorImage {
+        size: [64, 32],
+        pixels: pixel_data,
+    };
+
+    ImageData::Color(Arc::new(color_image))
 }

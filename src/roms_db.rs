@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -170,17 +169,12 @@ impl Rom {
     }
 
     pub fn get_colors(&self) -> Option<String> {
-        match &self.colors {
-            Some(_) => Some("Colors exist".to_string()), // Replace with actual handling if Colors needs to return a string
-            None => None,
-        }
+        self.colors.as_ref().map(|_| "Colors exist".to_string())
     }
 
     pub fn get_keys(&self) -> Option<String> {
-        match &self.keys {
-            Some(_) => Some("Keys exist".to_string()), // Replace with actual handling if Keys needs to return a string
-            None => None,
-        }
+        // Replace with actual handling if Keys needs to return a string
+        self.keys.as_ref().map(|_| "Keys exist".to_string())
     }
 
     pub fn get_description(&self) -> Option<&str> {
@@ -204,10 +198,7 @@ impl Rom {
     }
 
     pub fn get_screen_rotation(&self) -> Option<String> {
-        match self.screen_rotation {
-            Some(rotation) => Some(rotation.to_string()),
-            None => None,
-        }
+        self.screen_rotation.map(|rotation| rotation.to_string())
     }
 }
 
@@ -258,18 +249,13 @@ impl Program {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_images(&self) -> Option<String> {
-        match &self.images {
-            Some(images) => Some(images.join(", ")),
-            None => None,
-        }
+        self.images.as_ref().map(|images| images.join(", "))
     }
 
     pub fn get_origin(&self) -> Option<String> {
-        match &self.origin {
-            Some(origin) => Some(origin.into()),
-            None => None,
-        }
+        self.origin.as_ref().map(|origin| origin.into())
     }
 
     pub fn get_urls(&self) -> Option<Vec<String>> {
@@ -292,6 +278,7 @@ fn load_embedded_programs() -> Result<Vec<Program>, Box<dyn std::error::Error>> 
     Ok(programs)
 }
 
+#[allow(dead_code)]
 pub fn get_data() {
     match load_embedded_sha1_hashes() {
         Ok(hash_map) => {

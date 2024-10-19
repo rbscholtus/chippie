@@ -7,7 +7,6 @@ include = ["LICENSE", "**/*.rs", "Cargo.toml"]
 rust-version = "1.81"
 description = "Chippie is a Chip-8 interpreter, native & web, with tests and games included."
 license = "Apache-2.0"
-license-file = "LICENSE"
 
 [package.metadata.docs.rs]
 all-features = true
