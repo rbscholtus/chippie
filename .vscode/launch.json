@@ -7,16 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'eframe_on_mac'",
+            "name": "Debug unit tests in library 'chippie'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=eframe_on_mac"
+                    "--package=chippie"
                 ],
                 "filter": {
-                    "name": "eframe_on_mac",
+                    "name": "chippie",
                     "kind": "lib"
                 }
             },
@@ -26,15 +26,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'eframe_on_mac'",
+            "name": "Debug executable 'chippie'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=eframe_on_mac",
-                    "--package=eframe_on_mac"
+                    "--bin=chippie",
+                    "--package=chippie"
                 ],
                 "filter": {
-                    "name": "eframe_on_mac",
+                    "name": "chippie",
                     "kind": "bin"
                 }
             },
@@ -44,16 +44,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'eframe_on_mac'",
+            "name": "Debug unit tests in executable 'chippie'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=eframe_on_mac",
-                    "--package=eframe_on_mac"
+                    "--bin=chippie",
+                    "--package=chippie"
                 ],
                 "filter": {
-                    "name": "eframe_on_mac",
+                    "name": "chippie",
                     "kind": "bin"
                 }
             },

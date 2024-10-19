@@ -10,29 +10,32 @@ pub static ROMS: Lazy<HashMap<&'static str, Vec<u8>>> = Lazy::new(|| {
     // Insert each file into the HashMap with the filename as the key
     programs.insert(
         "1-chip8-logo.ch8",
-        include_bytes!("../roms/1-chip8-logo.ch8").to_vec(),
+        include_bytes!("../roms/tests/1-chip8-logo.ch8").to_vec(),
     );
     programs.insert(
         "2-ibm-logo.ch8",
-        include_bytes!("../roms/2-ibm-logo.ch8").to_vec(),
+        include_bytes!("../roms/tests/2-ibm-logo.ch8").to_vec(),
     );
     programs.insert(
         "3-corax+.ch8",
-        include_bytes!("../roms/3-corax+.ch8").to_vec(),
+        include_bytes!("../roms/tests/3-corax+.ch8").to_vec(),
     );
     programs.insert(
         "4-flags.ch8",
-        include_bytes!("../roms/4-flags.ch8").to_vec(),
+        include_bytes!("../roms/tests/4-flags.ch8").to_vec(),
     );
     programs.insert(
         "5-quirks.ch8",
-        include_bytes!("../roms/5-quirks.ch8").to_vec(),
+        include_bytes!("../roms/tests/5-quirks.ch8").to_vec(),
     );
     programs.insert(
         "6-keypad.ch8",
-        include_bytes!("../roms/6-keypad.ch8").to_vec(),
+        include_bytes!("../roms/tests/6-keypad.ch8").to_vec(),
     );
-    programs.insert("7-beep.ch8", include_bytes!("../roms/7-beep.ch8").to_vec());
+    programs.insert(
+        "7-beep.ch8",
+        include_bytes!("../roms/tests/7-beep.ch8").to_vec(),
+    );
 
     programs
 });
@@ -42,30 +45,39 @@ pub static ROMS2: Lazy<HashMap<&'static str, Vec<u8>>> = Lazy::new(|| {
     let mut programs: HashMap<&'static str, Vec<u8>> = HashMap::new();
 
     // Insert each file into the HashMap with the filename as the key
-    programs.insert("petdog.ch8", include_bytes!("../roms/petdog.ch8").to_vec());
+    programs.insert(
+        "petdog.ch8",
+        include_bytes!("../roms/games/petdog.ch8").to_vec(),
+    );
     programs.insert(
         "pumpkindressup.ch8",
-        include_bytes!("../roms/pumpkindressup.ch8").to_vec(),
+        include_bytes!("../roms/games/pumpkindressup.ch8").to_vec(),
     );
     programs.insert(
         "octoachip8story.ch8",
-        include_bytes!("../roms/octoachip8story.ch8").to_vec(),
+        include_bytes!("../roms/games/octoachip8story.ch8").to_vec(),
     );
-    programs.insert("RPS.ch8", include_bytes!("../roms/RPS.ch8").to_vec());
-    programs.insert("outlaw.ch8", include_bytes!("../roms/outlaw.ch8").to_vec());
+    programs.insert("RPS.ch8", include_bytes!("../roms/games/RPS.ch8").to_vec());
+    programs.insert(
+        "outlaw.ch8",
+        include_bytes!("../roms/games/outlaw.ch8").to_vec(),
+    );
     programs.insert(
         "caveexplorer.ch8",
-        include_bytes!("../roms/caveexplorer.ch8").to_vec(),
+        include_bytes!("../roms/games/caveexplorer.ch8").to_vec(),
     );
     programs.insert(
         "chipwar.ch8",
-        include_bytes!("../roms/chipwar.ch8").to_vec(),
+        include_bytes!("../roms/games/chipwar.ch8").to_vec(),
     );
     programs.insert(
         "slipperyslope.ch8",
-        include_bytes!("../roms/slipperyslope.ch8").to_vec(),
+        include_bytes!("../roms/games/slipperyslope.ch8").to_vec(),
     );
-    programs.insert("fuse.ch8", include_bytes!("../roms/fuse.ch8").to_vec());
+    programs.insert(
+        "fuse.ch8",
+        include_bytes!("../roms/games/fuse.ch8").to_vec(),
+    );
 
     programs
 });

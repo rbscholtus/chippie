@@ -1,9 +1,9 @@
-var cacheName = 'egui-template-pwa';
+var cacheName = 'chippie-pwa';
 var filesToCache = [
   './',
   './index.html',
-  './eframe_on_mac.js',
-  './eframe_on_mac_bg.wasm',
+  './chippie.js',
+  './chippie_bg.wasm',
 ];
 
 /* Start the service worker and cache all of the app's content */

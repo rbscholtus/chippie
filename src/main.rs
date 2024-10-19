@@ -18,16 +18,13 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
 
-    // use eframe_on_mac::get_data;
-    // get_data();
-
     eframe::run_native(
         "Chippie",
         native_options,
         Box::new(|cc| {
             // This gives us image support:
             //egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::new(eframe_on_mac::TemplateApp::new(cc)))
+            Ok(Box::new(chippie::TemplateApp::new(cc)))
         }),
     )
 }
@@ -58,7 +55,7 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(eframe_on_mac::TemplateApp::new(cc)))),
+                Box::new(|cc| Ok(Box::new(chippie::TemplateApp::new(cc)))),
             )
             .await;
 
