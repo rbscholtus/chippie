@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::{chip8, keys, roms_db};
-use egui::{menu, Pos2, TextureOptions, Vec2};
+use egui::{menu, Color32, Context, Pos2, RichText, TextureOptions, Vec2, Vec2b};
 use once_cell::sync::Lazy;
 use sha1::{Digest, Sha1};
 use web_time::{Duration, Instant};
@@ -32,7 +32,9 @@ pub struct TemplateApp<'a> {
     image_texture: Option<egui::TextureHandle>,
     chip8: chip8::CPU,
     keys: keys::KeyMapper,
+    hash: Option<String>,
     program_info: Option<&'a roms_db::Program>,
+    rom_info: Option<&'a roms_db::Rom>,
     show_popup: bool,
     start_clicked: bool,
 }
@@ -50,7 +52,9 @@ impl Default for TemplateApp<'_> {
             image_texture: None,
             chip8: chip8::CPU::new(),
             keys: keys::KeyMapper::new(None),
+            hash: None,
             program_info: None,
+            rom_info: None,
             show_popup: false,
             start_clicked: false,
         }
@@ -66,7 +70,7 @@ impl TemplateApp<'_> {
 
 impl eframe::App for TemplateApp<'_> {
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         ctx.input(|x| {
             self.proc_input(ctx, x);
         });
@@ -90,8 +94,8 @@ impl eframe::App for TemplateApp<'_> {
 
         // Show the popup window when `show_popup` is true
         if self.show_popup {
-            if let Some(rom) = self.program_info {
-                self.show_rom_popup(ctx, rom);
+            if let Some(program) = self.program_info {
+                self.show_rom_popup(ctx, program);
             }
             if !self.show_popup || self.start_clicked {
                 self.paused = false;
@@ -102,13 +106,30 @@ impl eframe::App for TemplateApp<'_> {
     }
 }
 
+fn change_highlight_style(ctx: &Context) {
+    let mut visuals = ctx.style().visuals.clone();
+
+    // Change the highlight color
+    visuals.widgets.active.bg_fill = Color32::from_black_alpha(0); // Background color for active widgets
+    visuals.widgets.hovered.bg_fill = Color32::from_black_alpha(0); // Background color for hovered widgets
+    visuals.widgets.inactive.bg_fill = Color32::from_black_alpha(0); // Background color for inactive widgets
+
+    visuals.widgets.hovered.bg_fill = Color32::RED; // Change to red on highlight
+    visuals.widgets.active.bg_fill = Color32::from_black_alpha(0); // Maintain transparent background
+
+    // Set the modified visuals back to the context
+    // ctx.set_style(ctx.style().clone().with_visuals(visuals));
+}
+
 impl TemplateApp<'_> {
-    fn proc_input(&mut self, _ctx: &egui::Context, x: &egui::InputState) {
-        if x.key_pressed(egui::Key::Space) {
+    fn proc_input(&mut self, _ctx: &Context, x: &egui::InputState) {
+        // SPACE runs/pauses the emu
+        if x.key_released(egui::Key::Space) {
             self.paused = !self.paused;
         }
-        for i in 0..self.chip8.inp.len() {
-            self.chip8.inp[i] = x.key_down(self.keys.key_map[i]);
+        // register keys down
+        for i in 0..self.chip8.keys_down.len() {
+            self.chip8.keys_down[i] = x.key_down(self.keys.key_map[i]);
         }
     }
 
@@ -116,9 +137,7 @@ impl TemplateApp<'_> {
         // doing an update(s)
         while self.next_update < Instant::now() {
             if !self.paused {
-                for _ in 0..self.ticks_per_frame {
-                    self.chip8.tick();
-                }
+                self.chip8.ticks(self.ticks_per_frame);
                 self.updates += 1;
             } else {
                 self.begin_updates_time += *FRAME_DURATION;
@@ -128,102 +147,207 @@ impl TemplateApp<'_> {
         }
     }
 
-    fn show_menu(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_menu(&mut self, _ctx: &Context, ui: &mut egui::Ui) {
         menu::bar(ui, |ui| {
-            ui.menu_button("File", |ui| {
-                // Collect the filenames into a vector and sort them
-                let mut filenames: Vec<&str> = roms_db::ROMS.keys().cloned().collect();
-                filenames.sort();
+            ui.menu_button("Programs", |ui| {
+                ui.menu_button("Timendus tests", |ui| {
+                    // Collect the filenames into a vector and sort them
+                    let mut filenames: Vec<&str> = roms_db::ROMS.keys().cloned().collect();
+                    filenames.sort();
 
-                for filename in filenames {
-                    if ui.button(filename).clicked() {
-                        // Get the corresponding data from the HashMap
-                        if let Some(data) = roms_db::ROMS.get(filename) {
-                            self.paused = true;
+                    for filename in filenames {
+                        if ui.button(filename).clicked() {
+                            self.hash = None;
+                            self.program_info = None;
+                            self.rom_info = None;
+
+                            // load ROM data
+                            let bindata = roms_db::ROMS.get(filename).unwrap();
+                            let hash = calculate_sha1(bindata);
+
+                            // get program and rom info, and set tickrate
+                            if let Some(id) = roms_db::HASHES.get(&hash) {
+                                self.program_info = roms_db::PROGRAMS.get(*id as usize);
+                                self.rom_info = self
+                                    .program_info
+                                    .and_then(|pr_info| pr_info.roms.get(&hash));
+                                self.rom_info
+                                    .and_then(|rinfo| rinfo.get_tickrate())
+                                    .map(|ticks| self.ticks_per_frame = ticks);
+                                self.hash = Some(hash);
+
+                                // show popup next frame
+                                self.paused = true;
+                                self.show_popup = true;
+                                self.start_clicked = false;
+                            } else {
+                                self.paused = false;
+                            }
+
+                            // create new emu with the same colors
+                            let old_color1 = self.chip8.bus.gpu.color_on;
+                            let old_color2 = self.chip8.bus.gpu.color_off;
                             self.chip8 = chip8::cpu::CPU::new();
-                            self.chip8.bus.load_rom(data);
-                            let hash = calculate_sha1(data);
-                            let id = (*roms_db::HASHES)[&hash];
-                            self.program_info = (*roms_db::PROGRAMS).get(id as usize);
-                            self.show_popup = true;
-                            self.start_clicked = false;
-                        }
-                        ui.close_menu();
-                    }
-                }
+                            self.chip8.bus.load_rom(bindata);
+                            self.chip8.bus.gpu.color_on = old_color1;
+                            self.chip8.bus.gpu.color_off = old_color2;
 
-                // ui.separator();
+                            ui.close_menu();
+                        }
+                    }
+                });
+
+                ui.menu_button("Games", |ui| {
+                    // Collect the filenames into a vector and sort them
+                    let mut filenames: Vec<&str> = roms_db::ROMS2.keys().cloned().collect();
+                    filenames.sort();
+
+                    for filename in filenames {
+                        if ui.button(filename).clicked() {
+                            self.hash = None;
+                            self.program_info = None;
+                            self.rom_info = None;
+
+                            // load ROM data
+                            let bindata = roms_db::ROMS2.get(filename).unwrap();
+                            let hash = calculate_sha1(bindata);
+
+                            // get program and rom info, and set tickrate
+                            if let Some(id) = roms_db::HASHES.get(&hash) {
+                                self.program_info = roms_db::PROGRAMS.get(*id as usize);
+                                self.rom_info = self
+                                    .program_info
+                                    .and_then(|pr_info| pr_info.roms.get(&hash));
+                                self.rom_info
+                                    .and_then(|rinfo| rinfo.get_tickrate())
+                                    .map(|ticks| self.ticks_per_frame = ticks);
+                                self.hash = Some(hash);
+
+                                // show popup next frame
+                                self.paused = true;
+                                self.show_popup = true;
+                                self.start_clicked = false;
+                            } else {
+                                self.paused = false;
+                            }
+
+                            // create new emu with the same colors
+                            let old_color1 = self.chip8.bus.gpu.color_on;
+                            let old_color2 = self.chip8.bus.gpu.color_off;
+                            self.chip8 = chip8::cpu::CPU::new();
+                            self.chip8.bus.load_rom(bindata);
+                            self.chip8.bus.gpu.color_on = old_color1;
+                            self.chip8.bus.gpu.color_off = old_color2;
+
+                            ui.close_menu();
+                        }
+                    }
+                });
             });
 
             ui.menu_button("Color", |ui| {
-                if ui.button("From ROM (if any)").clicked() {
-                    todo!()
-                }
+                /* if ui.butto n("From ROM (if any)").clicked() {
+                    if let Some(info) = self.program_info {
+                        if let Some(ticks) = info.roms[&hash].colors() {
+                            self.ticks_per_frame = ticks;
+                        }
+                    }
+                    if let Some(colors) = self.program_info. {}
+                    // todo!()
+                } */
                 if ui.button("B/W").clicked() {
-                    todo!()
+                    self.chip8.bus.gpu.color_on = Color32::WHITE;
+                    self.chip8.bus.gpu.color_off = Color32::BLACK;
+                    ui.close_menu();
+                }
+                if ui.button("Orange").clicked() {
+                    self.chip8.bus.gpu.color_on = Color32::from_rgb(0xFF, 0xAA, 0);
+                    self.chip8.bus.gpu.color_off = Color32::BLACK;
+                    ui.close_menu();
                 }
                 if ui.button("Timendus").clicked() {
-                    todo!()
+                    self.chip8.bus.gpu.color_on = Color32::from_rgb(0xFF, 0xCC, 0x01);
+                    self.chip8.bus.gpu.color_off = Color32::from_rgb(0x99, 0x66, 0x01);
+                    ui.close_menu();
                 }
             });
 
             // Create a pause/run toggle button
-            let pr_text = if self.paused { "Paused" } else { "Running" };
-            if ui.button(pr_text).highlight().clicked() {
+            ui.separator();
+
+            let (t, fg, bg) = if self.paused {
+                ("Paused", Color32::BLACK, Color32::DARK_GRAY)
+            } else {
+                ("Running", Color32::BLACK, Color32::LIGHT_GREEN)
+            };
+            if ui
+                .button(RichText::new(t).color(fg).background_color(bg))
+                .clicked()
+            {
                 self.paused = !self.paused;
             }
 
-            ui.add_space(10_f32);
+            // Show sound or not
             ui.separator();
 
+            if self.chip8.sound_timer > 0 {
+                ui.label(
+                    RichText::new("BEEP")
+                        .strong()
+                        .color(Color32::BLACK)
+                        .background_color(Color32::LIGHT_RED),
+                );
+            } else {
+                ui.label("BEEP");
+            }
+
+            // Show emu speed slider
+            ui.separator();
             ui.label("Speed:");
             ui.add(egui::Slider::new(&mut self.ticks_per_frame, 1..=256).text("ticks/sec"));
         });
     }
 
-    fn show_rom_popup(&mut self, ctx: &egui::Context, rom: &roms_db::Program) {
+    fn show_rom_popup(&mut self, ctx: &Context, program: &roms_db::Program) {
         let avl_rect = ctx.screen_rect();
         let pos_rect = Pos2::new(avl_rect.width() * 0.15, avl_rect.height() * 0.1);
         let size_vec = Vec2::new(avl_rect.width() * 0.7, avl_rect.height() * 0.8);
 
-        egui::Window::new(rom.get_title())
+        egui::Window::new(program.get_title())
             .fixed_pos(pos_rect)
             .fixed_size(size_vec)
             .resizable(false)
             .collapsible(false)
             .title_bar(false)
+            .scroll(Vec2b::new(true, true))
             .open(&mut self.show_popup)
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                     // header
-                    ui.label(egui::RichText::new(rom.get_title()).heading().strong());
-                    // ui.heading(rom.get_title());
+                    ui.label(egui::RichText::new(program.get_title()).heading().strong());
 
                     // basic program metadata
                     egui::Grid::new("my_grid").num_columns(2).show(ui, |ui| {
-                        ui.label("Title:");
-                        ui.label(rom.get_title());
-                        ui.end_row();
                         ui.label("Description:");
-                        ui.add(egui::Label::new(rom.get_description()).wrap());
+                        ui.add(egui::Label::new(program.get_description()).wrap());
                         ui.end_row();
                         ui.label("Released:");
-                        ui.label(rom.get_release());
+                        ui.label(program.get_release());
                         ui.end_row();
                         ui.label("Author(s):");
-                        ui.label(rom.get_authors());
+                        ui.label(program.get_authors());
                         ui.end_row();
-                        if let Some(copy) = rom.get_copyright() {
+                        if let Some(copy) = program.get_copyright() {
                             ui.label("Copyright:");
                             ui.label(copy);
                             ui.end_row();
                         }
-                        if let Some(origin) = rom.get_origin() {
+                        if let Some(origin) = program.get_origin() {
                             ui.label("Origin:");
                             ui.label(origin);
                             ui.end_row();
                         }
-                        if let Some(urls) = rom.get_urls() {
+                        if let Some(urls) = program.get_urls() {
                             for i in 0..urls.len() {
                                 ui.label(if i == 0 { "URL:" } else { "" });
                                 ui.hyperlink(&urls[i]);
@@ -233,12 +357,16 @@ impl TemplateApp<'_> {
                     });
 
                     // Display ROM files
-                    for (romhash, romfile) in &rom.roms {
+                    for (romhash, romfile) in &program.roms {
                         ui.add_space(10.0);
-                        ui.add(egui::Label::new(
-                            egui::RichText::new(format!("ROM ({})", romhash)).strong(),
-                        ));
-                        // ui.heading(format!("ROM ({})", romhash));
+                        let text = if romhash == self.hash.as_deref().unwrap() {
+                            egui::RichText::new(format!("Currently loaded ROM ({})", romhash))
+                                .strong()
+                        } else {
+                            egui::RichText::new(format!("Other ROM ({})", romhash))
+                        };
+                        ui.add(egui::Label::new(text));
+
                         egui::Grid::new(format!("rom{}", romhash))
                             .num_columns(2)
                             .show(ui, |ui| {
@@ -304,7 +432,7 @@ impl TemplateApp<'_> {
             });
     }
 
-    fn show_stats_bar(&self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_stats_bar(&self, _ctx: &Context, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label(format!(
                 "Updates: {} ({:.1} ups)",
@@ -319,7 +447,7 @@ impl TemplateApp<'_> {
         });
     }
 
-    fn show_emu(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn show_emu(&mut self, ctx: &Context, ui: &mut egui::Ui) {
         // Calculate the available aspect ratio
         let avail_asp_ratio = ui.available_width() / ui.available_height();
 
@@ -350,7 +478,7 @@ impl TemplateApp<'_> {
         }
     }
 
-    fn show_emu_image(&mut self, ctx: &egui::Context, ui: &mut egui::Ui, image_size: Vec2) {
+    fn show_emu_image(&mut self, ctx: &Context, ui: &mut egui::Ui, image_size: Vec2) {
         // Load new or update the existing framebuffer texture
         let image_texture = self.image_texture.get_or_insert_with(|| {
             ctx.load_texture("gpu", self.chip8.bus.gpu, TextureOptions::NEAREST)

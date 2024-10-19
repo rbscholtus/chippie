@@ -37,6 +37,39 @@ pub static ROMS: Lazy<HashMap<&'static str, Vec<u8>>> = Lazy::new(|| {
     programs
 });
 
+// Embed the binary data (e.g., a .ch8 file) into the program
+pub static ROMS2: Lazy<HashMap<&'static str, Vec<u8>>> = Lazy::new(|| {
+    let mut programs: HashMap<&'static str, Vec<u8>> = HashMap::new();
+
+    // Insert each file into the HashMap with the filename as the key
+    programs.insert("petdog.ch8", include_bytes!("../roms/petdog.ch8").to_vec());
+    programs.insert(
+        "pumpkindressup.ch8",
+        include_bytes!("../roms/pumpkindressup.ch8").to_vec(),
+    );
+    programs.insert(
+        "octoachip8story.ch8",
+        include_bytes!("../roms/octoachip8story.ch8").to_vec(),
+    );
+    programs.insert("RPS.ch8", include_bytes!("../roms/RPS.ch8").to_vec());
+    programs.insert("outlaw.ch8", include_bytes!("../roms/outlaw.ch8").to_vec());
+    programs.insert(
+        "caveexplorer.ch8",
+        include_bytes!("../roms/caveexplorer.ch8").to_vec(),
+    );
+    programs.insert(
+        "chipwar.ch8",
+        include_bytes!("../roms/chipwar.ch8").to_vec(),
+    );
+    programs.insert(
+        "slipperyslope.ch8",
+        include_bytes!("../roms/slipperyslope.ch8").to_vec(),
+    );
+    programs.insert("fuse.ch8", include_bytes!("../roms/fuse.ch8").to_vec());
+
+    programs
+});
+
 pub static HASHES: Lazy<HashMap<String, u32>> =
     Lazy::new(|| load_embedded_sha1_hashes().unwrap_or_default());
 

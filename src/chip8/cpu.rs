@@ -6,27 +6,32 @@ use std::fmt;
 
 pub struct CPU {
     pub bus: chip8::Bus,
-    pub inp: [bool; 16],
+    pub keys_down: [bool; 16],
     pub pc: u16,
     i: u16,
     stack: Vec<u16>,
     delay_timer: u8,
-    sound_timer: u8,
+    pub sound_timer: u8,
     v: [u8; 16],
+    key_pressed: Option<usize>,
 }
 
 impl CPU {
     pub fn new() -> Self {
-        CPU {
+        let mut cpu = CPU {
             bus: chip8::Bus::new(),
+            keys_down: [false; 16],
             pc: 0x200,
             i: 0,
+            stack: Vec::new(),
             delay_timer: 0,
             sound_timer: 0,
             v: [0_u8; 16],
-            stack: Vec::new(),
-            inp: [false; 16],
-        }
+            key_pressed: None,
+        };
+        cpu.bus.save_byte(0x200, 0x12);
+        // cpu.bus.save_byte(0x201, 0x1200);
+        cpu
     }
 }
 
@@ -57,7 +62,7 @@ impl fmt::Debug for CPU {
 
         // Format `inp` with a single digit number for each element
         let inp_str: String = self
-            .inp
+            .keys_down
             .iter()
             .map(|&b| if b { 'X' } else { '-' })
             .collect();
@@ -176,6 +181,13 @@ impl CPU {
         ((self.bus.read_byte(self.pc) as u16) << 8) | (self.bus.read_byte(self.pc + 1) as u16)
     }
 
+    pub fn ticks(&mut self, ticks: u16) {
+        for _ in 0..ticks {
+            self.tick();
+        }
+        self.decr_timers();
+    }
+
     pub fn decr_timers(&mut self) {
         if self.delay_timer > 0 {
             self.delay_timer -= 1;
@@ -185,18 +197,7 @@ impl CPU {
         }
     }
 
-    pub fn tick_n_micros(&mut self, num_micros: u32) -> u32 {
-        // println!("to do {:?} micros", num_micros);
-
-        let mut micros_done: u32 = 0;
-        while micros_done < num_micros {
-            micros_done += self.tick();
-        }
-
-        micros_done
-    }
-
-    pub fn tick(&mut self) -> u32 {
+    fn tick(&mut self) {
         let opcode: u16 = self.get_op();
         self.pc += 2;
 
@@ -206,61 +207,51 @@ impl CPU {
                     0x0e0 => {
                         // clear screen 00E0
                         self.bus.gpu.clear();
-                        109
                     }
                     0x0ee => {
                         // Returning from a subroutine 00EE
                         self.pc = self.stack.pop().unwrap();
-                        105
                     }
                     _ => {
                         // Execute machine language routine 0NNN
                         // don't implement
-                        0
                     }
                 }
             }
             0x1000 => {
                 // jump to NNN
                 self.pc = NNN!(opcode);
-                105
             }
             0x2000 => {
                 // 2NNN - calls the subroutine at memory location NNN
                 self.stack.push(self.pc);
                 self.pc = NNN!(opcode);
-                105
             }
             0x3000 => {
                 // 3XNN - skip one instruction if the value in VX is equal to NN
                 if self.v[X!(opcode)] == NN!(opcode) {
                     self.pc += 2;
                 }
-                55
             }
             0x4000 => {
                 // 4XNN - skip one instruction if the value in VX is not equal to NN
                 if self.v[X!(opcode)] != NN!(opcode) {
                     self.pc += 2;
                 }
-                55
             }
             0x5000 => {
                 // 5XY0 - skips if the values in VX and VY are equal
                 if self.v[X!(opcode)] == self.v[Y!(opcode)] {
                     self.pc += 2;
                 }
-                73
             }
             0x6000 => {
                 // 6XNN - set register VX
                 self.v[X!(opcode)] = NN!(opcode);
-                27
             }
             0x7000 => {
                 // 7XNN - add value to register VX
                 self.v[X!(opcode)] = self.v[X!(opcode)].wrapping_add(NN!(opcode));
-                45
             }
             0x8000 => {
                 let x = X!(opcode);
@@ -269,7 +260,6 @@ impl CPU {
                     0x0 => {
                         // VX is set to the value of VY 8XY0
                         self.v[x] = self.v[y];
-                        200
                     }
                     0x1 => {
                         // VX is set to the bitwise OR of VX and VY
@@ -277,7 +267,6 @@ impl CPU {
                         // COSMAC VIP behavior undefined
                         // Timendus' test suite requires consistency
                         self.v[0xf] = 0;
-                        200
                     }
                     0x2 => {
                         // VX is set to the bitwise AND of VX and VY
@@ -285,7 +274,6 @@ impl CPU {
                         // COSMAC VIP behavior undefined
                         // Timendus' test suite requires consistency
                         self.v[0xf] = 0;
-                        200
                     }
                     0x3 => {
                         // VX is set to the bitwise XOR of VX and VY
@@ -293,14 +281,12 @@ impl CPU {
                         // COSMAC VIP behavior undefined
                         // Timendus' test suite requires consistency
                         self.v[0xf] = 0;
-                        200
                     }
                     0x4 => {
                         // 8XY4 - Add VY to VX with carry
                         let (result, carry) = self.v[x].overflowing_add(self.v[y]);
                         self.v[x] = result;
                         self.v[0xF] = carry as u8;
-                        200
                     }
                     0x5 => {
                         // 8XY5 - set VX to the result of VX - VY
@@ -310,7 +296,6 @@ impl CPU {
                         };
                         self.v[X!(opcode)] = self.v[X!(opcode)].wrapping_sub(self.v[Y!(opcode)]);
                         self.v[0xf] = flag;
-                        200
                     }
                     0x6 => {
                         // 8XY6 - Shift right with carry
@@ -319,17 +304,12 @@ impl CPU {
                         let flag = self.v[x] & 0x1;
                         self.v[x] >>= 1;
                         self.v[0xf] = flag;
-                        200
                     }
                     0x7 => {
                         // 8XY7 - set VX to the result of VY - VX
-                        let flag = match self.v[y] >= self.v[x] {
-                            true => 1,
-                            false => 0,
-                        };
+                        let flag = if self.v[y] >= self.v[x] { 1 } else { 0 };
                         self.v[x] = self.v[y].wrapping_sub(self.v[x]);
                         self.v[0xf] = flag;
-                        200
                     }
                     0xe => {
                         // 8XYE - Shift left with carry
@@ -338,11 +318,9 @@ impl CPU {
                         let flag = self.v[x] >> 7;
                         self.v[x] <<= 1;
                         self.v[0xf] = flag;
-                        200
                     }
                     _ => {
                         eprintln!(">>opcode {:04x} invalid<<", opcode);
-                        0
                     }
                 }
             }
@@ -351,62 +329,45 @@ impl CPU {
                 if self.v[X!(opcode)] != self.v[Y!(opcode)] {
                     self.pc += 2;
                 }
-                73
             }
             0xa000 => {
                 // ANNN - set index register I
                 self.i = NNN!(opcode);
-                55
             }
             0xb000 => {
                 // BNNN Jump to NNN plus V0
                 // COSMAC VIP implementation crashes Timendus test
                 // self.pc = NNN!(opcode) + self.v[0] as u16;
                 self.pc = NNN!(opcode) + self.v[X!(opcode)] as u16;
-                105
             }
             0xc000 => {
                 // CXNN - Random number AND NN
                 // first op to use Rust macros
                 let salt: u8 = rand::random();
                 self.v[X!(opcode)] = salt & NN!(opcode);
-                164
             }
             0xd000 => {
-                // (display/draw) DXYN
-                let x_coord = self.v[X!(opcode)] & 0x3f;
-                let mut y_coord = self.v[Y!(opcode)] & 0x1f;
-                let num_rows = opcode & 0x000f;
-                self.v[0xf] = 0;
-                for address in self.i..self.i + num_rows {
-                    if self.bus.display(x_coord, y_coord, address) {
-                        self.v[0xf] = 1;
-                    }
-                    y_coord += 1;
-                }
-                22734
+                // DXYN - display/draw
+                self.op_DXYN(X!(opcode), Y!(opcode), N!(opcode));
             }
             0xe000 => {
                 match opcode & 0xff {
                     0x9e => {
                         // EX9E - Skip if key VX is pressed
                         let vx = self.v[X!(opcode)];
-                        if self.inp[(vx % self.inp.len() as u8) as usize] {
+                        if self.keys_down[(vx % self.keys_down.len() as u8) as usize] {
                             self.pc += 2;
                         }
-                        73
                     }
                     0xa1 => {
                         // EXA1 - Skip if key VX is not pressed
                         let vx = self.v[X!(opcode)];
-                        if !self.inp[(vx % self.inp.len() as u8) as usize] {
+                        if !self.keys_down[(vx % self.keys_down.len() as u8) as usize] {
                             self.pc += 2;
                         }
-                        73
                     }
                     _ => {
                         eprintln!(">>opcode {:04x} invalid<<", opcode);
-                        0
                     }
                 }
             }
@@ -416,42 +377,27 @@ impl CPU {
                     0x07 => {
                         // FX07 - sets VX to the current value of the delay timer
                         self.v[x] = self.delay_timer;
-                        45
                     }
                     0x0a => {
                         // FX0A - Get key
-                        let key_pressed = self
-                            .inp
-                            .iter()
-                            .enumerate()
-                            .find_map(|(index, &value)| value.then(|| index));
-                        if let Some(index) = key_pressed {
-                            self.v[x] = index as u8;
-                        } else {
-                            self.pc -= 2;
-                        }
-                        1
+                        self.op_FX0A(x);
                     }
                     0x15 => {
                         // FX15 - sets the delay timer to the value in VX
                         self.delay_timer = self.v[x];
-                        45
                     }
                     0x18 => {
                         // FX18 - sets the sound timer to the value in VX
                         self.sound_timer = self.v[x];
-                        45
                     }
                     0x1e => {
                         // FX1E - Add VX to index
                         let vx: u8 = self.v[((opcode & 0x0f00) >> 8) as usize];
                         self.i += vx as u16;
-                        86
                     }
                     0x29 => {
                         // FX29 - Font character
                         self.i = 0x0050 + (self.v[x] & 0xf) as u16;
-                        29
                     }
                     0x33 => {
                         // FX33 - Binary-coded decimal conversion
@@ -459,7 +405,6 @@ impl CPU {
                         self.bus.save_byte(self.i, vx / 100);
                         self.bus.save_byte(self.i + 1, vx / 10 % 10);
                         self.bus.save_byte(self.i + 2, vx % 10);
-                        927
                     }
                     0x55 => {
                         // FX55 - store registers to memory
@@ -468,7 +413,6 @@ impl CPU {
                             self.bus.save_byte(self.i, self.v[n]);
                             self.i += 1;
                         }
-                        128 + 64 * x as u32
                     }
                     0x65 => {
                         // FX65 - load registers from memory
@@ -477,17 +421,53 @@ impl CPU {
                             self.v[n] = self.bus.read_byte(self.i);
                             self.i += 1;
                         }
-                        128 + 64 * x as u32
                     }
                     _ => {
                         eprintln!(">>F opcode {:04x} invalid<<", opcode);
-                        0
                     }
                 }
             }
             _ => {
                 panic!(">>opcode {:04x} invalid<<", opcode);
             }
+        };
+    }
+
+    #[allow(non_snake_case)]
+    // DXYN - display/draw
+    fn op_DXYN(&mut self, x: usize, y: usize, n: u8) {
+        let x_coord = self.v[x] & 0x3f;
+        let mut y_coord = self.v[y] & 0x1f;
+        self.v[0xf] = 0;
+        for address in self.i..self.i + n as u16 {
+            if self.bus.display(x_coord, y_coord, address) {
+                self.v[0xf] = 1;
+            }
+            y_coord += 1;
         }
+    }
+
+    #[allow(non_snake_case)]
+    /// Fx0A GETKEY
+    fn op_FX0A(&mut self, x: usize) {
+        self.pc -= 2;
+        match self.key_pressed {
+            None => {
+                self.key_pressed = self
+                    .keys_down
+                    .iter()
+                    .enumerate()
+                    .find_map(|(index, &value)| value.then(|| index));
+            }
+            Some(key) => {
+                if self.keys_down[key] {
+                    self.sound_timer = 4;
+                } else if self.sound_timer == 0 {
+                    self.pc += 2;
+                    self.v[x] = key as u8;
+                    self.key_pressed = None;
+                }
+            }
+        };
     }
 }

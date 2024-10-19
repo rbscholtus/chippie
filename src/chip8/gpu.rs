@@ -4,13 +4,12 @@ use egui::{Color32, ColorImage, ImageData};
 use once_cell::sync::Lazy;
 use std::sync::Arc;
 
-static COLOR_ON: Lazy<Color32> = Lazy::new(|| Color32::from_rgba_premultiplied(255, 255, 255, 255));
-static COLOR_OFF: Lazy<Color32> = Lazy::new(|| Color32::from_rgba_premultiplied(0, 0, 0, 255));
-
 /// the screen is 64 pixels wide x 32 pixels high
 #[derive(Debug, Clone, Copy)]
 pub struct GPU {
     pub buffer: [u64; 32],
+    pub color_on: Color32,
+    pub color_off: Color32,
     // dirty_lines: [bool; 32],
     // pub dirty: bool,
 }
@@ -19,6 +18,8 @@ impl GPU {
     pub fn new() -> Self {
         GPU {
             buffer: [0; 32],
+            color_on: Color32::WHITE,
+            color_off: Color32::BLACK,
             // dirty_lines: [true; 32],
             // dirty: true,
         }
@@ -86,9 +87,9 @@ impl Into<ImageData> for GPU {
             let mut mask = 1 << 63;
             for _ in 0..64 {
                 pixel_data.push(if self.buffer[y] & mask > 0 {
-                    *COLOR_ON
+                    self.color_on
                 } else {
-                    *COLOR_OFF
+                    self.color_off
                 });
                 mask >>= 1;
             }
