@@ -291,7 +291,7 @@ impl TemplateApp<'_> {
             // Show emu speed slider
             ui.separator();
             ui.label("Speed:");
-            ui.add(egui::Slider::new(&mut self.ticks_per_frame, 1..=256).text("ticks/sec"));
+            ui.add(egui::Slider::new(&mut self.ticks_per_frame, 1..=256).text("ticks/frame"));
         });
     }
 
