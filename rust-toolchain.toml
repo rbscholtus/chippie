@@ -1,5 +1,5 @@
 [toolchain]
-channel = "stable"                   # Avoid specifying a patch version here
+channel = "1.76"                     # Avoid specifying a patch version here
 components = ["rustfmt", "clippy"]
 targets = ["wasm32-unknown-unknown"]
 profile = "default"                  # optional: default, minimal, or complete

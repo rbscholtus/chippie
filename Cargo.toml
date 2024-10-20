@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Barend Scholtus <barend.scholtus@gmail.com>"]
 edition = "2021"
 include = ["LICENSE", "**/*.rs", "Cargo.toml"]
-rust-version = "1.81"
+rust-version = "1.76"
 description = "Chippie is a Chip-8 interpreter, native & web, with tests and games included."
 license = "Apache-2.0"
 
