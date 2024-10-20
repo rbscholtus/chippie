@@ -2,11 +2,15 @@
 #[derive(Debug, Clone, Copy)]
 pub struct Gpu {
     pub buffer: [u64; 32],
+    pub has_changed: bool,
 }
 
 impl Gpu {
     pub fn new() -> Self {
-        Gpu { buffer: [0; 32] }
+        Gpu {
+            buffer: [0; 32],
+            has_changed: true,
+        }
     }
 
     pub fn clear(&mut self) {
@@ -19,6 +23,8 @@ impl Gpu {
         if y > 31 {
             return false;
         }
+
+        self.has_changed = true;
 
         // shift the sprite to the desired x coordinate
         let mask = if x <= 56 {

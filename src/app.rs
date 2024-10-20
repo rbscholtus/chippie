@@ -11,16 +11,10 @@ use web_time::{Duration, Instant};
 const EMU_ASPECT_RATIO: f32 = 64_f32 / 32_f32;
 static FRAME_DURATION: Lazy<Duration> = Lazy::new(|| Duration::from_secs_f64(1_f64 / 60_f64));
 
-fn calculate_sha1(data: &Vec<u8>) -> String {
-    // Create a Sha1 hasher instance
+fn calculate_sha1(data: &[u8]) -> String {
     let mut hasher = Sha1::new();
-
-    // Feed the Vec<u8> data into the hasher
     hasher.update(data);
-
-    // Retrieve the resulting hash as bytes and convert to a hexadecimal string
-    let result = hasher.finalize();
-    hex::encode(result)
+    hex::encode(hasher.finalize())
 }
 
 pub struct TemplateApp<'a> {
@@ -126,7 +120,8 @@ impl TemplateApp<'_> {
 
     fn update_emu_state(&mut self) {
         // doing an update(s)
-        while self.next_update < Instant::now() {
+        let now = Instant::now();
+        while self.next_update < now {
             if !self.paused {
                 self.chip8.ticks(self.ticks_per_frame);
                 self.updates += 1;
@@ -138,98 +133,60 @@ impl TemplateApp<'_> {
         }
     }
 
+    fn load_roms_menu(
+        &mut self,
+        ui: &mut egui::Ui,
+        roms: &std::collections::HashMap<&str, Vec<u8>>,
+    ) {
+        // Collect the filenames into a vector and sort them
+        let mut filenames: Vec<_> = roms.keys().collect();
+        filenames.sort();
+
+        // Display each item in the menu
+        for &filename in filenames {
+            if ui.button(filename).clicked() {
+                self.hash = None;
+                self.program_info = None;
+                self.rom_info = None;
+
+                // load ROM data
+                let bindata = roms.get(filename).unwrap();
+                let hash = calculate_sha1(bindata);
+
+                // get program and rom info, and set tickrate
+                if let Some(id) = roms_db::HASHES.get(&hash) {
+                    self.program_info = roms_db::PROGRAMS.get(*id as usize);
+                    self.rom_info = self
+                        .program_info
+                        .and_then(|pr_info| pr_info.roms.get(&hash));
+                    if let Some(ticks) = self.rom_info.and_then(|rinfo| rinfo.get_tickrate()) {
+                        self.ticks_per_frame = ticks;
+                    }
+                    self.hash = Some(hash);
+
+                    // show popup next frame
+                    self.show_popup = true;
+                    self.start_clicked = false;
+                    self.paused = true;
+                } else {
+                    self.paused = false;
+                }
+
+                // create new emu with the same colors
+                self.chip8 = chip8::cpu::Cpu::new();
+                self.chip8.bus.load_rom(bindata);
+                ui.close_menu();
+            }
+        }
+    }
+
     fn show_menu(&mut self, _ctx: &Context, ui: &mut egui::Ui) {
         menu::bar(ui, |ui| {
             ui.menu_button("Programs", |ui| {
                 ui.menu_button("Timendus tests", |ui| {
-                    // Collect the filenames into a vector and sort them
-                    let mut filenames: Vec<&str> = roms_db::ROMS.keys().cloned().collect();
-                    filenames.sort();
-
-                    for filename in filenames {
-                        if ui.button(filename).clicked() {
-                            self.hash = None;
-                            self.program_info = None;
-                            self.rom_info = None;
-
-                            // load ROM data
-                            let bindata = roms_db::ROMS.get(filename).unwrap();
-                            let hash = calculate_sha1(bindata);
-
-                            // get program and rom info, and set tickrate
-                            if let Some(id) = roms_db::HASHES.get(&hash) {
-                                self.program_info = roms_db::PROGRAMS.get(*id as usize);
-                                self.rom_info = self
-                                    .program_info
-                                    .and_then(|pr_info| pr_info.roms.get(&hash));
-                                if let Some(ticks) =
-                                    self.rom_info.and_then(|rinfo| rinfo.get_tickrate())
-                                {
-                                    self.ticks_per_frame = ticks
-                                }
-                                self.hash = Some(hash);
-
-                                // show popup next frame
-                                self.paused = true;
-                                self.show_popup = true;
-                                self.start_clicked = false;
-                            } else {
-                                self.paused = false;
-                            }
-
-                            // create new emu with the same colors
-                            self.chip8 = chip8::cpu::Cpu::new();
-                            self.chip8.bus.load_rom(bindata);
-
-                            ui.close_menu();
-                        }
-                    }
+                    self.load_roms_menu(ui, &roms_db::ROMS)
                 });
-
-                ui.menu_button("Games", |ui| {
-                    // Collect the filenames into a vector and sort them
-                    let mut filenames: Vec<&str> = roms_db::ROMS2.keys().cloned().collect();
-                    filenames.sort();
-
-                    for filename in filenames {
-                        if ui.button(filename).clicked() {
-                            self.hash = None;
-                            self.program_info = None;
-                            self.rom_info = None;
-
-                            // load ROM data
-                            let bindata = roms_db::ROMS2.get(filename).unwrap();
-                            let hash = calculate_sha1(bindata);
-
-                            // get program and rom info, and set tickrate
-                            if let Some(id) = roms_db::HASHES.get(&hash) {
-                                self.program_info = roms_db::PROGRAMS.get(*id as usize);
-                                self.rom_info = self
-                                    .program_info
-                                    .and_then(|pr_info| pr_info.roms.get(&hash));
-                                if let Some(ticks) =
-                                    self.rom_info.and_then(|rinfo| rinfo.get_tickrate())
-                                {
-                                    self.ticks_per_frame = ticks
-                                }
-                                self.hash = Some(hash);
-
-                                // show popup next frame
-                                self.paused = true;
-                                self.show_popup = true;
-                                self.start_clicked = false;
-                            } else {
-                                self.paused = false;
-                            }
-
-                            // create new emu with the same colors
-                            self.chip8 = chip8::cpu::Cpu::new();
-                            self.chip8.bus.load_rom(bindata);
-
-                            ui.close_menu();
-                        }
-                    }
-                });
+                ui.menu_button("Games", |ui| self.load_roms_menu(ui, &roms_db::ROMS2));
             });
 
             ui.menu_button("Color", |ui| {
@@ -290,7 +247,7 @@ impl TemplateApp<'_> {
 
             // Show emu speed slider
             ui.separator();
-            ui.label("Speed:");
+            ui.label("Tickrate (speed):");
             ui.add(egui::Slider::new(&mut self.ticks_per_frame, 1..=256).text("ticks/frame"));
         });
     }
@@ -468,6 +425,7 @@ impl TemplateApp<'_> {
     fn show_emu_image(&mut self, ctx: &Context, ui: &mut egui::Ui, image_size: Vec2) {
         // Load new or update the existing framebuffer texture
         let image_texture = self.image_texture.get_or_insert_with(|| {
+            self.chip8.bus.gpu.has_changed = false;
             ctx.load_texture(
                 "gpu",
                 gpu_to_image_data(&self.chip8.bus.gpu.buffer, self.color_on, self.color_off),
@@ -476,16 +434,16 @@ impl TemplateApp<'_> {
         });
 
         // Update the framebuffer texture
-        image_texture.set(
-            gpu_to_image_data(&self.chip8.bus.gpu.buffer, self.color_on, self.color_off),
-            TextureOptions::NEAREST,
-        );
+        if self.chip8.bus.gpu.has_changed {
+            self.chip8.bus.gpu.has_changed = false;
+            image_texture.set(
+                gpu_to_image_data(&self.chip8.bus.gpu.buffer, self.color_on, self.color_off),
+                TextureOptions::NEAREST,
+            );
+        }
 
         // Draw the texture in the UI
-        ui.image((
-            image_texture.id(),
-            image_size, /* ui.available_size() */
-        ));
+        ui.image((image_texture.id(), image_size));
 
         self.frames += 1;
     }
