@@ -1,1 +1,23 @@
 [build]
+#target = "wasm32-unknown-unknown"
+#dist = "dist"
+#public_url = "/my-app/"
+#release = true
+
+[serve]
+#port = 3000
+#open = true
+#proxy_backend = "http://localhost:8000"
+#proxy_ws = true
+
+[rust]
+#extra_args = ["--features", "wasm-support"]
+
+[filehash]
+#enable = true
+#hash_length = 12
+
+[assets]
+#files = ["static/", "assets/"]
+#[assets.copy]
+#"static/favicon.ico" = "dist/favicon.ico"
