@@ -1,0 +1,87 @@
+<title>Chippie Ebitengine Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: the game owns the whole page; the loader is a centred card that disappears once Go is running. */
+  :root {
+    --room: #16130f;      /* dim living room behind the TV */
+    --ink: #efe3cc;       /* warm phosphor-white text */
+    --muted: #a8977a;
+    --amber: #ffb43c;     /* CRT amber, the one accent */
+    --track: #2c261e;
+    --font-display: "VT323", ui-monospace, "Courier New", monospace;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body { background: var(--room); color: var(--ink); font-family: var(--font-body); overflow: hidden; }
+  #loader {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px;
+  }
+  #loader[hidden] { display: none; }
+  .card { width: min(30rem, 100%); display: grid; gap: 0.9rem; }
+  h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 3rem; line-height: 1; color: var(--amber); letter-spacing: 0.02em; text-wrap: balance; }
+  p { margin: 0; line-height: 1.5; color: var(--muted); }
+  .bar { height: 10px; background: var(--track); border-radius: 2px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--amber); transition: width 0.15s linear; }
+  #status { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #status.error { color: #ff7a6b; }
+  @media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=VT323&display=swap">
+
+<div id="loader">
+  <div class="card">
+    <h1>Chippie</h1>
+    <p>Prototype: Ebitengine + ebitenui, a Kage CRT shader, and IndexedDB, all written in Go and compiled to WebAssembly.</p>
+    <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+    <div id="status" role="status">Warming up the tube…</div>
+  </div>
+</div>
+
+<script>
+/*__WASM_EXEC__*/
+</script>
+<script>
+(async () => {
+  const bar = document.getElementById("bar");
+  const status = document.getElementById("status");
+  const fail = (msg) => { status.textContent = msg; status.classList.add("error"); };
+  try {
+    if (!("DecompressionStream" in window)) { fail("This browser can't unpack the game (no DecompressionStream). Try a current Chrome, Firefox or Safari."); return; }
+    const t0 = performance.now();
+    const res = await fetch("chippie-gz.wasm");
+    if (!res.ok) { fail("Couldn't download the game (HTTP " + res.status + ")."); return; }
+    const total = Number(res.headers.get("content-length")) || 5075153;
+    let got = 0;
+    const counted = res.body.pipeThrough(new TransformStream({
+      transform(chunk, ctl) {
+        got += chunk.byteLength;
+        bar.style.width = Math.min(100, (got / total) * 100).toFixed(1) + "%";
+        status.textContent = "Downloading " + (got / 1048576).toFixed(1) + " of " + (total / 1048576).toFixed(1) + " MB";
+        ctl.enqueue(chunk);
+      }
+    }));
+    // Unpack only if the bytes are still gzip; a host may already have decoded them.
+    let raw = await new Response(counted).arrayBuffer();
+    const head = new Uint8Array(raw, 0, 2);
+    if (head[0] === 0x1f && head[1] === 0x8b) {
+      status.textContent = "Unpacking…";
+      raw = await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+    }
+    const t1 = performance.now();
+    status.textContent = "Compiling " + (raw.byteLength / 1048576).toFixed(1) + " MB of WebAssembly…";
+    const go = new Go();
+    const { instance } = await WebAssembly.instantiate(raw, go.importObject);
+    const t2 = performance.now();
+    console.log(`[chippie] download+unpack ${(t1 - t0).toFixed(0)} ms, compile ${(t2 - t1).toFixed(0)} ms`);
+    window.chippieTimings = { download: t1 - t0, compile: t2 - t1 };
+    document.getElementById("loader").hidden = true;
+    go.run(instance);
+  } catch (e) {
+    fail("The game failed to start: " + (e && e.message ? e.message : e));
+  }
+})();
+</script>

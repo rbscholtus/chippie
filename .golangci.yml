@@ -1,0 +1,85 @@
+version: "2"
+
+linters:
+  default: all
+  # Every disabled linter needs a one-line reason (CONTRIBUTING.md).
+  disable:
+    # Deprecated, replaced by the newer version that `default: all` enables
+    - exhaustruct      # replaced by exhaustruct_v5
+    - gomodguard       # replaced by gomodguard_v2
+    - wsl              # replaced by wsl_v5
+
+    # Too opinionated
+    - varnamelen       # short names are idiomatic in an emulator (x, y, n, vx, op, m)
+
+  settings:
+    # Enforces the package rules in CONTRIBUTING.md.
+    depguard:
+      rules:
+        core:
+          list-mode: lax
+          files:
+            - "**/chip8/**"
+          deny:
+            - pkg: syscall/js
+              desc: "chip8 is platform-free; syscall/js lives only in platform/"
+            - pkg: time
+              desc: "chip8 never reads the clock; it advances only through RunFrame"
+            - pkg: math/rand
+              desc: "no global RNG state; use the machine's seeded source"
+            - pkg: os
+              desc: "chip8 does no I/O"
+            - pkg: net
+              desc: "chip8 does no I/O"
+            - pkg: github.com
+              desc: "chip8 imports only the standard library"
+            - pkg: golang.org
+              desc: "chip8 imports only the standard library"
+        no-ebiten:
+          list-mode: lax
+          files:
+            - "**/catalogue/**"
+            - "**/romstore/**"
+          deny:
+            - pkg: github.com/hajimehoshi/ebiten
+              desc: "catalogue and romstore stay UI-free"
+            - pkg: github.com/ebitenui
+              desc: "catalogue and romstore stay UI-free"
+        js-only-in-platform:
+          list-mode: lax
+          files:
+            - $all
+            - "!**/platform/**"
+          deny:
+            - pkg: syscall/js
+              desc: "syscall/js is allowed only in platform/"
+        testrig-only-in-tests:
+          list-mode: lax
+          files:
+            - $all
+            - "!$test"
+            - "!**/internal/testrig/**"
+          deny:
+            - pkg: github.com/rbscholtus/chippie/internal/testrig
+              desc: "testrig is for tests only"
+
+  exclusions:
+    generated: lax
+    presets:
+      - common-false-positives
+      - std-error-handling
+    paths:
+      - third_party$
+
+formatters:
+  enable:
+    - gofumpt          # stricter gofmt (CONTRIBUTING.md)
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/rbscholtus/chippie
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$

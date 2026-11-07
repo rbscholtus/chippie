@@ -1,0 +1,45 @@
+# ── Go: build artifacts ──────────────────────────────────────────
+/chippie
+*.exe
+*.wasm
+*.test
+*.go.bak
+bin/
+
+# ── Go: tests, coverage, profiling ───────────────────────────────
+*.out
+coverage.html
+*.prof
+*.pprof
+testdata/failures/
+vendor/
+
+# ── Web build & browser tests ────────────────────────────────────
+web/dist/
+node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+e2e/playwright/.cache/
+
+# ── Generated art (built from the masters by scripts/build.sh) ───
+assets/**/*@1x.*
+assets/**/*@2x.*
+assets/**/*@3x.*
+
+# ── Scripts ──────────────────────────────────────────────────────
+__pycache__/
+
+# ── IDE & editor ─────────────────────────────────────────────────
+.idea/
+.vscode/*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# ── OS ───────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+
+# ── AI tool state ────────────────────────────────────────────────
+.gemini/*
+.claude/settings.local.json
