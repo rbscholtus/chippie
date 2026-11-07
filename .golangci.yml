@@ -11,6 +11,9 @@ linters:
 
     # Too opinionated
     - varnamelen       # short names are idiomatic in an emulator (x, y, n, vx, op, m)
+    - nlreturn         # blank line before every return; pure style, adds no safety
+    - mnd              # opcode masks and shifts (0x0F00, >>8) are clearer inline than named
+    - testpackage      # opcode tests need unexported state (registers, quirks)
 
   settings:
     # Enforces the package rules in CONTRIBUTING.md.
