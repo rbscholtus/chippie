@@ -121,7 +121,7 @@ These are the coding standards for Chippie. The design is described in
 ## Assets
 
 - **Every asset has a recorded origin and licence** in `assets/LICENSES.md`:
-  Midjourney prompt and job ID for art, licence for fonts, source for hosted
+  generator, model and prompt for art, licence for fonts, source for hosted
   ROMs.
 - **Fonts:** OFL or similarly free licences only.
 - **Art sizes:** keep within the budgets in README §12.2. Pre-scaled `@1x`,
