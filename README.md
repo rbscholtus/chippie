@@ -261,6 +261,7 @@ type Quirks struct {
     Jump                  bool // BNNN behaves as BXNN (jump to XNN + vX)
     VBlank                bool // DXYN waits for vertical blank
     Logic                 bool // 8XY1/2/3 reset vF to 0
+    LegacySuperChip       bool // the HP48's real SUPER-CHIP behaviour (§7); not in quirks.json
 }
 
 type Profile struct {
@@ -298,7 +299,7 @@ value. Defaults come straight from that file:
 | `chip8x` | 64×32 | 15 | Colour extension (later) |
 | `chip48` | 64×32 | 30 | HP48 |
 | `superchip1` | 64×32, 128×64 | 30 | SCHIP 1.0 |
-| `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1 (legacy behaviour) |
+| `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
 | `megachip8` | up to 256×192 | 1000 | Later, if ever |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
 
@@ -306,8 +307,10 @@ value. Defaults come straight from that file:
 `superchip1` / `superchip` → `xochip`. That covers about 98% of the ROMs in the
 database (291 VIP, 105 SCHIP 1.1, 97 XO-CHIP, 42 modern).
 
-The display is two 128×64 bit-planes. Lo-res, hi-res, scrolling and XO-CHIP
-plane selection all work on that one fixed buffer.
+The display is one byte per pixel at the active resolution, with the XO-CHIP
+planes as bits of that byte. The buffer is sized for the platform's largest
+resolution. Legacy SUPER-CHIP lo-res keeps the full 128×64 screen with 2×2
+pixels, so scrolling can move half a lo-res pixel.
 
 ### 6.4 Instruction trace
 
@@ -332,6 +335,15 @@ The emulator works out a profile when a ROM is loaded:
 3. User overrides           saved per ROM hash (platform/prefs: localStorage)
 ```
 
+- **chip8Archive quirks:** SUPER-CHIP and XO-CHIP games from chip8Archive were
+  written in Octo and run with the quirks recorded there (§10). A switch that
+  isn't listed means Octo's default, off. chip-8-database wins where it sets a
+  value of its own.
+- **Legacy SUPER-CHIP** is a per-ROM setting, off by default. chip-8-database
+  has one `superchip` entry, and its quirks are the modern behaviour almost all
+  ROMs expect. The setting adds what the HP48 really did: lo-res display wait,
+  2×2 lo-res pixels with half-pixel scrolling, 8×16 lo-res `DXY0`, row-counting
+  `VF` in hi-res, and no clear on a resolution switch.
 - **Unknown ROMs** (hash not in the database) start with `modernChip8`
   defaults. The settings panel lets the user pick a platform and toggle quirks.
 - **"Reset to recommended"** drops the user's overrides for that ROM.
@@ -745,8 +757,11 @@ uploads that folder as an artifact. Each run starts by clearing it.
 | 5-quirks | 1 / 2 / 3 / 4 | CHIP-8, SCHIP modern, XO-CHIP, SCHIP legacy | — | `quirks*.png` + generated |
 | 6-keypad | 1 / 2 / 3 | Ex9E, ExA1, Fx0A | scripted presses of 1 and 6 | `keypad-*.png` |
 | 7-beep | — | all | press `B` | buzzer-state assertion |
-| 8-scrolling | 1–5 | SCHIP lo-res modern/legacy, SCHIP hi-res, XO lo/hi-res | — | `*-scrolling.png` |
+| 8-scrolling | 1–5 | SCHIP lo-res modern/legacy, SCHIP hi-res, XO lo/hi-res | — | `*-scrolling.png` (SCHIP, see below); generated (XO-CHIP) |
 
+- **Corrected pictures:** `lores-scrolling.png` and `hires-scrolling.png` show
+  two border pixels as off that the ROM can't turn off. `cmd/golden-import`
+  corrects exactly those pixels and explains why.
 - **Pinning:** the suite is a git submodule pinned to tag `v4.2`. The ROM
   hashes are also recorded in the test table, so an accidental submodule bump
   fails loudly.
@@ -877,7 +892,9 @@ Once the emulator works (after milestone M4):
 
 ## 19. Milestones
 
-Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md).
+Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md). For M5
+and M7: [docs/plans/M5-M7.md](docs/plans/M5-M7.md). The order is M5, M7, M6, M8;
+M7 does not depend on M6.
 
 | # | Milestone | Done when |
 |---|---|---|
