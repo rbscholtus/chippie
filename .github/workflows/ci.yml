@@ -55,6 +55,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y $EBITEN_DEPS xvfb
       - name: Test (race)
         run: xvfb-run -a go test -race -coverprofile=coverage.out ./...
+      - name: Upload golden-frame failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-failures
+          path: testdata/failures
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Coverage summary
         run: |
           {
