@@ -901,6 +901,14 @@ To be settled while building, not before:
 - **Fonts for the UI and OSD.** OFL-licensed only (e.g. a period-appropriate
   face for the OSD). Record in `assets/LICENSES.md`.
 
+**Ideas for the end of the project:**
+
+- **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
+  entry has a `keys` hint (27 of the 204 downloadable ones), also map the
+  arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
+  usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
+  keypad; show those properly instead of "?".
+
 ## 21. References
 
 - [CHIP-8 on Wikipedia](https://en.wikipedia.org/wiki/CHIP-8)
