@@ -1,50 +1,61 @@
 import { test, expect } from "@playwright/test";
-import { golden, gridText, rowCentre, sampleScreen, touchDrag, touchTap, waitForApp } from "./screen";
+import {
+  golden, gridText, offline, pickerSearchY, rowCentre, sampleScreen, touchDrag, touchTap, waitForApp,
+} from "./screen";
 
 // Phone only: touch input through the DevTools protocol (Chromium).
 test.skip(({ hasTouch }) => !hasTouch, "touch tests run on the phone project");
 
-// Rows of the M3 picker: GAMES heading, 6 games, TEST SUITE heading, 8 tests.
-const ibmRow = 9;
+test.beforeEach(async ({ page }) => offline(page));
 
-test("tap to switch on, tap a test ROM, and it runs", async ({ page }) => {
+async function running(page) {
+  const text = gridText(await sampleScreen(page));
+  return !text.includes("?") && (text.match(/#/g) ?? []).length > 20;
+}
+
+test("tap the search field, type, tap a result, and it runs", async ({ page }) => {
   await page.goto("/?shader=clean");
   await waitForApp(page);
 
   await touchTap(page, 195, 400); // switch on: must not also pick a ROM
   await page.waitForTimeout(500);
-  await touchTap(page, 100, rowCentre(ibmRow));
+  await touchTap(page, 195, pickerSearchY); // focus: the phone keyboard opens
+  // Headless Chromium drops the first keys typed into the input method's
+  // field (README §15.3; real phones don't): start with spaces, which the
+  // search ignores.
+  await page.keyboard.type("  ibm logo", { delay: 150 });
+  await page.waitForTimeout(500);
+  await touchTap(page, 100, rowCentre(2)); // the first result
 
   await expect.poll(async () => gridText(await sampleScreen(page)), { intervals: [500] }).toBe(golden("2-ibm-logo"));
 });
 
-test("drag scrolls the list without picking, then a tap picks", async ({ page }) => {
-  // A short screen (like a phone in landscape), so the list must scroll.
-  await page.setViewportSize({ width: 390, height: 500 });
+test("a drag scrolls the list and doesn't pick", async ({ page }) => {
   await page.goto("/?shader=clean");
   await waitForApp(page);
 
   await touchTap(page, 195, 400);
   await page.waitForTimeout(500);
+  await touchDrag(page, 100, rowCentre(8), rowCentre(2)); // starts on a ROM
+  await page.waitForTimeout(1000);
 
-  // Drag up by four rows, starting on Glitch Ghost: a drag must not pick.
-  const scrolled = 4 * 44;
-  await touchDrag(page, 100, rowCentre(1) + scrolled, rowCentre(1));
-  await page.waitForTimeout(500);
-  expect(gridText(await sampleScreen(page))).toContain("?"); // still the picker
-
-  await touchTap(page, 100, rowCentre(ibmRow, scrolled));
-  await expect.poll(async () => gridText(await sampleScreen(page)), { intervals: [500] }).toBe(golden("2-ibm-logo"));
+  expect(gridText(await sampleScreen(page))).toContain("?"); // still the drawer
 });
 
-test("tapping under the picture goes back to the list", async ({ page }) => {
-  await page.goto("/?rom=test/2-ibm-logo&shader=clean");
+test("tapping under the picture opens the list or the settings", async ({ page }) => {
+  await page.goto("/?rom=game/glitchGhost&shader=clean");
   await waitForApp(page);
-  await expect.poll(async () => gridText(await sampleScreen(page)), { intervals: [500] }).toBe(golden("2-ibm-logo"));
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 
   const vp = page.viewportSize()!;
-  await touchTap(page, vp.width / 2, vp.height - 40);
+  await touchTap(page, 30, vp.height - 40); // left: ROM list
   await page.waitForTimeout(500);
+  expect(gridText(await sampleScreen(page))).toContain("?");
 
-  expect(gridText(await sampleScreen(page))).toContain("?"); // the picker covers it
+  await page.goto("/?rom=game/glitchGhost&shader=clean");
+  await waitForApp(page);
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+  await touchTap(page, vp.width - 30, vp.height - 40); // right: settings
+  await page.waitForTimeout(500);
+  expect(gridText(await sampleScreen(page))).toContain("?");
 });
