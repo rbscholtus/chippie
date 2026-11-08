@@ -16,21 +16,13 @@ var snapshot embed.FS
 func SnapshotFiles() (Files, error) {
 	var f Files
 
-	for _, part := range []struct {
-		name string
-		dst  *[]byte
-	}{
-		{"platforms.json", &f.Platforms},
-		{"quirks.json", &f.Quirks},
-		{"programs.json", &f.Programs},
-		{"sha1-hashes.json", &f.Hashes},
-	} {
+	for _, part := range f.parts() {
 		data, err := snapshot.ReadFile("snapshot/" + part.name)
 		if err != nil {
 			return Files{}, fmt.Errorf("read snapshot: %w", err)
 		}
 
-		*part.dst = data
+		*part.data = data
 	}
 
 	return f, nil

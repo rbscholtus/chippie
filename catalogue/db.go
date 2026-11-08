@@ -25,6 +25,22 @@ type Files struct {
 	Hashes    []byte // sha1-hashes.json
 }
 
+// filePart is one database file: its name and where its bytes go.
+type filePart struct {
+	name string
+	data *[]byte
+}
+
+// parts lists the four files in a fixed order.
+func (f *Files) parts() []filePart {
+	return []filePart{
+		{"platforms.json", &f.Platforms},
+		{"quirks.json", &f.Quirks},
+		{"programs.json", &f.Programs},
+		{"sha1-hashes.json", &f.Hashes},
+	}
+}
+
 // DB is a parsed, validated chip-8-database.
 type DB struct {
 	Platforms map[string]*Platform // by platforms.json id
@@ -109,17 +125,10 @@ func Parse(f Files) (*DB, error) {
 		hashes    map[string]int
 	)
 
-	for _, part := range []struct {
-		name string
-		data []byte
-		dst  any
-	}{
-		{"platforms.json", f.Platforms, &platforms},
-		{"quirks.json", f.Quirks, &quirks},
-		{"programs.json", f.Programs, &programs},
-		{"sha1-hashes.json", f.Hashes, &hashes},
-	} {
-		if err := json.Unmarshal(part.data, part.dst); err != nil {
+	dsts := []any{&platforms, &quirks, &programs, &hashes} // in parts() order
+
+	for i, part := range f.parts() {
+		if err := json.Unmarshal(*part.data, dsts[i]); err != nil {
 			return nil, fmt.Errorf("%w: %s: %w", ErrInvalid, part.name, err)
 		}
 	}
