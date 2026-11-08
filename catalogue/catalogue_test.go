@@ -153,6 +153,30 @@ func TestResolvePrefersImplementedPlatform(t *testing.T) {
 	}
 }
 
+func TestOverridesForRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+
+	if o := db.OverridesFor(glitchGhost, db.Resolve(glitchGhost, Overrides{}).Profile); !o.Empty() {
+		t.Errorf("recommended profile gave overrides %+v", o)
+	}
+
+	for _, want := range []Overrides{
+		{Tickrate: 30},
+		{Quirks: map[string]bool{"shift": true, "logic": true}},
+		{Platform: "originalChip8"},
+		{Platform: "originalChip8", Quirks: map[string]bool{"vblank": false}, Tickrate: 1000},
+	} {
+		p := db.Resolve(glitchGhost, want).Profile
+		got := db.OverridesFor(glitchGhost, p)
+
+		if db.Resolve(glitchGhost, got).Profile != p {
+			t.Errorf("%+v: OverridesFor gave %+v, which resolves differently", want, got)
+		}
+	}
+}
+
 func TestQuirkMapRoundTrip(t *testing.T) {
 	t.Parallel()
 

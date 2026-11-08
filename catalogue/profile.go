@@ -69,6 +69,39 @@ type Resolved struct {
 // DefaultPlatform is used for ROMs that aren't in the database.
 const DefaultPlatform = "modernChip8"
 
+// OverridesFor is the inverse of Resolve: the overrides that turn the ROM's
+// recommended profile into p. Quirks and speed are compared with what the
+// chosen platform recommends, so changing the platform starts from that
+// platform's defaults.
+func (db *DB) OverridesFor(sha1 string, p chip8.Profile) Overrides {
+	var o Overrides
+
+	recommended := db.Resolve(sha1, Overrides{})
+	base := recommended.Profile
+
+	if p.Platform != base.Platform {
+		o.Platform = p.Platform.String()
+		base = db.Resolve(sha1, o).Profile
+	}
+
+	want, have := QuirkMap(p.Quirks), QuirkMap(base.Quirks)
+	for id, v := range want {
+		if have[id] != v {
+			if o.Quirks == nil {
+				o.Quirks = map[string]bool{}
+			}
+
+			o.Quirks[id] = v
+		}
+	}
+
+	if p.TicksPerFrame != base.TicksPerFrame {
+		o.Tickrate = p.TicksPerFrame
+	}
+
+	return o
+}
+
 // Resolve works out the profile for a ROM (README §7):
 //
 //  1. platform defaults from platforms.json;
