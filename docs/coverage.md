@@ -1,6 +1,6 @@
 # ROM coverage
 
-Generated 2026-11-08T17:52:18Z by `cmd/catalogue-gen`.
+Generated 2026-11-08T20:56:08Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
@@ -9,9 +9,10 @@ chip-8-database: 484 programs, 543 ROMs.
 | chip8Archive | 104 | 100 | 4 |
 | kripod/chip8-roms | 106 | 96 | 10 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
-| **All combined** | **218** | **204** | **14** |
+| Hosted by Chippie (from Zophar PD packs) | 12 | 12 | 0 |
+| **All combined** | **230** | **216** | **14** |
 
-Downloadable ROMs in the manifest: 204 of 543 in the database.
+Downloadable ROMs in the manifest: 216 of 543 in the database.
 
 ## Not in chip-8-database
 
@@ -32,7 +33,7 @@ Downloadable ROMs in the manifest: 204 of 543 in the database.
 
 ## chip8Archive vs chip-8-database
 
-chip-8-database wins; these are candidates for upstream fixes.
+The database wins; these are candidates for upstream fixes.
 
 - Chipcross (83300ff710acdd8417376b88adf40f68171f7ec7): platform: chip-8-database "xochip", chip8Archive "schip"
 - Eaty The Alien (fcaa793332a83c93f4ed79f5ffbc8403c8b8aea0): platform: chip-8-database "xochip", chip8Archive "schip"

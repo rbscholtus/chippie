@@ -24,7 +24,7 @@ type archive struct {
 
 // archives are the collections in README §9.1 that browsers can download
 // from (GitHub raw, CORS *). Zophar's packs aren't: the 12 ROMs only found
-// there are hosted by Chippie from M5.
+// there are hosted by Chippie; see hostedArchive.
 var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 	{
 		id: "chip8archive",
@@ -52,6 +52,29 @@ var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 		repo: "Timendus/chip8-test-suite", ref: "v4.2",
 		include: func(f string) bool { return strings.HasPrefix(f, "bin/") && strings.HasSuffix(f, ".ch8") },
 	},
+}
+
+// hostedArchive is web/hosted-roms: ROMs Chippie serves beside the app, at
+// relative URLs. Only the ROMs count, not the notes and attribution next to
+// them, which have file extensions.
+var hostedArchive = archive{ //nolint:gochecknoglobals // read-only configuration
+	id: catalogue.HostedSource,
+	info: catalogue.SourceInfo{
+		Name: "Hosted by Chippie (from Zophar PD packs)", Home: "https://www.zophar.net/pdroms/chip8.html",
+	},
+	include: func(f string) bool { return path.Ext(f) == "" },
+}
+
+// hostedURLPrefix is where build.sh puts the hosted ROMs, relative to the app.
+const hostedURLPrefix = "roms/hosted/"
+
+// locationURL is where a file of an archive can be downloaded.
+func locationURL(t tree, file string) string {
+	if t.archive.id == catalogue.HostedSource {
+		return hostedURLPrefix + url.PathEscape(file)
+	}
+
+	return rawURL(t.archive.repo, t.commit, file)
 }
 
 // rawURL is a file's GitHub raw URL, pinned to a commit.
@@ -139,7 +162,7 @@ func generate(db *catalogue.DB, trees []tree, generated string) result {
 			st.inDB++
 
 			res.sources.ROMs[hash] = append(res.sources.ROMs[hash],
-				catalogue.Location{Source: t.archive.id, URL: rawURL(t.archive.repo, t.commit, file)})
+				catalogue.Location{Source: t.archive.id, URL: locationURL(t, file)})
 		}
 
 		res.stats = append(res.stats, st)
@@ -192,7 +215,8 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		}
 	}
 
-	b.WriteString("\n## chip8Archive vs chip-8-database\n\nwins; these are candidates for upstream fixes.\n\n")
+	b.WriteString("\n## chip8Archive vs chip-8-database\n\n")
+	b.WriteString("The database wins; these are candidates for upstream fixes.\n\n")
 
 	if len(conflicts) == 0 {
 		b.WriteString("None.\n")

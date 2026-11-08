@@ -1,11 +1,15 @@
 {
   "version": 1,
-  "generated": "2026-11-08T17:52:18Z",
+  "generated": "2026-11-08T20:56:08Z",
   "sources": {
     "chip8archive": {
       "name": "chip8Archive",
       "license": "CC0-1.0",
       "home": "https://johnearnest.github.io/chip8Archive/"
+    },
+    "chippie": {
+      "name": "Hosted by Chippie (from Zophar PD packs)",
+      "home": "https://www.zophar.net/pdroms/chip8.html"
     },
     "kripod": {
       "name": "kripod/chip8-roms",
@@ -34,6 +38,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/1dcell.ch8"
+      }
+    ],
+    "01ffe488efbe14ca63de1c23053806533e329f3f": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/PIPER"
       }
     ],
     "032408f1f1d8e6058ecf0f23f421783c87701b39": [
@@ -228,6 +238,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/superpong.ch8"
       }
     ],
+    "2cd26a9a84ed2be6aaa6916d49b2e5c503196400": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/CAR"
+      }
+    ],
     "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b": [
       {
         "source": "chip8archive",
@@ -262,6 +278,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/br8kout.ch8"
+      }
+    ],
+    "31fe380556d65600ef293d99aabd3b6bb119aa01": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/FIELD"
       }
     ],
     "3368d56efeb584c509bafb548f1ee5e71ac1bc70": [
@@ -456,6 +478,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Jumping%20X%20and%20O%20%5BHarry%20Kleinberg%2C%201977%5D.ch8"
       }
     ],
+    "5b733a60e7208f6aa0d15c99390ce4f670b2b886": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/BLINKY"
+      }
+    ],
     "5c28a5f85289c9d859f95fd5eadbdcb1c30bb08b": [
       {
         "source": "kripod",
@@ -534,6 +562,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Timebomb.ch8"
       }
     ],
+    "6d677bb44500a5ee4754b3a75516cfd9e73947fc": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/JOUST"
+      }
+    ],
     "6df358d77961a0bf21e98876f9f616791cba31e3": [
       {
         "source": "kripod",
@@ -574,6 +608,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Landing.ch8"
+      }
+    ],
+    "7321e1bbe885a749b2ca875d1f49fb6c01f54f91": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/UBOAT"
       }
     ],
     "74936ffb0db233c722f5a39932d75240b6437a72": [
@@ -774,6 +814,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Sierpinski%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
       }
     ],
+    "a05844df3305738e4030512f0063db2fe4f3bd11": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/SPACEFIG"
+      }
+    ],
     "a18f1e3897416180b32e47ddc82cba9aca2c8d52": [
       {
         "source": "kripod",
@@ -802,6 +848,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/flutterby.ch8"
+      }
+    ],
+    "a56c09537df0f32e2d49fb68cb2ba8216b38f632": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/ANT"
       }
     ],
     "a58ec7cc63707f9e7274026de27c15ec1d9945bd": [
@@ -996,6 +1048,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/X-Mirror.ch8"
       }
     ],
+    "bc5faf54f04da3f4dbde50d3b31ccfc2bf8b9e06": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/ALIEN"
+      }
+    ],
     "bcbf36a68cf389e87dd54a9707cf35c4436dcb92": [
       {
         "source": "chip8archive",
@@ -1050,6 +1108,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam5title.ch8"
       }
     ],
+    "d6fa9dc9005dc0496f39ba52fef56f9fd0a5a158": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/KALEID"
+      }
+    ],
     "d92c71b955b7634370571bd707715cf8bb0e2fb4": [
       {
         "source": "kripod",
@@ -1102,6 +1166,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/blackrainbow.ch8"
+      }
+    ],
+    "e6d4a8598999b3d95047babf67b529d83eaa9554": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/RACE"
       }
     ],
     "e74f20f234753e0cc2f58e29dc02d6128a6a3d97": [
@@ -1174,6 +1244,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chipquarium.ch8"
+      }
+    ],
+    "f8008875a4b35dc7188eeca2a05535116371eaf0": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/WORM3"
       }
     ],
     "f9d0bdf4a80d5570a9af9fd13769e528dff411df": [

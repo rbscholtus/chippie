@@ -4,7 +4,8 @@
 //
 //	platforms.json quirks.json programs.json sha1-hashes.json  chip-8-database
 //	chip8archive-programs.json chip8archive-hashes.json        chip8Archive metadata
-//	sources.json                                               where each ROM can be downloaded
+//	sources.json                                               where each ROM can be downloaded,
+//	                                                           including web/hosted-roms
 //	pins.json                                                  the commits used
 //
 // and the coverage report to docs/coverage.md. It needs the network; the
@@ -53,11 +54,12 @@ func main() {
 	snapshotDir := flag.String("snapshot", "catalogue/snapshot", "snapshot directory")
 	reportPath := flag.String("report", "docs/coverage.md", "coverage report")
 	updatePins := flag.Bool("update-pins", false, "follow each repository's branch or tag instead of the pins")
+	hostedDir := flag.String("hosted", "web/hosted-roms", "directory of the ROMs Chippie hosts itself")
 
 	flag.Parse()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-	err := run(ctx, *snapshotDir, *reportPath, *updatePins)
+	err := run(ctx, *snapshotDir, *reportPath, *hostedDir, *updatePins)
 
 	cancel()
 
@@ -66,7 +68,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, dir, reportPath string, updatePins bool) error {
+func run(ctx context.Context, dir, reportPath, hostedDir string, updatePins bool) error {
 	pins, err := readPins(filepath.Join(dir, "pins.json"))
 	if err != nil {
 		return err
@@ -95,10 +97,42 @@ func run(ctx context.Context, dir, reportPath string, updatePins bool) error {
 		log.Printf("%s@%.7s: %d files", a.repo, pins[a.repo], len(files))
 	}
 
+	hosted, err := readHosted(hostedDir)
+	if err != nil {
+		return err
+	}
+
+	trees = append(trees, tree{archive: hostedArchive, files: hosted})
+
 	res := generate(db, trees, time.Now().UTC().Format(time.RFC3339))
 	keepTimestamp(filepath.Join(dir, "sources.json"), &res.sources)
 
 	return writeOutputs(dir, reportPath, db, trees[0].files[programsFile], res, pins)
+}
+
+// readHosted reads the files directly inside dir, by name.
+func readHosted(dir string) (map[string][]byte, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("hosted ROMs: %w", err)
+	}
+
+	files := make(map[string][]byte, len(entries))
+
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+
+		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("hosted ROMs: %w", err)
+		}
+
+		files[e.Name()] = data
+	}
+
+	return files, nil
 }
 
 // writeOutputs merges chip8Archive's metadata (to find conflicts) and

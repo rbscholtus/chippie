@@ -28,6 +28,15 @@ and a link to its source, into `roms/test-suite/` next to the app, and the app
 fetches them at runtime. Native builds read them from
 `third_party/chip8-test-suite/bin/`.
 
+## Hosted ROMs (`web/hosted-roms/`, shipped separately, not compiled in)
+
+Twelve ROMs that no browser-reachable archive carries, unmodified, from
+[Zophar's Domain CHIP-8 public-domain packs](https://www.zophar.net/pdroms/chip8.html)
+(ALIEN, ANT, BLINKY, CAR, FIELD, JOUST, PIPER, RACE, SPACEFIG, UBOAT, WORM3 from
+the Super Chip Games Pack; KALEID from the Chip-8 Games Pack). Credit belongs to
+their authors. The build copies them, with `web/hosted-roms/README.md` and the
+authors' `.DOC` notes, into `roms/hosted/` next to the app.
+
 ## Fonts
 
 - **Go fonts** (`golang.org/x/image/font/gofont`), BSD 3-Clause, by the Go
@@ -44,4 +53,4 @@ fetches them at runtime. Native builds read them from
 
 ROMs in the library are not shipped: they are downloaded from their original
 archives (chip8Archive, kripod/chip8-roms, the Timendus test suite) at pinned
-commits and cached in the browser.
+commits and cached in the browser, apart from the hosted ROMs above.
