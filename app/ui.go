@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font/gofont/gomono"
 	"golang.org/x/image/font/gofont/goregular"
 
 	"github.com/rbscholtus/chippie/app/input"
@@ -36,17 +37,20 @@ const (
 	touchRowSize   = 44  // Apple's minimum touch target
 	dragThreshold  = 8   // pixels of movement before a press scrolls
 	detailsMinWide = 720 // the drawer shows a details pane from this width
-	detailsShare   = 0.6 // descriptions are often long
+	detailsShare   = 0.7 // descriptions are often long
+	monoSize       = 14  // Go Mono is wider than Go Regular
 	traceLines     = 8
 )
 
 // ui draws the overlays (drawer, settings, messages, the debug line) and
 // owns the layout that input handling uses for hit testing.
 type ui struct {
-	source *text.GoTextFaceSource
-	face   *text.GoTextFace
-	scale  float64
-	touch  bool // a touch was seen: bigger rows, touch wording
+	source  *text.GoTextFaceSource
+	face    *text.GoTextFace
+	mono    *text.GoTextFace // tables and indented lines in descriptions
+	monoSrc *text.GoTextFaceSource
+	scale   float64
+	touch   bool // a touch was seen: bigger rows, touch wording
 
 	layout layout
 }
@@ -70,7 +74,12 @@ func newUI() (*ui, error) {
 		return nil, fmt.Errorf("load font: %w", err)
 	}
 
-	u := &ui{source: src}
+	monoSrc, err := text.NewGoTextFaceSource(bytes.NewReader(gomono.TTF))
+	if err != nil {
+		return nil, fmt.Errorf("load mono font: %w", err)
+	}
+
+	u := &ui{source: src, monoSrc: monoSrc}
 	u.resize(image.Rect(0, 0, 1, 1), image.Rect(0, 0, 1, 1), 1)
 
 	return u, nil
@@ -82,6 +91,7 @@ func (u *ui) lineHeight() float64 { return textSize * lineSpacing * u.scale }
 func (u *ui) resize(window, screen image.Rectangle, scale float64) {
 	u.scale = scale
 	u.face = &text.GoTextFace{Source: u.source, Size: textSize * scale}
+	u.mono = &text.GoTextFace{Source: u.monoSrc, Size: monoSize * scale}
 	u.layout = computeLayout(window, screen, scale, u.lineHeight(), u.touch)
 }
 
@@ -368,10 +378,15 @@ func (u *ui) drawDetails(dst *ebiten.Image, e library.Entry) {
 		}
 
 		if i == room-1 && len(lines) > room {
-			line = u.fit(line+" …", maxW)
+			line.text = u.fit(line.text+" …", maxW)
 		}
 
-		u.text(dst, line, x, y, inkColour)
+		if line.mono {
+			u.textFace(dst, line.text, x, y, inkColour, u.mono)
+		} else {
+			u.text(dst, line.text, x, y, inkColour)
+		}
+
 		y += lh
 	}
 
@@ -452,37 +467,73 @@ func (u *ui) drawTrace(dst *ebiten.Image, g *Game, y float64) {
 }
 
 // wrap splits s into lines no wider than maxW, at spaces.
-func (u *ui) wrap(s string, maxW float64) []string {
-	var lines []string
+// descLine is one drawn line of a description.
+type descLine struct {
+	text string
+	mono bool // preformatted: a table row, indented line or underline
+}
+
+// wrap lays out a (reflowed) description: paragraphs are word-wrapped to
+// maxW, blank lines between them kept (one at most), and preformatted lines
+// drawn as they are, in Go Mono, cut off if too wide.
+func (u *ui) wrap(s string, maxW float64) []descLine {
+	var lines []descLine
+
+	blank := func() bool { return len(lines) == 0 || lines[len(lines)-1].text == "" }
 
 	for para := range strings.SplitSeq(s, "\n") {
-		line := ""
-
-		for word := range strings.FieldsSeq(para) {
-			candidate := word
-			if line != "" {
-				candidate = line + " " + word
+		switch {
+		case strings.TrimSpace(para) == "":
+			if !blank() {
+				lines = append(lines, descLine{})
 			}
-
-			if w, _ := text.Measure(candidate, u.face, 0); w > maxW && line != "" {
-				lines = append(lines, line)
-				candidate = word
-			}
-
-			line = candidate
+		case library.Preformatted(para):
+			lines = append(lines, descLine{text: fitFace(para, maxW, u.mono), mono: true})
+		default:
+			lines = append(lines, u.wrapParagraph(para, maxW)...)
 		}
+	}
 
+	for len(lines) > 0 && lines[len(lines)-1].text == "" {
+		lines = lines[:len(lines)-1]
+	}
+
+	return lines
+}
+
+func (u *ui) wrapParagraph(para string, maxW float64) []descLine {
+	var (
+		lines []descLine
+		line  string
+	)
+
+	for word := range strings.FieldsSeq(para) {
+		candidate := word
 		if line != "" {
-			lines = append(lines, u.fit(line, maxW))
+			candidate = line + " " + word
 		}
+
+		if w, _ := text.Measure(candidate, u.face, 0); w > maxW && line != "" {
+			lines = append(lines, descLine{text: line})
+			candidate = word
+		}
+
+		line = candidate
+	}
+
+	if line != "" {
+		lines = append(lines, descLine{text: u.fit(line, maxW)})
 	}
 
 	return lines
 }
 
 // fit shortens s with "…" until it is at most maxW pixels wide.
-func (u *ui) fit(s string, maxW float64) string {
-	if w, _ := text.Measure(s, u.face, 0); w <= maxW {
+func (u *ui) fit(s string, maxW float64) string { return fitFace(s, maxW, u.face) }
+
+// fitFace is fit for a given font.
+func fitFace(s string, maxW float64, face text.Face) string {
+	if w, _ := text.Measure(s, face, 0); w <= maxW {
 		return s
 	}
 
@@ -491,7 +542,7 @@ func (u *ui) fit(s string, maxW float64) string {
 		r = r[:len(r)-1]
 
 		t := string(r) + "…"
-		if w, _ := text.Measure(t, u.face, 0); w <= maxW {
+		if w, _ := text.Measure(t, face, 0); w <= maxW {
 			return t
 		}
 	}
@@ -506,8 +557,12 @@ func (u *ui) centred(dst *ebiten.Image, r image.Rectangle, s string, c color.Col
 }
 
 func (u *ui) text(dst *ebiten.Image, s string, x, y float64, c color.Color) {
+	u.textFace(dst, s, x, y, c, u.face)
+}
+
+func (u *ui) textFace(dst *ebiten.Image, s string, x, y float64, c color.Color, face text.Face) {
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(x, y)
 	op.ColorScale.ScaleWithColor(c)
-	text.Draw(dst, s, u.face, op)
+	text.Draw(dst, s, face, op)
 }

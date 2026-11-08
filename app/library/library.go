@@ -109,7 +109,7 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 
 	e := Entry{
 		SHA1: rom.SHA1, Title: title, Authors: rom.Program.Authors, Release: rom.Program.Release,
-		Description: rom.Program.Description, Platform: p, Offline: offline, Keys: rom.Keys,
+		Description: Reflow(rom.Program.Description), Platform: p, Offline: offline, Keys: rom.Keys,
 	}
 	if !p.Implemented() {
 		e.Group = ComingSoon
