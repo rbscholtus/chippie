@@ -24,6 +24,7 @@ func ReadParams(_ []string) (Params, error) {
 	}
 
 	tests := base.ResolveReference(&url.URL{Path: "roms/test-suite/"})
+	dir := base.ResolveReference(&url.URL{Path: "./"})
 
 	shader := q.Get("shader")
 	if shader == "" {
@@ -36,6 +37,7 @@ func ReadParams(_ []string) (Params, error) {
 		Shader:   shader,
 		TestROMs: tests.String(),
 		Debug:    q.Get("debug") == "1",
+		Base:     dir.String(),
 	}, nil
 }
 

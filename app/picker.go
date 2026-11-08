@@ -1,14 +1,37 @@
 package app
 
-import "github.com/rbscholtus/chippie/app/roms"
+import (
+	"strconv"
 
-// picker is the M3 ROM list: a scrollable menu for keyboard, mouse and
-// touch. The M4 library drawer replaces it. It holds no Ebitengine state, so
-// it can be tested directly.
+	"github.com/rbscholtus/chippie/app/library"
+)
+
+// rowKind is what a line of the list is.
+type rowKind uint8
+
+const (
+	rowHeading  rowKind = iota // a group heading
+	rowEntry                   // a ROM
+	rowLoadFile                // "Load a ROM from this device…"
+)
+
+// pickerRow is one line of the list as drawn.
+type pickerRow struct {
+	kind    rowKind
+	heading string
+	entry   int // index into entries, for rowEntry
+}
+
+// picker is the library drawer's list: search, group headings and a
+// scrollable list for keyboard, mouse and touch. It holds no Ebitengine
+// state, so it can be tested directly.
 type picker struct {
-	entries  []roms.Entry
+	all      []library.Entry // the whole library
+	entries  []library.Entry // after the search
 	rows     []pickerRow
-	selected int
+	selected int // index into entries
+	query    string
+	canLoad  bool // offer "Load a ROM from this device"
 
 	// Scrolling, in pixels: offset is how far the list is scrolled; viewH
 	// is the visible height and rowH the height of one row.
@@ -17,31 +40,71 @@ type picker struct {
 	rowH   float64
 }
 
-// pickerRow is one line of the list as drawn: a group heading or an entry.
-type pickerRow struct {
-	heading string
-	entry   int // index into entries, or -1 for a heading
-}
-
-func newPicker(entries []roms.Entry) *picker {
-	p := &picker{entries: entries, rowH: 1}
-	p.rows = buildRows(entries)
+func newPicker(all []library.Entry, canLoad bool) *picker {
+	p := &picker{all: all, canLoad: canLoad, rowH: 1}
+	p.refilter()
 
 	return p
 }
 
-// buildRows returns the list as drawn: a heading before each group.
-func buildRows(entries []roms.Entry) []pickerRow {
-	out := make([]pickerRow, 0, len(entries)+2)
-	group := roms.Group(255)
+// setAll replaces the library (after a catalogue refresh), keeping the
+// search and, if it's still there, the selected ROM.
+func (p *picker) setAll(all []library.Entry) {
+	sel, _ := p.current()
+	p.all = all
+	p.refilter()
+
+	if sel.SHA1 != "" {
+		p.selectSHA1(sel.SHA1)
+	}
+}
+
+// markOffline marks cached ROMs as playable offline.
+func (p *picker) markOffline(cached map[string]bool) {
+	library.MarkOffline(p.all, cached)
+	library.MarkOffline(p.entries, cached)
+}
+
+// setQuery filters the list and goes back to its top.
+func (p *picker) setQuery(q string) {
+	if q == p.query {
+		return
+	}
+
+	p.query = q
+	p.refilter()
+	p.selected, p.offset = 0, 0
+}
+
+func (p *picker) refilter() {
+	p.entries = library.Filter(p.all, p.query)
+	p.rows = buildRows(p.entries, p.canLoad)
+	p.selected = min(p.selected, max(len(p.entries)-1, 0))
+	p.scroll(0)
+}
+
+// buildRows returns the list as drawn: the load-file row, then a heading
+// with a count before each group.
+func buildRows(entries []library.Entry, canLoad bool) []pickerRow {
+	out := make([]pickerRow, 0, len(entries)+3)
+	if canLoad {
+		out = append(out, pickerRow{kind: rowLoadFile})
+	}
+
+	counts := map[library.Group]int{}
+	for _, e := range entries {
+		counts[e.Group]++
+	}
+
+	group := library.Group(255)
 
 	for i, e := range entries {
 		if e.Group != group {
 			group = e.Group
-			out = append(out, pickerRow{heading: groupName(group), entry: -1})
+			out = append(out, pickerRow{kind: rowHeading, heading: group.Name() + "  (" + strconv.Itoa(counts[group]) + ")"})
 		}
 
-		out = append(out, pickerRow{entry: i})
+		out = append(out, pickerRow{kind: rowEntry, entry: i})
 	}
 
 	return out
@@ -67,7 +130,7 @@ func (p *picker) scroll(dy float64) {
 // rowOf returns the row index of entry i.
 func (p *picker) rowOf(i int) int {
 	for r, row := range p.rows {
-		if row.entry == i {
+		if row.kind == rowEntry && row.entry == i {
 			return r
 		}
 	}
@@ -102,60 +165,37 @@ func (p *picker) move(delta int) {
 	p.ensureVisible()
 }
 
-// entryAt returns the entry drawn at y pixels below the top of the list,
-// or false for a heading or empty space.
-func (p *picker) entryAt(y float64) (int, bool) {
+// rowAt returns the row drawn at y pixels below the top of the list.
+func (p *picker) rowAt(y float64) (pickerRow, bool) {
 	if y < 0 || y >= p.viewH {
-		return 0, false
+		return pickerRow{}, false
 	}
 
 	r := int((y + p.offset) / p.rowH)
-	if r < 0 || r >= len(p.rows) || p.rows[r].entry < 0 {
-		return 0, false
+	if r < 0 || r >= len(p.rows) {
+		return pickerRow{}, false
 	}
 
-	return p.rows[r].entry, true
-}
-
-// selectIndex selects the entry at i, if it exists.
-func (p *picker) selectIndex(i int) bool {
-	if i < 0 || i >= len(p.entries) {
-		return false
-	}
-
-	p.selected = i
-
-	return true
+	return p.rows[r], true
 }
 
 // current returns the selected entry.
-func (p *picker) current() (roms.Entry, bool) {
+func (p *picker) current() (library.Entry, bool) {
 	if len(p.entries) == 0 {
-		return roms.Entry{}, false
+		return library.Entry{}, false
 	}
 
 	return p.entries[p.selected], true
 }
 
-// selectID selects the entry with the given ID.
-func (p *picker) selectID(id string) {
+// selectSHA1 selects the entry with the given SHA-1, if it's in the list.
+func (p *picker) selectSHA1(sha1 string) {
 	for i, e := range p.entries {
-		if e.ID == id {
+		if e.SHA1 == sha1 {
 			p.selected = i
 			p.ensureVisible()
 
 			return
 		}
-	}
-}
-
-func groupName(g roms.Group) string {
-	switch g {
-	case roms.Games:
-		return "GAMES  (chip8Archive, CC0)"
-	case roms.TestSuite:
-		return "TEST SUITE  (Timendus, GPLv3)"
-	default:
-		return ""
 	}
 }

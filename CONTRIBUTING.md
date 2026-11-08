@@ -7,7 +7,8 @@ These are the coding standards for Chippie. The design is described in
 
 - **Go 1.27**, latest patch release. `go.mod` declares `go 1.27`, and the
   `toolchain` line is kept on the latest 1.27.x.
-- **Ebitengine v2.10+** and **ebitenui v0.7+**. Upgrades are their own PRs.
+- **Ebitengine v2.10+**. Upgrades are their own PRs. No UI toolkit: the
+  drawer, settings and controls are our own widgets (README §2).
 - **golangci-lint v2.** The config is in `.golangci.yml`.
 - **Node LTS** only for the Playwright browser tests in `e2e/`. No JavaScript
   in the app, apart from the small loader page.
@@ -39,7 +40,7 @@ These are the coding standards for Chippie. The design is described in
 - **`platform/`:** the only package with `syscall/js`. Every file that uses it
   is build-tagged `//go:build js && wasm` and has a `!(js && wasm)` stub, so
   native builds and tests work.
-- **`app/`:** Ebitengine and ebitenui. Keeps game logic out: it calls into
+- **`app/`:** Ebitengine. Keeps game logic out: it calls into
   `chip8`, `catalogue` and `romstore`.
 - **`internal/testrig/`:** test helpers only, never imported by production
   code.
@@ -62,8 +63,11 @@ These are the coding standards for Chippie. The design is described in
 - **HiDPI:** `Layout` returns real pixels (outside size × device scale
   factor). Sizes and fonts are scaled by the same factor, never hard-coded in
   CSS pixels.
-- **Text input:** ebitenui `TextInput` by default. The `exp/textinput` field
-  in `app/ui` is the fallback for IME-heavy input.
+- **Text input:** `app/textfield.go`: `exp/textinput` on touch screens (phone
+  keyboards, IME), typed characters with a physical keyboard.
+- **Widgets:** keep layout and state in plain types (`picker`, `settings`,
+  `pointer`, `computeLayout`) that tests can drive without Ebitengine; only
+  the drawing touches it.
 
 ## Memory and performance
 

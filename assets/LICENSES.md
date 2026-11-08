@@ -33,3 +33,15 @@ fetches them at runtime. Native builds read them from
 - **Go fonts** (`golang.org/x/image/font/gofont`), BSD 3-Clause, by the Go
   Authors and Bigelow & Holmes. Used for the M3 picker and messages; a
   period font replaces them in M6.
+
+## Game metadata (`catalogue/snapshot/`, compiled in)
+
+- **chip-8-database** JSON files: MIT, © 2023 The CHIP-8 database authors.
+  Program descriptions are the original authors' text, republished in good
+  faith with credit (see `catalogue/snapshot/SNAPSHOT.md` for the full licence
+  and the takedown note).
+- **chip8Archive** `programs.json`: CC0 1.0.
+
+ROMs in the library are not shipped: they are downloaded from their original
+archives (chip8Archive, kripod/chip8-roms, the Timendus test suite) at pinned
+commits and cached in the browser.

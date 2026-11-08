@@ -39,6 +39,33 @@ func TestCopyFramebuffer(t *testing.T) {
 	}
 }
 
+func TestFillStatic(t *testing.T) {
+	t.Parallel()
+
+	a, b := make([]byte, 64*32*bytesPerPixel), make([]byte, 64*32*bytesPerPixel)
+	FillStatic(a, 1)
+	FillStatic(b, 2)
+
+	if string(a) == string(b) {
+		t.Error("different seeds gave the same static")
+	}
+
+	grey := map[byte]bool{}
+
+	for i := 0; i+bytesPerPixel <= len(a); i += bytesPerPixel {
+		px := a[i : i+bytesPerPixel]
+		if px[0] != px[1] || px[0] != px[2] || px[3] != 0xFF {
+			t.Fatalf("pixel %d isn't opaque grey: %v", i/bytesPerPixel, px)
+		}
+
+		grey[px[0]] = true
+	}
+
+	if len(grey) < 100 {
+		t.Errorf("only %d shades of grey; static should look random", len(grey))
+	}
+}
+
 func BenchmarkCopyFramebuffer(b *testing.B) {
 	v := chip8.New(chip8.DefaultProfile(chip8.ModernChip8)).Display()
 	pix := make([]byte, v.Width()*v.Height()*bytesPerPixel)

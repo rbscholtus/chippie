@@ -2,29 +2,42 @@ package app
 
 import (
 	"image"
+	"strings"
 	"testing"
 
-	"github.com/rbscholtus/chippie/app/roms"
+	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/chip8"
 )
 
-func testEntries() []roms.Entry {
-	return []roms.Entry{
-		{ID: "game/a", Title: "A", Group: roms.Games, Platform: chip8.ModernChip8},
-		{ID: "game/b", Title: "B", Group: roms.Games, Platform: chip8.SuperChip},
-		{ID: "test/c", Title: "C", Group: roms.TestSuite, Platform: chip8.ModernChip8},
+// entry makes a library entry; Group follows the platform.
+func entry(sha1, title string, p chip8.Platform) library.Entry {
+	e := library.LocalEntry(nil, sha1, title)
+	e.Platform = p
+
+	if !p.Implemented() {
+		e.Group = library.ComingSoon
+	}
+
+	return e
+}
+
+func testEntries() []library.Entry {
+	return []library.Entry{
+		entry("aa", "Alpha", chip8.ModernChip8),
+		entry("bb", "Bravo", chip8.ModernChip8),
+		entry("cc", "Charlie", chip8.SuperChip),
 	}
 }
 
-// longPicker returns a picker with n game entries (plus one heading row),
-// a 100-pixel view and 10-pixel rows.
+// longPicker returns a picker with n playable entries (plus one heading
+// row), a 100-pixel view and 10-pixel rows.
 func longPicker(n int) *picker {
-	entries := make([]roms.Entry, n)
+	entries := make([]library.Entry, n)
 	for i := range entries {
-		entries[i] = roms.Entry{Group: roms.Games}
+		entries[i] = entry(strings.Repeat("a", i+1), "Game", chip8.ModernChip8)
 	}
 
-	p := newPicker(entries)
+	p := newPicker(entries, false)
 	p.setView(100, 10)
 
 	return p
@@ -33,7 +46,7 @@ func longPicker(n int) *picker {
 func TestPickerMoveWraps(t *testing.T) {
 	t.Parallel()
 
-	p := newPicker(testEntries())
+	p := newPicker(testEntries(), false)
 
 	for _, step := range []struct{ delta, want int }{{1, 1}, {1, 2}, {1, 0}, {-1, 2}, {-4, 1}} {
 		p.move(step.delta)
@@ -43,7 +56,7 @@ func TestPickerMoveWraps(t *testing.T) {
 		}
 	}
 
-	empty := newPicker(nil)
+	empty := newPicker(nil, false)
 	empty.move(1)
 
 	if _, ok := empty.current(); ok {
@@ -51,42 +64,57 @@ func TestPickerMoveWraps(t *testing.T) {
 	}
 }
 
-func TestPickerSelect(t *testing.T) {
+func TestPickerRows(t *testing.T) {
 	t.Parallel()
 
-	p := newPicker(testEntries())
+	kinds := func(p *picker) string {
+		out := make([]byte, 0, len(p.rows))
 
-	p.selectID("test/c")
+		for _, r := range p.rows {
+			out = append(out, "HEL"[r.kind])
+		}
 
-	if e, _ := p.current(); e.ID != "test/c" {
-		t.Errorf("selectID: current %q", e.ID)
+		return string(out)
 	}
 
-	if p.selectIndex(3) || p.selectIndex(-1) {
-		t.Error("selectIndex accepted an out-of-range index")
+	if got := kinds(newPicker(testEntries(), false)); got != "HEEHE" {
+		t.Errorf("rows %q, want HEEHE (heading, 2 playable, heading, 1 coming soon)", got)
 	}
 
-	if !p.selectIndex(1) || p.selected != 1 {
-		t.Error("selectIndex(1) failed")
+	p := newPicker(testEntries(), true)
+	if got := kinds(p); got != "LHEEHE" {
+		t.Errorf("with the load row: %q, want LHEEHE", got)
+	}
+
+	if !strings.HasPrefix(p.rows[1].heading, "PLAY  (2)") {
+		t.Errorf("heading %q should count its entries", p.rows[1].heading)
 	}
 }
 
-func TestPickerRowsHaveGroupHeadings(t *testing.T) {
+func TestPickerSearch(t *testing.T) {
 	t.Parallel()
 
-	rows := newPicker(testEntries()).rows
-	kinds := make([]byte, 0, len(rows))
+	p := newPicker(testEntries(), false)
+	p.setView(100, 10)
+	p.move(2)
+	p.setQuery("BRA")
 
-	for _, r := range rows {
-		if r.entry < 0 {
-			kinds = append(kinds, 'H')
-		} else {
-			kinds = append(kinds, 'E')
-		}
+	if len(p.entries) != 1 || p.entries[0].Title != "Bravo" || p.selected != 0 || p.offset != 0 {
+		t.Errorf("search: %d entries, selected %d", len(p.entries), p.selected)
 	}
 
-	if string(kinds) != "HEEHE" {
-		t.Errorf("rows %q, want HEEHE", kinds)
+	p.setQuery("")
+
+	if len(p.entries) != 3 {
+		t.Errorf("cleared search: %d entries", len(p.entries))
+	}
+
+	// A refreshed library keeps the search and the selected ROM.
+	p.selectSHA1("cc")
+	p.setAll(append(testEntries(), entry("dd", "Delta", chip8.ModernChip8)))
+
+	if e, _ := p.current(); e.SHA1 != "cc" || len(p.entries) != 4 {
+		t.Errorf("after setAll: selected %q of %d", e.SHA1, len(p.entries))
 	}
 }
 
@@ -107,7 +135,6 @@ func TestPickerScrollClamps(t *testing.T) {
 		t.Errorf("offset %v after scrolling past the end, want 210", p.offset)
 	}
 
-	// A short list never scrolls.
 	short := longPicker(3)
 	short.scroll(50)
 
@@ -134,27 +161,27 @@ func TestPickerKeyboardKeepsSelectionVisible(t *testing.T) {
 	}
 }
 
-func TestPickerEntryAt(t *testing.T) {
+func TestPickerRowAt(t *testing.T) {
 	t.Parallel()
 
 	p := longPicker(30)
 
-	if _, ok := p.entryAt(5); ok {
-		t.Error("the heading row should not be an entry")
+	if r, ok := p.rowAt(5); !ok || r.kind != rowHeading {
+		t.Errorf("y=5: %+v %v, want the heading", r, ok)
 	}
 
-	if i, ok := p.entryAt(15); !ok || i != 0 {
-		t.Errorf("y=15: entry %d %v, want 0", i, ok)
+	if r, ok := p.rowAt(15); !ok || r.kind != rowEntry || r.entry != 0 {
+		t.Errorf("y=15: %+v, want entry 0", r)
 	}
 
 	p.scroll(100) // now row 10 (entry 9) is at the top
 
-	if i, ok := p.entryAt(5); !ok || i != 9 {
-		t.Errorf("scrolled, y=5: entry %d %v, want 9", i, ok)
+	if r, ok := p.rowAt(5); !ok || r.entry != 9 {
+		t.Errorf("scrolled, y=5: %+v, want entry 9", r)
 	}
 
-	if _, ok := p.entryAt(150); ok {
-		t.Error("a point below the view should not be an entry")
+	if _, ok := p.rowAt(150); ok {
+		t.Error("a point below the view should not be a row")
 	}
 }
 
@@ -209,7 +236,8 @@ func TestLayoutFitsPhones(t *testing.T) {
 		screen := screenRect(sz.w, sz.h)
 		l := computeLayout(window, screen, sz.scale, textSize*lineSpacing*sz.scale, true)
 
-		if !l.list.In(l.panel) || !l.panel.In(window) || !l.status.In(window) {
+		if !l.list.In(l.panel) || !l.search.In(l.panel) || !l.panel.In(window) ||
+			!l.statusLeft.In(window) || !l.statusRight.In(window) || l.statusLeft.Overlaps(l.statusRight) {
 			t.Errorf("%dx%d: rectangles outside the window: %+v", sz.w, sz.h, l)
 		}
 
@@ -223,11 +251,17 @@ func TestLayoutFitsPhones(t *testing.T) {
 		}
 	}
 
-	// In portrait on an iPhone, most of the M3 list (16 rows) is visible at
-	// once; the rest is a short drag away.
+	// In portrait on an iPhone, at least ten rows are visible at once, and
+	// the details pane is left out (too narrow).
 	l := computeLayout(image.Rect(0, 0, 1179, 1977), screenRect(1179, 1977), 3, textSize*lineSpacing*3, true)
-	if rows := float64(l.list.Dy()) / l.rowH; rows < 10 {
-		t.Errorf("portrait iPhone shows %.1f rows, want at least 10", rows)
+	if rows := float64(l.list.Dy()) / l.rowH; rows < 10 || !l.details.Empty() {
+		t.Errorf("portrait iPhone: %.1f rows, details %v", rows, l.details)
+	}
+
+	// A desktop window is wide enough for the details pane beside the list.
+	d := computeLayout(image.Rect(0, 0, 2048, 1280), screenRect(2048, 1280), 2, textSize*lineSpacing*2, false)
+	if d.details.Empty() || d.details.Overlaps(d.list) || d.details.Min.X < d.list.Max.X {
+		t.Errorf("desktop: list %v, details %v", d.list, d.details)
 	}
 }
 

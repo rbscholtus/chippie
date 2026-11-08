@@ -1,0 +1,1246 @@
+{
+  "version": 1,
+  "generated": "2026-11-08T17:52:18Z",
+  "sources": {
+    "chip8archive": {
+      "name": "chip8Archive",
+      "license": "CC0-1.0",
+      "home": "https://johnearnest.github.io/chip8Archive/"
+    },
+    "kripod": {
+      "name": "kripod/chip8-roms",
+      "home": "https://github.com/kripod/chip8-roms"
+    },
+    "timendus": {
+      "name": "Timendus CHIP-8 test suite",
+      "license": "GPL-3.0",
+      "home": "https://github.com/Timendus/chip8-test-suite"
+    }
+  },
+  "roms": {
+    "0085dd8fce4f7ac2e39ba73cf67cc043f9ba4812": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Stars%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
+    "016345d75eef34448840845a9590d41e6bfdf46a": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Clock%20Program%20%5BBill%20Fisher%2C%201981%5D.ch8"
+      }
+    ],
+    "018442698067c95d67e27a94e6642c11f049f108": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/1dcell.ch8"
+      }
+    ],
+    "032408f1f1d8e6058ecf0f23f421783c87701b39": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Trip8%20Demo%20%282008%29%20%5BRevival%20Studios%5D.ch8"
+      }
+    ],
+    "050f07a54371da79f924dd0227b89d07b4f2aed0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Hidden%20%5BDavid%20Winter%2C%201996%5D.ch8"
+      }
+    ],
+    "064492173cf4ccac3cce8fe307fc164b397013b9": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Division%20Test%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
+    "06a6692c92eb8077329b6d4e59d55479d60574a8": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/snake.ch8"
+      }
+    ],
+    "082c71b67e36e033c2e615ad89ba4ed5d55a56d0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Delay%20Timer%20Test%20%5BMatthew%20Mikolay%2C%202010%5D.ch8"
+      }
+    ],
+    "09ce01c54ddddda42ca5cd171f1ffcfd47355d12": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Wall%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "09f47bea104b86169b9aeb3bdee6e26315ed0a53": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Zero%20Demo%20%5BzeroZshadow%2C%202007%5D.ch8"
+      }
+    ],
+    "0cd895dc3d489d0e40656218900a04310e95f560": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/fuse.ch8"
+      }
+    ],
+    "0d0cc129dad3c45ba672f85fec71a668232212cc": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Missile%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "0ebc4b92c6059d6193565644fb00108161d03d23": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Keypad%20Test%20%5BHap%2C%202006%5D.ch8"
+      }
+    ],
+    "0f479a10fec51d159866e5760069cd18bdfd293f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/BadKaiJuJu.ch8"
+      }
+    ],
+    "11c68038d64a09be549a6c1e50724808914d8991": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam2title.ch8"
+      }
+    ],
+    "12572c9e957cace53076d1656ea1b12cd0f331af": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/ultimatetictactoe.ch8"
+      }
+    ],
+    "1293db0ccccbe7dd3fc5a09a2abc5d7b175e18e0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Puzzle.ch8"
+      }
+    ],
+    "12e053d66be67836deff1c07af93fe1d33a8eec5": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-2.ch8"
+      }
+    ],
+    "1368d7eae124661aacaf3411819ca9c113c0c10c": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/down8.ch8"
+      }
+    ],
+    "137cb8397456f53fcab216124458238bc18c0965": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Guess%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "1830eb401ba8789a477dfcf294873a5479ebcfe8": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Pong%202%20%28Pong%20hack%29%20%5BDavid%20Winter%2C%201997%5D.ch8"
+      }
+    ],
+    "18aef6d2d3b560681038d0dda2273d780dc1daa5": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam6title.ch8"
+      }
+    ],
+    "18b9d15f4c159e1f0ed58c2d8ec1d89325d3a3b6": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Tank.ch8"
+      }
+    ],
+    "19279f8cfbb58a925a80b52e690ad71ee0907134": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/trucksimul8or.ch8"
+      }
+    ],
+    "193915dcde1365ae054c4eaa21a35baa27cd3356": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Breakout%20%5BCarmelo%20Cortez%2C%201979%5D.ch8"
+      }
+    ],
+    "1b6dcf8c02ea0b89a4f04ce28e7c39a5e7a513d6": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sk8.ch8"
+      }
+    ],
+    "1ba58656810b67fd131eb9af3e3987863bf26c90": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/IBM%20Logo.ch8"
+      }
+    ],
+    "1bd92042717c3bc4f7f34cab34be2887145a6704": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Spooky%20Spot%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "1bdb4ddaa7049266fa3226851f28855a365cfd12": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Syzygy%20%5BRoy%20Trevino%2C%201990%5D.ch8"
+      }
+    ],
+    "1dda7d92450c8eee2753a9350a1a0d524b1019b4": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam10title.ch8"
+      }
+    ],
+    "1e3be162480380b6276d0848e1c71576b4c041f2": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/ghostEscape.ch8"
+      }
+    ],
+    "237756a4014fb3aa82a29246a7cdd534f8dc2dbb": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Breakout%20%28Brix%20hack%29%20%5BDavid%20Winter%2C%201997%5D.ch8"
+      }
+    ],
+    "24960090b2afc9de2a4cb3ee7daf6a21456bb49b": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Russian%20Roulette%20%5BCarmelo%20Cortez%2C%201978%5D.ch8"
+      }
+    ],
+    "28ac3467fbb4544a3e3a1ec3cd27d9e819ac7323": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/horseWorldOnline.ch8"
+      }
+    ],
+    "2c761f70a44e521ee848834cfdd2bd1646157d29": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/superpong.ch8"
+      }
+    ],
+    "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/glitchGhost.ch8"
+      }
+    ],
+    "2d10c07b532f4fa7c07a07324ba26ca39fe484fd": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Connect%204%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "2dbb5b53121ec84cb2377fcb645e57cc8b5eaa09": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/SQRT%20Test%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
+    "2e0f2268c9a3be0fbb839f918336f161815bb80a": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/carbon8.ch8"
+      }
+    ],
+    "30f27e5cee5b325fd1681ee98a14de60bfbe951f": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/1-chip8-logo.ch8"
+      }
+    ],
+    "31fc1c53cc610a9f4b9c5705c5a0f33fc028d123": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/br8kout.ch8"
+      }
+    ],
+    "3368d56efeb584c509bafb548f1ee5e71ac1bc70": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Biorhythm%20%5BJef%20Winsor%5D.ch8"
+      }
+    ],
+    "33abb5f1ba7db3166636911c6cfa81a5ce5b861c": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octopaint.ch8"
+      }
+    ],
+    "33ec2f3081bed56438dc207477f06cd77f3f07d9": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/businessiscontagious.ch8"
+      }
+    ],
+    "35158696bd94ea22ef34e899fff1f15f7154d4fd": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Craps%20%5BCamerlo%20Cortez%2C%201978%5D.ch8"
+      }
+    ],
+    "39970ccfd3a3f00180d53464d4fd7862193eaf0f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octoachip8story.ch8"
+      }
+    ],
+    "3b2bf5dc7ffb5f3fbe168e802079f79730535ca8": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Figures.ch8"
+      }
+    ],
+    "3be683d1ac0b27ae47a09984e420853fff0b7e0d": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/petdog.ch8"
+      }
+    ],
+    "3d1d029d6e31206d245c0ba881c0d1f003953bad": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rocket%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "3ddf7b76b8f63d0089e00e3b518f78c213b74b1e": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/8ceattourny_d1.ch8"
+      }
+    ],
+    "3f9ef8dec999574a188ec3b9615cff9888283c85": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/tank.ch8"
+      }
+    ],
+    "3fd62ae2bfe2572ceb194f1d3d1bd5a01695b86c": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-6.ch8"
+      }
+    ],
+    "400dbd1aa2b79b9b8546bc615bfb735c1bd1d268": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/caveexplorer.ch8"
+      }
+    ],
+    "4031dae5c7545a1adc160a661be36f19fc1d47b2": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Nim%20%5BCarmelo%20Cortez%2C%201978%5D.ch8"
+      }
+    ],
+    "419a0110d41332457c15ae09fff62cbd7ad197fc": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/8ceattourny_d3.ch8"
+      }
+    ],
+    "429d455a4bc53167942bf6fd934d72b0f648dce3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Tic-Tac-Toe%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "440c5fbe9f5f840e76c308738fb0d37772d66674": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/superneatboy.ch8"
+      }
+    ],
+    "443550abf646bc7f475ef0466f8e1232ec7474f3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Shooting%20Stars%20%5BPhilip%20Baltzer%2C%201978%5D.ch8"
+      }
+    ],
+    "448f9d30d2157ab42679b809d4fb0b43d145f74f": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Sequence%20Shoot%20%5BJoyce%20Weisbecker%5D.ch8"
+      }
+    ],
+    "455b9fc69cc06e2b5b72f7d1ac5f6c86ac349e77": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/6-keypad.ch8"
+      }
+    ],
+    "4564a1bf149e5ab9777d33813a92cfd6ffc7a0bb": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/keshaWasNiiinja.ch8"
+      }
+    ],
+    "4639f86beb0a203ae512b85d3b56d813b2dea7b4": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rush%20Hour%20%5BHap%2C%202006%5D.ch8"
+      }
+    ],
+    "477b3e09c43839ea5478b4f0e24536edab594f89": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/8-scrolling.ch8"
+      }
+    ],
+    "493c76b9d9252e1d349d408d341daff5267f35fa": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam3title.ch8"
+      }
+    ],
+    "49c7234a1733db355560a13c57b26f055533c233": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Fishie%20%5BHap%2C%202005%5D.ch8"
+      }
+    ],
+    "4a4123320d841ed04d8c1cd2ad6132a06b83dfa0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Minimal%20game%20%5BRevival%20Studios%2C%202007%5D.ch8"
+      }
+    ],
+    "507e7dc6783565071dfe4b72154af431d4466958": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Particle%20Demo%20%5BzeroZshadow%2C%202008%5D.ch8"
+      }
+    ],
+    "518c1d40f5d768ee49d2b7951d998588ef8238ba": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/wonkypong.ch8"
+      }
+    ],
+    "531c44e8204d8ab8c078bad36e34067baddfccdb": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sweetcopter.ch8"
+      }
+    ],
+    "55a6716dacc2f93dce3d39fb8d231083016a1cc0": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/4-flags.ch8"
+      }
+    ],
+    "58f7ce407aedf456dc8992342f4a6f9f0647383b": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sens8tion.ch8"
+      }
+    ],
+    "5a6366decb08df66da8bd685b497ccce0884c307": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam9title.ch8"
+      }
+    ],
+    "5b29263763be401c31d805bc35a4cd211d552881": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Jumping%20X%20and%20O%20%5BHarry%20Kleinberg%2C%201977%5D.ch8"
+      }
+    ],
+    "5c28a5f85289c9d859f95fd5eadbdcb1c30bb08b": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Invaders%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "5c82520906073287a3ef781746c67207ca084d93": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Cave.ch8"
+      }
+    ],
+    "5e70f91ca08e9b9e9de61670492e3db2d7f7d57a": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rocket%20Launch%20%5BJonas%20Lindstedt%5D.ch8"
+      }
+    ],
+    "5f518084744bf3cb8733f6e5454dfd1634320563": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Tetris%20%5BFran%20Dachille%2C%201991%5D.ch8"
+      }
+    ],
+    "607c4f7f4e4dce9f99d96b3182bfe7e88bb090ee": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Pong%20%281%20player%29.ch8"
+      }
+    ],
+    "614a2b3d0bb5d62a16d963ac2d3a79eb3dd22742": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Coin%20Flipping%20%5BCarmelo%20Cortez%2C%201978%5D.ch8"
+      }
+    ],
+    "61931487c694c5bc6978ae22c0a36aca5a647e24": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/nokiatemplate.ch8"
+      }
+    ],
+    "627f01b20ce4d33f6df1aa88acb405a3a732bde0": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/DVN8.ch8"
+      }
+    ],
+    "63e787fc3e78e5fb3a394cf1bc654ad9633d8907": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/mondrian.ch8"
+      }
+    ],
+    "64536d549c986e9edf25de9fa89db60d2ade85c0": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sub8.ch8"
+      }
+    ],
+    "659cb966e976fcbcae76f6a8a07c65be4d18aae8": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/spaceracer.ch8"
+      }
+    ],
+    "669e32b6f42f52da658e428f501aabcdfa37fb2e": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Mastermind%20FourRow%20%28Robert%20Lindley%2C%201978%29.ch8"
+      }
+    ],
+    "67996195539c0ddcd98533a01dffeec6a53a6da1": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Timebomb.ch8"
+      }
+    ],
+    "6df358d77961a0bf21e98876f9f616791cba31e3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Soccer.ch8"
+      }
+    ],
+    "6e7cb52ec99e10f934b76eaf3fddeb8f2e2e14e1": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/tombstontipp.ch8"
+      }
+    ],
+    "6f6509f38220e057a7e32ebb22dd353c1078e3e7": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Blitz%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "726cb39afa7e17725af7fab37d153277d86bff77": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Programmable%20Spacefighters%20%5BJef%20Winsor%5D.ch8"
+      }
+    ],
+    "72c2cbfea48000e25891dd4968ae9f1adef1e7e3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/BMP%20Viewer%20-%20Hello%20%28C8%20example%29%20%5BHap%2C%202005%5D.ch8"
+      }
+    ],
+    "72e8f3a10a32bd7fb91322ecab87249f95e81e57": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Lunar%20Lander%20%28Udo%20Pernisz%2C%201979%29.ch8"
+      }
+    ],
+    "72fb3e0a4572bdb81f484df7948a8bc736fe78d0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Landing.ch8"
+      }
+    ],
+    "74936ffb0db233c722f5a39932d75240b6437a72": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octovore.ch8"
+      }
+    ],
+    "7623fa0fa915979226566b24107360e7537735f4": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Slide%20%5BJoyce%20Weisbecker%5D.ch8"
+      }
+    ],
+    "76a770000b314659ac792e17724b783a464ab67e": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/civiliz8n.ch8"
+      }
+    ],
+    "775e82a36c93f1b41b42eca94b55acbc4a48cebe": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Tapeworm%20%5BJDR%2C%201999%5D.ch8"
+      }
+    ],
+    "77dc518e6779ccd862205cfeb0f3f7772caed60e": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/expedition.ch8"
+      }
+    ],
+    "7a4a89870f2ab23c28024dd1c3dd52cf1af1ad00": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octopeg.ch8"
+      }
+    ],
+    "7da3eba52a8d8025ddf14ee40d28f151585529a0": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/piper.ch8"
+      }
+    ],
+    "7e8d5a79cabeb9a791524ea7126867a539d825ee": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-4.ch8"
+      }
+    ],
+    "7fb69647e6b10e2b12f9357d5c1c177349028236": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/dodge.ch8"
+      }
+    ],
+    "80feda2028aa31788d3d1d9e062d77d2fd9308cc": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octoma.ch8"
+      }
+    ],
+    "821751787374cc362f4c58759961f0aa7a2fd410": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/flightrunner.ch8"
+      }
+    ],
+    "8263bac7d98d94097171f0a5dc6f210f77543080": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octorancher.ch8"
+      }
+    ],
+    "82fd0d202a068bedfb869fc303fdeae0c814024f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/8ceattourny_d2.ch8"
+      }
+    ],
+    "83300ff710acdd8417376b88adf40f68171f7ec7": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chipcross.ch8"
+      }
+    ],
+    "83a2f9c8153be955c28e788bd803aa1d25131330": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Sum%20Fun%20%5BJoyce%20Weisbecker%5D.ch8"
+      }
+    ],
+    "898ef1505c874065697ffc6cba688367e143d82e": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/mastermind.ch8"
+      }
+    ],
+    "89aadf7c28bcd1c11e71ad9bd6eeaf0e7be474f3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Submarine%20%5BCarmelo%20Cortez%2C%201978%5D.ch8"
+      }
+    ],
+    "8b2fc2e08830b8a9e604d11c9b319e2cc0a581b3": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/t8nks.ch8"
+      }
+    ],
+    "8b70080adbac44513ec60005734a816372b845ec": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Maze%20%28alt%29%20%5BDavid%20Winter%2C%20199x%5D.ch8"
+      }
+    ],
+    "8e5f19d8ae9f3346779613359610967a5ed95fa8": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Deflection%20%5BJohn%20Fort%5D.ch8"
+      }
+    ],
+    "8ebf74e790e58a8d5a7beff598bb32ed7eeeabf7": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/skyward.ch8"
+      }
+    ],
+    "91442577a6bbf8c3267f2df95fdfc50baebe176d": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Brick%20%28Brix%20hack%2C%201990%29.ch8"
+      }
+    ],
+    "92a325c36ad2116a5256946b8bf711ed9befd319": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/keshaWasBiird.ch8"
+      }
+    ],
+    "959ed7d6b61e667bb59d1b497401258463f88454": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam8title.ch8"
+      }
+    ],
+    "95f4af2d410c1acfd1b0657721a870a57c55b49b": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/knumberknower.ch8"
+      }
+    ],
+    "9797a7eaf1e80ec19c085c60bb37991420f54678": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/gradsim.ch8"
+      }
+    ],
+    "9a9c341571ace516c9789b1eb92590833af13239": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam7title.ch8"
+      }
+    ],
+    "9bf96e23963995c6d702ae21c9b8741cbb688f47": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-3.ch8"
+      }
+    ],
+    "9d834860f455aec7e95fb886984497e5be501610": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/slipperyslope.ch8"
+      }
+    ],
+    "9f55f7abc8f2bc4b59a01515f1d887a6568a8ab4": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam4title.ch8"
+      }
+    ],
+    "9f7cf6fe0025878c26b317160c57edd06b3361ba": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/supersquare.ch8"
+      }
+    ],
+    "9f9a4affbf7afd70bb594fb321e16579318c0164": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/spacejam.ch8"
+      }
+    ],
+    "a0073e944d5ae9ca14324543fdf818907de80449": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Sierpinski%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
+    "a18f1e3897416180b32e47ddc82cba9aca2c8d52": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Paddles.ch8"
+      }
+    ],
+    "a1c1e0e7b01004be3ee77c69030e6b536cb316e6": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Worm%20V4%20%5BRB-Revival%20Studios%2C%202007%5D.ch8"
+      }
+    ],
+    "a27dcf88a931f70c3ccf3c01a5410b263bac48bc": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Animal%20Race%20%5BBrian%20Astle%5D.ch8"
+      }
+    ],
+    "a3f0eae99964b873eb1adbd3e8bcb90d15f762c3": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/mini-lights-out.ch8"
+      }
+    ],
+    "a4a9351775b2a64bbd14e3980968db19c254a988": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/flutterby.ch8"
+      }
+    ],
+    "a58ec7cc63707f9e7274026de27c15ec1d9945bd": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Squash%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "a60611339661e3ab2d8af024ad1da5880a6f8665": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Pong%20%28alt%29.ch8"
+      }
+    ],
+    "a6a6cb2351c20b8f904da07c0ce91bd8161e9317": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Tron.ch8"
+      }
+    ],
+    "a6f3ac2d89cdc1d7b22013301863bad6a4fb7318": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/RPS.ch8"
+      }
+    ],
+    "a82ca5c53e1dcedfab4f65efef02229145771b7d": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Chip8%20Picture.ch8"
+      }
+    ],
+    "a8d6e9b1976c99ddc0c4818828a6d3cb3ae6f348": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/wdl.ch8"
+      }
+    ],
+    "a98ed56f88f11156871d871d9200fc4bb45190a4": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/superOctoTrackXO.ch8"
+      }
+    ],
+    "a9d3c975a5e733646a04f6e61deebcd0ad50f700": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/outlaw.ch8"
+      }
+    ],
+    "aa4f1a282bd64a2364102abf5737a4205365a2b4": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Flight.ch8"
+      }
+    ],
+    "ab36ced6e34affacd57b2874ede3f95b669a424c": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-1.ch8"
+      }
+    ],
+    "ab5cbf267d74c168e174041b9594ae856cbd671d": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chipwar.ch8"
+      }
+    ],
+    "abfce04ddd0f72838dd887f3db3106066fd675b3": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/squad.ch8"
+      }
+    ],
+    "ac621d9fcada302ba6965768229ef130630bc525": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Astro%20Dodge%20%5BRevival%20Studios%2C%202008%5D.ch8"
+      }
+    ],
+    "ac7c8db7865beb22c9ec9001c9c0319e02f5d5c2": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Framed%20MK1%20%5BGV%20Samways%2C%201980%5D.ch8"
+      }
+    ],
+    "ade839585ddeb0e3633177df03c1d91589e629eb": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Vers%20%5BJMN%2C%201991%5D.ch8"
+      }
+    ],
+    "ae71a7b081a947f1760cdc147759803aea45e751": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Filter.ch8"
+      }
+    ],
+    "afd9fee7565c54970b6bd7758aa8aa7843dd2e86": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/anEveningToDieFor.ch8"
+      }
+    ],
+    "b119651b5aa08557a85ca2ad5de3d1a86796b66b": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/7-beep.ch8"
+      }
+    ],
+    "b232ef880bd6060fb45fa6effed7edf0ae95670e": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Pong%20%5BPaul%20Vervalin%2C%201990%5D.ch8"
+      }
+    ],
+    "b274ab30ed7678400dc2283431a45f7d98d9fced": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/jub8-5.ch8"
+      }
+    ],
+    "b277c053b5b4ff9e40cd52cd4125a35ec22ccd0a": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/bulb.ch8"
+      }
+    ],
+    "b2abb5312f0ad28421c1190a65a73d98d4ebf401": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/pumpkindressup.ch8"
+      }
+    ],
+    "b2dacf6d85785d6c2315ce449912c8a8a5954e2e": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/3-corax+.ch8"
+      }
+    ],
+    "b3fed4ed1eb0ed693c9731dbe53b29a76236c781": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Bowling%20%5BGooitzen%20van%20der%20Wal%5D.ch8"
+      }
+    ],
+    "b66f55f83eb264d2b73c0b4ac81ea5044bf73138": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/spockpaperscissors.ch8"
+      }
+    ],
+    "b693e60f161e69c98b0bb2bc1761cf434f8fbb0e": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/garlicscape.ch8"
+      }
+    ],
+    "b76fbca2ec089c7e77f4a2f754db37854b99debc": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/rockto.ch8"
+      }
+    ],
+    "b9272ae1acdaaa79ab649f6b48b72088ca2b1d74": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Maze%20%5BDavid%20Winter%2C%20199x%5D.ch8"
+      }
+    ],
+    "b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/2-ibm-logo.ch8"
+      }
+    ],
+    "bb1e786cb921f51d0540cca9a216c0b72bceb443": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octogon.ch8"
+      }
+    ],
+    "bb5740042385cae10724b051208bb95e5341f56d": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/snek.ch8"
+      }
+    ],
+    "bc158d819890f16f105b8a316eeeefe4a0bad875": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/X-Mirror.ch8"
+      }
+    ],
+    "bcbf36a68cf389e87dd54a9707cf35c4436dcb92": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/applejak.ch8"
+      }
+    ],
+    "bdb92475acfe11bc7814a2f5eade13fcd09b756a": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/UFO%20%5BLutz%20V%2C%201992%5D.ch8"
+      }
+    ],
+    "c606d52970b86edcca4e87e9f6fae4b1ccbbbb0f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chickenScratch.ch8"
+      }
+    ],
+    "cf3a8c546038c63cd4cc1de8d171b9bf0d57c0ee": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/15%20Puzzle%20%5BRoger%20Ivie%5D%20%28alt%29.ch8"
+      }
+    ],
+    "d03f27f85a1cf68465e0853cc0c4abee4a94a4e5": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/turnover77.ch8"
+      }
+    ],
+    "d40abc54374e4343639f993e897e00904ddf85d9": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Blinky%20%5BHans%20Christian%20Egeberg%2C%201991%5D.ch8"
+      }
+    ],
+    "d52c2f85f56c963ff5e48a096afc61d3c8a71c11": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/OctoPartyMix.ch8"
+      }
+    ],
+    "d666688a8fce468a7d88b536bc1ef5f35ba12031": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Wipe%20Off%20%5BJoseph%20Weisbecker%5D.ch8"
+      }
+    ],
+    "d6d8efef811350e7fba6197024c4973b360749b8": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam5title.ch8"
+      }
+    ],
+    "d92c71b955b7634370571bd707715cf8bb0e2fb4": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Chip8%20emulator%20Logo%20%5BGarstyciuks%5D.ch8"
+      }
+    ],
+    "d979858bb9ffd07b48f52f92a8bcac0199f3623e": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Merlin%20%5BDavid%20Winter%5D.ch8"
+      }
+    ],
+    "da710f631f8e35534d0b9170bcf892a60f49c43d": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Vertical%20Brix%20%5BPaul%20Robson%2C%201996%5D.ch8"
+      }
+    ],
+    "dbb52193db4063149c3d8768ab47dd740d90955c": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Hi-Lo%20%5BJef%20Winsor%2C%201978%5D.ch8"
+      }
+    ],
+    "df5ced9c20d00bf7be7d3361d76f27d0d577abfb": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/horseyJump.ch8"
+      }
+    ],
+    "e14350d3b19443e5ad2848172bef9719a8680b01": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/redOctober.ch8"
+      }
+    ],
+    "e2005db6391f589534dd2d63a95b429338bd667c": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rocket%20Launcher.ch8"
+      }
+    ],
+    "e2149cb836131a142ca7e2dc2f2283381ae5faaa": [
+      {
+        "source": "timendus",
+        "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/5-quirks.ch8"
+      }
+    ],
+    "e6af47843f0ecc3302027a3756dd7b389a15e437": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/blackrainbow.ch8"
+      }
+    ],
+    "e74f20f234753e0cc2f58e29dc02d6128a6a3d97": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/binding.ch8"
+      }
+    ],
+    "ea9af3c09b0d9e265fcd92bcc5d51a2939fdf27a": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/15%20Puzzle%20%5BRoger%20Ivie%5D.ch8"
+      }
+    ],
+    "eb72a25bd58e122e65a540807e7a1816abaa4f41": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Framed%20MK2%20%5BGV%20Samways%2C%201980%5D.ch8"
+      }
+    ],
+    "ed829190e37815771e7a8c675ba0074996a2ddb0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Intercept%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "efa6bc8f1f35baaa16700d68a83dc4919797e2fe": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Life%20%5BGV%20Samways%2C%201980%5D.ch8"
+      }
+    ],
+    "f100197f0f2f05b4f3c8c31ab9c2c3930d3e9571": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Invaders%20%5BDavid%20Winter%5D%20%28alt%29.ch8"
+      }
+    ],
+    "f13766c14aeb02ad8d4d103cb5eadd282d20cddc": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Brix%20%5BAndreas%20Gustafsson%2C%201990%5D.ch8"
+      }
+    ],
+    "f1e036fb93b482b1ddfcb2bc1a4de43c8cf51def": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Random%20Number%20Test%20%5BMatthew%20Mikolay%2C%202010%5D.ch8"
+      }
+    ],
+    "f26993a4afd5cda2fea19935773fd3db54866623": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam1title.ch8"
+      }
+    ],
+    "f2e9c480af31a4039af02dd7a2b8d5d1f859704d": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/ZeroPong%20%5BzeroZshadow%2C%202007%5D.ch8"
+      }
+    ],
+    "f4169141735d8d60e51409ca7e73f4adedcefef2": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Blinky%20%5BHans%20Christian%20Egeberg%5D%20%28alt%29.ch8"
+      }
+    ],
+    "f4392681b1fa38d7ad0a7d7a59cecf247ac1457a": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chipquarium.ch8"
+      }
+    ],
+    "f9d0bdf4a80d5570a9af9fd13769e528dff411df": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/ordinaryidlegarden.ch8"
+      }
+    ],
+    "fa7c04f68d78e0faf6d136a3babe3943fc2e02f1": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Most%20Dangerous%20Game%20%5BPeter%20Maruhnic%5D.ch8"
+      }
+    ],
+    "fb48e162c7f2e8853909acc5534b55fb55030f9f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/masquer8.ch8"
+      }
+    ],
+    "fbc7711ad068015b957e91d8714636b2ac90d9cb": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/keshaWasBird.ch8"
+      }
+    ],
+    "fc724ae0125f5f1ac94a79fe3afc6318b1f57556": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Kaleidoscope%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "fca71182a8838b686573e69b22aff945d79fe1d0": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Airplane.ch8"
+      }
+    ],
+    "fcaa793332a83c93f4ed79f5ffbc8403c8b8aea0": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/eaty.ch8"
+      }
+    ],
+    "fcecf90496dadd214486a7a769e3a07f2b8f4eab": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/knight.ch8"
+      }
+    ],
+    "feaa2b999737630a6402e990df4d0558f79ba43e": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Addition%20Problems%20%5BPaul%20C.%20Moews%5D.ch8"
+      }
+    ],
+    "ff639eceaf221ae66151a03779b41fae7118d2d8": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Reversi%20%5BPhilip%20Baltzer%5D.ch8"
+      }
+    ],
+    "ff6b8ac59bf281cd4b5ab6e161600b00f85a0265": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/danm8ku.ch8"
+      }
+    ]
+  }
+}

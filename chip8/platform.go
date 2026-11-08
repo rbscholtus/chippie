@@ -143,6 +143,16 @@ func (p Platform) info() *platformInfo {
 	return &platforms[p]
 }
 
+// Platforms returns every known platform, in platforms.json order.
+func Platforms() []Platform {
+	out := make([]Platform, 0, numPlatforms)
+	for p := range numPlatforms {
+		out = append(out, p)
+	}
+
+	return out
+}
+
 // ParsePlatform returns the Platform for a platforms.json id.
 func ParsePlatform(id string) (Platform, bool) {
 	for p := range numPlatforms {

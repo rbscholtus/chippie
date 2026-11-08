@@ -88,10 +88,40 @@ export async function click(page: Page, x: number, y: number) {
   await page.waitForTimeout(150);
 }
 
-// Touch layout of the picker in CSS pixels (app/ui.go computeLayout):
-// the list starts below a debug line and two paddings, and rows are 44 px.
-export const pickerListTop = 24 + 16 + 16;
+// Touch layout of the drawer in CSS pixels (app/ui.go computeLayout): the
+// search field (one 44 px row) sits below a debug line and two paddings,
+// and the list starts half a padding below it. Row 0 is "Load a ROM from
+// this device", row 1 the PLAY heading, row 2 the first ROM.
+export const pickerSearchY = 24 + 16 + 16 + 22;
+export const pickerListTop = 24 + 16 + 16 + 44 + 8;
 export const touchRowHeight = 44;
 export function rowCentre(row: number, scrolled = 0) {
   return pickerListTop + row * touchRowHeight + touchRowHeight / 2 - scrolled;
 }
+
+// The tests never use the internet: GitHub (ROM downloads and the
+// background database refresh) is blocked, except for files a test serves
+// itself from fixtures/.
+export async function offline(page: Page, serve: Record<string, string> = {}) {
+  await page.route("https://raw.githubusercontent.com/**", (route) => {
+    for (const [suffix, fixture] of Object.entries(serve)) {
+      if (route.request().url().endsWith(suffix)) {
+        return route.fulfill({
+          body: readFileSync(new URL(`../fixtures/${fixture}`, import.meta.url)),
+          headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/octet-stream" },
+        });
+      }
+    }
+    return route.abort();
+  });
+}
+
+// Desktop (mouse) layout of the drawer in CSS pixels at 1×: a debug-line
+// gap and padding above the search field (24 px), then the list.
+export const desktopListTop = 24 + 16 + 16 + 24 + 8;
+export const desktopRowHeight = 24;
+export function desktopRow(row: number) {
+  return desktopListTop + row * desktopRowHeight + desktopRowHeight / 2;
+}
+
+export const br8kout = "31fc1c53cc610a9f4b9c5705c5a0f33fc028d123";

@@ -127,6 +127,29 @@ func TestTestSuiteEntries(t *testing.T) {
 	}
 }
 
+func TestOfflineAndAliases(t *testing.T) {
+	t.Parallel()
+
+	l := newTestLibrary(t)
+	offline := l.Offline()
+
+	if len(offline) != 14 || !offline["b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379"] {
+		t.Errorf("offline: %d hashes", len(offline))
+	}
+
+	if h, ok := l.HashFor("game/glitchGhost"); !ok || h != "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b" {
+		t.Errorf("HashFor(game/glitchGhost) = %q %v", h, ok)
+	}
+
+	if rom, ok := l.LoadHash(t.Context(), "B9BBC12CEE3F7B9D3B1F69161F7D7A2D86953379"); !ok || len(rom) == 0 {
+		t.Error("LoadHash of the IBM test failed")
+	}
+
+	if _, ok := l.LoadHash(t.Context(), "0000"); ok {
+		t.Error("LoadHash of an unknown hash succeeded")
+	}
+}
+
 func TestLoadChecksHash(t *testing.T) {
 	t.Parallel()
 

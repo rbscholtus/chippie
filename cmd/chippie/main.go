@@ -4,7 +4,7 @@
 //
 // Native flags:
 //
-//	-rom game/glitchGhost | test/2-ibm-logo | path/to/file.ch8
+//	-rom <sha1> | game/glitchGhost | test/2-ibm-logo | path/to/file.ch8
 //	-platform originalChip8   platform for a ROM file
 //	-shader clean             no CRT effect
 //	-testroms DIR             test-suite ROMs (default third_party/chip8-test-suite/bin)
@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -22,7 +23,9 @@ import (
 
 	"github.com/rbscholtus/chippie/app"
 	"github.com/rbscholtus/chippie/app/roms"
+	"github.com/rbscholtus/chippie/catalogue"
 	"github.com/rbscholtus/chippie/platform"
+	"github.com/rbscholtus/chippie/romstore"
 )
 
 const (
@@ -36,12 +39,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lib, err := roms.NewLibrary(params.TestROMs)
+	builtin, err := roms.NewLibrary(params.TestROMs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	game, err := app.New(params, lib)
+	cat, err := catalogue.LoadSnapshot()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	romCache := platform.NewCache(platform.StoreROMs)
+	store := romstore.New(cat.Sources.URLs, romCache, params.Base).WithLocal(builtin.LoadHash)
+
+	game, err := app.New(app.Deps{
+		Params:     params,
+		Catalogue:  cat,
+		Builtin:    builtin,
+		Store:      store,
+		Prefs:      platform.NewPrefs(),
+		CachedROMs: romCache.Keys,
+		Refresh: catalogue.Refresh(context.Background(), platform.Fetch,
+			platform.NewCache(platform.StoreMetadata), catalogue.DatabaseURL),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}

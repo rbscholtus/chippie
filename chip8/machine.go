@@ -46,6 +46,12 @@ type Machine struct {
 
 	keys [NumKeys]bool
 
+	// keysRead records which keys the program has checked with EX9E/EXA1,
+	// and anyKey whether it waited for any key with FX0A: the UI shows them
+	// as the game's controls.
+	keysRead uint16
+	anyKey   bool
+
 	// FX0A state: waiting is true while FX0A blocks. lastKeys holds the keys
 	// at the previous check, so only a new press counts. waitKey is the key
 	// that was pressed and must now be released, or noKey.
@@ -94,6 +100,7 @@ func (m *Machine) Reset(p Profile) {
 	m.sp = 0
 	m.dt, m.st = 0, 0
 	m.keys = [NumKeys]bool{}
+	m.keysRead, m.anyKey = 0, false
 	m.waiting, m.waitKey, m.lastKeys = false, noKey, [NumKeys]bool{}
 	m.frame = 0
 	m.stopFrame = false
@@ -141,6 +148,19 @@ func (m *Machine) SetKey(key uint8, down bool) {
 
 // KeyDown reports whether a hex key (0..F) is down.
 func (m *Machine) KeyDown(key uint8) bool { return int(key) < NumKeys && m.keys[key] }
+
+// SetTicksPerFrame changes the speed while running (the speed knob).
+// Values below 1 mean the platform's default.
+func (m *Machine) SetTicksPerFrame(n int) { m.profile.TicksPerFrame = n }
+
+// SetQuirks changes the quirks while running. Changing the platform needs
+// Reset, because memory and display sizes may change.
+func (m *Machine) SetQuirks(q Quirks) { m.profile.Quirks = q }
+
+// KeysRead reports which hex keys the program has checked since the last
+// reset (bit k for key k), and whether it has waited for any key (FX0A).
+// The UI shows them, so players can find a game's controls.
+func (m *Machine) KeysRead() (uint16, bool) { return m.keysRead, m.anyKey }
 
 // Profile returns the profile the machine is running with.
 func (m *Machine) Profile() Profile { return m.profile }

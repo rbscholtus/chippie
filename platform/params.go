@@ -19,6 +19,9 @@ type Params struct {
 	TestROMs string
 	// Debug shows the TPS/FPS overlay from the start.
 	Debug bool
+	// Base is the page's base URL ("" natively): relative download URLs,
+	// for ROMs Chippie hosts itself, resolve against it.
+	Base string
 }
 
 // Shader modes.

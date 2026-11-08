@@ -1,7 +1,7 @@
 // Package app is the Ebitengine game: it runs the emulator once per Update,
-// draws it through the CRT renderer, plays the buzzer and shows the ROM
-// picker. Game logic lives in chip8; this package only connects it to the
-// screen, keyboard and speakers.
+// draws it through the CRT renderer, plays the buzzer, and shows the
+// library drawer and the settings panel. Game logic lives in chip8; this
+// package connects it to the screen, keyboard, touch and speakers.
 package app
 
 import (
@@ -13,42 +13,74 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/rbscholtus/chippie/app/crt"
+	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/app/roms"
 	"github.com/rbscholtus/chippie/app/sound"
+	"github.com/rbscholtus/chippie/catalogue"
 	"github.com/rbscholtus/chippie/chip8"
 	"github.com/rbscholtus/chippie/platform"
+	"github.com/rbscholtus/chippie/romstore"
 )
 
 // state is what the TV is doing.
 type state uint8
 
 const (
-	stateOff     state = iota // waiting for the first click or key
-	statePicker               // the ROM list is open; emulation paused
-	stateLoading              // a ROM is being fetched
-	stateRunning              // emulating
+	stateOff      state = iota // waiting for the first click, tap or key
+	statePicker                // the library drawer is open; emulation paused
+	stateSettings              // the settings panel is open; emulation paused
+	stateLoading               // a ROM is tuning in (downloading)
+	stateRunning               // emulating
 )
 
 // Power animation speed: the full on/off animation takes 40 updates.
 const powerStep = 1.0 / 40
 
+// Errors shown to the user.
+var (
+	errUnknownROM      = errors.New("unknown ROM")
+	errUnknownPlatform = errors.New("unknown platform")
+	errNotPlayable     = errors.New("not playable yet")
+)
+
+// Deps are what the game is built from; cmd/chippie wires them up.
+type Deps struct {
+	Params    platform.Params
+	Catalogue *catalogue.Catalogue
+	Builtin   *roms.Library // ROMs that need no download
+	Store     *romstore.Store
+	Prefs     *platform.Prefs
+	// CachedROMs, if set, lists the SHA-1s of downloaded ROMs; it may block.
+	CachedROMs func() ([]string, error)
+	// Refresh, if set, delivers a newer catalogue in the background.
+	Refresh <-chan catalogue.RefreshResult
+}
+
 // Game is the ebiten.Game.
 type Game struct {
-	params   platform.Params
-	lib      *roms.Library
-	machine  *chip8.Machine
-	current  roms.Entry
-	hasROM   bool
+	Deps
+
+	machine    *chip8.Machine
+	current    library.Entry
+	currentROM []byte
+	hasROM     bool
+
 	renderer *crt.Renderer
 	sound    sound.Output
 	picker   *picker
+	search   *textField
+	settings *settings
 	ui       *ui
 
-	state   state
-	loading <-chan roms.Result
-	power   float32
-	message string
-	debug   bool
+	state        state
+	loading      <-chan romstore.Result
+	loadingEntry library.Entry
+	picked       <-chan platform.PickedFile
+	cached       chan []string
+	dropped      chan platform.PickedFile
+	power        float32
+	message      string
+	debug        bool
 
 	width, height int // layout size in real pixels
 	scale         float64
@@ -61,9 +93,9 @@ type Game struct {
 
 // New creates the game. A ROM given in the parameters starts loading
 // straight away; otherwise the TV waits to be switched on.
-func New(p platform.Params, lib *roms.Library) (*Game, error) {
+func New(d Deps) (*Game, error) {
 	mode := crt.ModeCRT
-	if p.Shader == platform.ShaderClean {
+	if d.Params.Shader == platform.ShaderClean {
 		mode = crt.ModeClean
 	}
 
@@ -78,23 +110,32 @@ func New(p platform.Params, lib *roms.Library) (*Game, error) {
 	}
 
 	g := &Game{
-		params:   p,
-		lib:      lib,
+		Deps:     d,
 		machine:  chip8.New(chip8.DefaultProfile(chip8.ModernChip8)),
 		renderer: r,
-		picker:   newPicker(lib.Entries()),
+		picker:   newPicker(library.Build(d.Catalogue, d.Builtin.Offline()), platform.CanPickFiles()),
+		search:   newTextField("Search title, author, year or platform"),
 		ui:       u,
-		debug:    p.Debug,
+		debug:    d.Params.Debug,
 		scale:    1,
 		ptr:      pointer{threshold: dragThreshold},
+		dropped:  make(chan platform.PickedFile, 1),
+		cached:   make(chan []string, 1),
 	}
 	g.renderer.Update(g.machine.Display())
 
-	if p.ROM != "" {
+	if d.CachedROMs != nil {
+		go func() {
+			keys, _ := d.CachedROMs() // no list just means no "offline" marks yet
+			g.cached <- keys
+		}()
+	}
+
+	if d.Params.ROM != "" {
 		g.power = 1
 		g.renderer.SetPower(1)
 
-		if err := g.startROM(p.ROM); err != nil {
+		if err := g.startROM(d.Params.ROM); err != nil {
 			g.message = err.Error()
 			g.state = statePicker
 		}
@@ -103,18 +144,13 @@ func New(p platform.Params, lib *roms.Library) (*Game, error) {
 	return g, nil
 }
 
-// Errors shown to the user.
-var (
-	errUnknownROM      = errors.New("unknown ROM")
-	errUnknownPlatform = errors.New("unknown platform")
-	errNotPlayable     = errors.New("not playable yet")
-)
-
-// Update runs one 60 Hz tick: input, then at most one emulated frame.
+// Update runs one 60 Hz tick: input, background results, then at most one
+// emulated frame.
 func (g *Game) Update() error {
 	in := g.readPointer()
 	if in.touch && !g.ui.touch {
 		g.ui.touch = true // bigger rows and touch wording from now on
+		g.search.blur()   // on touch, the keyboard opens only when asked
 		g.relayout()
 	}
 
@@ -129,30 +165,30 @@ func (g *Game) Update() error {
 		g.debug = !g.debug
 	}
 
-	g.pollLoading()
+	g.pollBackground()
+	g.checkDrops()
+
+	var err error
 
 	switch g.state {
 	case stateOff:
 		if gesture {
-			g.state = statePicker
+			g.openPicker()
 			g.ptr.release(in.pos) // this press switched on; it doesn't pick
 		}
 	case statePicker:
-		g.updatePicker(in)
+		err = g.updatePicker(in)
+	case stateSettings:
+		g.updateSettings(in)
 	case stateLoading:
+		g.renderer.Static(uint64(ebiten.Tick())) //nolint:gosec // G115: Tick is never negative
 	case stateRunning:
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) || (in.tapped && in.tapAt.In(g.ui.layout.status)) {
-			g.openPicker()
-
-			break
-		}
-
-		g.runFrame()
+		g.updateRunning(in)
 	}
 
 	g.animatePower()
 
-	return nil
+	return err
 }
 
 // shouldRun reports whether the emulator runs this tick: only while a ROM

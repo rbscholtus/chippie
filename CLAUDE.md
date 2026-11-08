@@ -1,6 +1,6 @@
 # Chippie: notes for Claude
 
-A CHIP-8 emulator written entirely in Go with Ebitengine + ebitenui, compiled
+A CHIP-8 emulator written entirely in Go with Ebitengine (own widgets), compiled
 to WebAssembly, presented as a mid-1970s CRT TV.
 
 - **Design:** [README.md](README.md). Read the relevant section before
