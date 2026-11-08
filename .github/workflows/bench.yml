@@ -21,15 +21,17 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+      - name: Install Ebitengine dependencies
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev xvfb
       - name: Install benchstat
         run: go install golang.org/x/perf/cmd/benchstat@latest
       - name: Benchmark PR
-        run: go test -run=NONE -bench=. -count=8 ./... | tee new.txt
+        run: xvfb-run -a go test -run=NONE -bench=. -count=8 ./... | tee new.txt
       - name: Benchmark main
         run: |
           git worktree add ../base "origin/${{ github.base_ref }}"
           git -C ../base submodule update --init
-          (cd ../base && go test -run=NONE -bench=. -count=8 ./...) | tee old.txt
+          (cd ../base && xvfb-run -a go test -run=NONE -bench=. -count=8 ./...) | tee old.txt
       - name: Compare
         run: |
           benchstat old.txt new.txt | tee stat.txt
