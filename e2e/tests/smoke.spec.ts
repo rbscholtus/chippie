@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { golden, gridText, sampleScreen, waitForApp } from "./screen";
+import { click, golden, gridText, sampleScreen, waitForApp } from "./screen";
 
 // Software rendering in headless Chromium is slow, so the tests poll for
 // the expected picture instead of waiting a fixed time (README §15.3).
@@ -25,7 +25,7 @@ test("switch on, pick a bundled game, and it runs", async ({ page }) => {
   await waitForApp(page);
 
   // The loader is gone, so the click reaches the canvas and switches on.
-  await page.mouse.click(10, 10);
+  await click(page, 10, 10);
   // Glitch Ghost is the first entry; Enter plays it.
   await page.waitForTimeout(500);
   await page.keyboard.press("Enter");
