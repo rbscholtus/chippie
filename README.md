@@ -75,7 +75,7 @@ a product goal.
 | ROM files | Downloaded from their original source at runtime. Only the 12 ROMs that can't be fetched from a browser are hosted by us. |
 | Profiles | Platform defaults, then the database's per-ROM overrides, then user settings |
 | Tests | Golden framebuffers made from the test suite's own reference pictures |
-| Memory | No allocations in the per-frame path. No `sync.Pool` for now. |
+| Memory | Few allocations in the per-frame path, without awkward code; optimise when profiles show the need. No `sync.Pool` for now. |
 
 **Why pure Go?** Three earlier options were considered: Go core + Svelte UI,
 Go core + TypeScript loop, and all TypeScript. Pure Go with Ebitengine was
@@ -229,10 +229,10 @@ chippie/
 - **No dependencies, no clock, no randomness the caller can't control.** The
   core advances only when told to (`RunFrame`), which makes every run
   repeatable. The screenshot tests depend on that.
-- **Fixed-size state.** Memory, registers, stack, keypad and display planes
-  are arrays inside the `Machine` struct, sized for the largest platform.
-  Switching platform or resolution changes which part of them is used. It
-  never allocates.
+- **State sized per platform.** Memory and display planes are allocated by
+  `New`/`Reset` for the platform in use (4 KB of memory for CHIP-8, 64 KB for
+  XO-CHIP) and reused when the size doesn't change. Registers, stack and
+  keypad are small arrays in the `Machine` struct.
 - **Quirks are data.** Instruction code checks `m.quirks.Shift` and so on. It
   never checks "which platform am I", except for instructions that only exist
   on some platforms.
@@ -261,7 +261,7 @@ type Profile struct {
     Seed          uint64 // for CXNN; tests use a fixed seed
 }
 
-type Machine struct { /* fixed-size state only */ }
+type Machine struct { /* memory and display sized per platform */ }
 
 func New(p Profile) *Machine
 func (m *Machine) Reset(p Profile)
@@ -754,11 +754,12 @@ fastest way to work on UI and shaders. CI builds it but doesn't ship it.
 
 ## 16. Performance
 
-Rule: **the per-frame path never allocates.** `sync.Pool` is not used for now.
-It will be added only where a profile shows repeated allocations that can't
-simply be preallocated. Download buffers are the likely first candidate.
-Allocation matters more than usual here, because Go's garbage collector runs
-on the browser's single thread under WASM.
+Rule: **keep allocations in the per-frame path few, without making the code
+awkward.** Readable code comes first; optimisation happens when a benchmark or
+profile shows the need. Allocation matters more than usual here, because Go's
+garbage collector runs on the browser's single thread under WASM, so the
+benchmarks report allocations and CI tracks them. `sync.Pool` is not used for
+now. Download buffers are the likely first candidate if it's ever needed.
 
 **Per-frame path:** `RunFrame`, every instruction, display operations, trace
 recording, the framebuffer → texture copy (`WritePixels` from a reused byte
@@ -769,10 +770,9 @@ build new ones each frame).
 
 | Test | Kind | Fails CI? |
 |---|---|---|
-| `TestRunFrameZeroAllocs` | `testing.AllocsPerRun(100, m.RunFrame)` == 0, for each platform, at the default tickrate and at 1000 ticks, running a busy ROM (corax+, a sprite-heavy XO-CHIP game) | **Yes** |
-| `TestFramebufferCopyZeroAllocs` | Copying the display into the reused pixel buffer == 0 allocs | **Yes** |
-| `TestTraceZeroAllocs` | Recording into the trace ring buffer while running == 0 allocs | **Yes** |
-| `BenchmarkRunFrame/<platform>/<ticks>` | ns/frame with `b.ReportAllocs()` | No; tracked |
+| `BenchmarkRunFrame/<platform>/<ticks>` | ns/frame and allocs/frame (`b.ReportAllocs()`), each platform, default tickrate and 1000 ticks, running a busy ROM (corax+, a sprite-heavy XO-CHIP game) | No; tracked |
+| `BenchmarkTrace` | Recording into the trace ring buffer while running | No; tracked |
+| `BenchmarkFramebufferCopy` | Copying the display into the reused pixel buffer | No; tracked |
 | `BenchmarkDXYN/lores,hires,xo-2planes` | Sprite drawing, the hottest instruction | No; tracked |
 | `BenchmarkScroll/<mode>` | SCHIP/XO scrolling | No; tracked |
 | `BenchmarkResolveProfile` | Hash lookup + profile resolution on ROM load | No; tracked |
@@ -851,10 +851,12 @@ Once the emulator works (after milestone M4):
 
 ## 19. Milestones
 
+Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md).
+
 | # | Milestone | Done when |
 |---|---|---|
-| M1 | Core: `modernChip8` + `originalChip8` | Tests 1–4 and 6–7 pass headless; zero-alloc tests pass |
-| M2 | Test rig + golden import | All 64×32 golden frames imported; failure diffs work |
+| M1 | Core: `modernChip8` + `originalChip8`, rig basics | Tests 1–4 and 6–7 pass headless (minimal test rig + golden import); benchmarks in place |
+| M2 | Complete test rig + golden import | All 64×32 golden frames imported; failure diffs and `-update` work; test 5 on CHIP-8 |
 | M3 | Ebitengine shell | Native and browser builds play a bundled ROM: 60 TPS, keyboard, beep, CRT shader (from the prototype), loader page, Pages deploy |
 | M4 | Catalogue + library | Database snapshot + `sources.json` + `romstore` (download, SHA-1, IndexedDB cache) + library drawer that closes on pick + file picker + drag-and-drop |
 | M5 | SCHIP | All SCHIP quirks + scrolling tests pass; the 12 Zophar ROMs hosted |

@@ -66,15 +66,18 @@ These are the coding standards for Chippie. The design is described in
 
 ## Memory and performance
 
-- **The per-frame path never allocates.** That covers `RunFrame`, every
-  instruction, display operations, trace recording, the framebuffer → texture
-  copy and shader uniform updates. Enforced by `TestRunFrameZeroAllocs` and its
-  siblings (README §16).
-- **State lives in fixed-size arrays inside the struct,** sized for the
-  largest platform. No slices that grow, no maps, no interfaces with dynamic
-  dispatch, and no closures created in the hot loop.
-- **Allocations are allowed only at setup time:** `New`, `Reset`,
-  `EnableTrace`, loading the catalogue, loading art, resizing.
+- **Keep allocations in the per-frame path few, without making the code
+  awkward.** The per-frame path is `RunFrame`, every instruction, display
+  operations, trace recording, the framebuffer → texture copy and shader
+  uniform updates. Prefer the plain, readable version. Optimise later, when a
+  benchmark or profile shows the need (README §16).
+- **Size buffers for the platform when it's set up.** `New`/`Reset` allocate
+  memory and display buffers for the platform in use (4 KB for CHIP-8), and
+  reuse them when the size doesn't change. Don't size everything for the
+  largest platform.
+- **Sensible defaults in hot code:** create images, shaders, draw options and
+  uniform maps once and reuse them; avoid closures and interface dispatch per
+  instruction.
 - **`sync.Pool` is not used for now.** Add one only when a profile shows
   repeated allocations that can't be preallocated, and include benchmark
   results in the PR.
