@@ -12,8 +12,12 @@ to WebAssembly, presented as a mid-1970s CRT TV.
   only when a benchmark or profile shows the need.
 - **Go 1.27**, golangci-lint v2 with all linters on except those disabled in
   `.golangci.yml`. Never add a bare `//nolint`.
-- **Before finishing a change:** `golangci-lint run`, `go test ./...`,
-  `GOOS=js GOARCH=wasm go build ./cmd/chippie` and `go build ./cmd/chippie`.
+- **Before finishing a change:** `golangci-lint run` (also with
+  `GOOS=js GOARCH=wasm`), `go test ./...`, `go build ./cmd/chippie`, and
+  `./scripts/build.sh && (cd e2e && npx playwright test)` for anything the
+  browser sees.
+- **No `net/http` outside `platform/`:** downloads go through
+  `platform.Fetch` (it keeps ~1.7 MB gzip out of the WASM).
 - **The `chip8/` package must stay dependency-free and clock-free.**
 - **`syscall/js` only in `platform/`**, always with a native stub.
 - **Never block `Update` or `Draw`.** Async work goes in goroutines with
