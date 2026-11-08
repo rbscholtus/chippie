@@ -52,6 +52,11 @@ type Game struct {
 
 	width, height int // layout size in real pixels
 	scale         float64
+
+	ptr      pointer
+	touchID  ebiten.TouchID
+	touching bool
+	touchBuf []ebiten.TouchID
 }
 
 // New creates the game. A ROM given in the parameters starts loading
@@ -81,6 +86,7 @@ func New(p platform.Params, lib *roms.Library) (*Game, error) {
 		ui:       u,
 		debug:    p.Debug,
 		scale:    1,
+		ptr:      pointer{threshold: dragThreshold},
 	}
 	g.renderer.Update(g.machine.Display())
 
@@ -106,7 +112,14 @@ var (
 
 // Update runs one 60 Hz tick: input, then at most one emulated frame.
 func (g *Game) Update() error {
-	if g.gesture() && !g.sound.Started() {
+	in := g.readPointer()
+	if in.touch && !g.ui.touch {
+		g.ui.touch = true // bigger rows and touch wording from now on
+		g.relayout()
+	}
+
+	gesture := in.pressed || len(inpututil.AppendJustPressedKeys(nil)) > 0
+	if gesture && !g.sound.Started() {
 		if err := g.sound.Start(); err != nil {
 			g.message = err.Error()
 		}
@@ -120,14 +133,15 @@ func (g *Game) Update() error {
 
 	switch g.state {
 	case stateOff:
-		if g.gesture() {
+		if gesture {
 			g.state = statePicker
+			g.ptr.release(in.pos) // this press switched on; it doesn't pick
 		}
 	case statePicker:
-		g.updatePicker()
+		g.updatePicker(in)
 	case stateLoading:
 	case stateRunning:
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) || (in.tapped && in.tapAt.In(g.ui.layout.status)) {
 			g.openPicker()
 
 			break
@@ -156,8 +170,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	if w != g.width || h != g.height {
 		g.width, g.height = w, h
-		g.renderer.SetScreen(screenRect(w, h))
-		g.ui.resize(g.scale)
+		g.relayout()
 	}
 
 	return w, h

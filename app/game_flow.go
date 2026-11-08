@@ -91,7 +91,7 @@ func (g *Game) runFrame() {
 	g.renderer.Update(g.machine.Display())
 
 	if err := g.machine.State().Err; err != nil {
-		g.message = "Halted: " + err.Error() + ". Press Esc to pick another ROM."
+		g.message = "Halted: " + err.Error() + ". Esc or tap here: ROM list."
 	}
 }
 
@@ -125,7 +125,15 @@ func (g *Game) openPicker() {
 	input.Release(g.machine)
 }
 
-func (g *Game) updatePicker() {
+// relayout places the picture and the overlays for the current size.
+func (g *Game) relayout() {
+	screen := screenRect(g.width, g.height)
+	g.renderer.SetScreen(screen)
+	g.ui.resize(image.Rect(0, 0, g.width, g.height), screen, g.scale)
+	g.picker.setView(float64(g.ui.layout.list.Dy()), g.ui.layout.rowH)
+}
+
+func (g *Game) updatePicker(in pointerInput) {
 	switch {
 	case inpututil.IsKeyJustPressed(ebiten.KeyArrowDown):
 		g.picker.move(1)
@@ -137,10 +145,26 @@ func (g *Game) updatePicker() {
 		g.state = stateRunning
 	}
 
-	if pt, ok := g.clicked(); ok {
-		if i, hit := g.ui.entryAt(pt); hit && g.picker.selectIndex(i) {
+	// Drag and wheel scroll the list.
+	g.picker.scroll(-float64(in.dy))
+
+	if _, wy := ebiten.Wheel(); wy != 0 {
+		g.picker.scroll(-wy * g.ui.layout.rowH)
+	}
+
+	if !in.tapped {
+		return
+	}
+
+	l := g.ui.layout
+
+	switch {
+	case in.tapAt.In(l.list):
+		if i, ok := g.picker.entryAt(float64(in.tapAt.Y - l.list.Min.Y)); ok && g.picker.selectIndex(i) {
 			g.pick()
 		}
+	case in.tapAt.Y >= l.panel.Max.Y && g.hasROM:
+		g.state = stateRunning // tapped the status line: back to the ROM
 	}
 }
 
@@ -168,29 +192,60 @@ func (g *Game) animatePower() {
 	g.renderer.SetPower(g.power)
 }
 
-// gesture reports a click, tap or key press this tick: browsers allow audio
-// only after one.
-func (g *Game) gesture() bool {
-	if _, ok := g.clicked(); ok {
-		return true
-	}
-
-	return len(inpututil.AppendJustPressedKeys(nil)) > 0
+// pointerInput is this tick's mouse or touch input, already turned into
+// taps and drags by the game's pointer tracker.
+type pointerInput struct {
+	pressed bool        // a press started this tick
+	touch   bool        // the input came from a touch screen
+	pos     image.Point // where the pointer is (or was released)
+	dy      int         // vertical drag movement this tick
+	tapped  bool        // a tap ended this tick
+	tapAt   image.Point // where the tap started
 }
 
-// clicked returns where the mouse or a finger was pressed this tick.
-func (g *Game) clicked() (image.Point, bool) {
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
+// readPointer reads one finger or the left mouse button and feeds the
+// pointer tracker.
+func (g *Game) readPointer() pointerInput {
+	var (
+		in             pointerInput
+		held, released bool
+	)
 
-		return image.Pt(x, y), true
+	switch {
+	case g.touching:
+		in.touch = true
+
+		if inpututil.IsTouchJustReleased(g.touchID) {
+			released, g.touching = true, false
+			in.pos = image.Pt(inpututil.TouchPositionInPreviousTick(g.touchID))
+		} else {
+			held = true
+			in.pos = image.Pt(ebiten.TouchPosition(g.touchID))
+		}
+	default:
+		g.touchBuf = inpututil.AppendJustPressedTouchIDs(g.touchBuf[:0])
+		if len(g.touchBuf) > 0 {
+			g.touchID, g.touching = g.touchBuf[0], true
+			in.pressed, in.touch = true, true
+			in.pos = image.Pt(ebiten.TouchPosition(g.touchID))
+
+			break
+		}
+
+		in.pos = image.Pt(ebiten.CursorPosition())
+		in.pressed = inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+		released = inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
+		held = !in.pressed && !released && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 	}
 
-	if ids := inpututil.AppendJustPressedTouchIDs(nil); len(ids) > 0 {
-		x, y := ebiten.TouchPosition(ids[0])
-
-		return image.Pt(x, y), true
+	switch {
+	case in.pressed:
+		g.ptr.press(in.pos)
+	case held:
+		in.dy = g.ptr.move(in.pos)
+	case released:
+		in.tapAt, in.tapped = g.ptr.release(in.pos)
 	}
 
-	return image.Point{}, false
+	return in
 }

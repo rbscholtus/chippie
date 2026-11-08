@@ -16,6 +16,20 @@ func testEntries() []roms.Entry {
 	}
 }
 
+// longPicker returns a picker with n game entries (plus one heading row),
+// a 100-pixel view and 10-pixel rows.
+func longPicker(n int) *picker {
+	entries := make([]roms.Entry, n)
+	for i := range entries {
+		entries[i] = roms.Entry{Group: roms.Games}
+	}
+
+	p := newPicker(entries)
+	p.setView(100, 10)
+
+	return p
+}
+
 func TestPickerMoveWraps(t *testing.T) {
 	t.Parallel()
 
@@ -60,7 +74,7 @@ func TestPickerSelect(t *testing.T) {
 func TestPickerRowsHaveGroupHeadings(t *testing.T) {
 	t.Parallel()
 
-	rows := newPicker(testEntries()).rows()
+	rows := newPicker(testEntries()).rows
 	kinds := make([]byte, 0, len(rows))
 
 	for _, r := range rows {
@@ -76,31 +90,144 @@ func TestPickerRowsHaveGroupHeadings(t *testing.T) {
 	}
 }
 
-func TestPickerVisibleRowsFollowSelection(t *testing.T) {
+func TestPickerScrollClamps(t *testing.T) {
 	t.Parallel()
 
-	entries := make([]roms.Entry, 30)
-	for i := range entries {
-		entries[i] = roms.Entry{Group: roms.Games}
+	p := longPicker(30) // 31 rows × 10 px = 310 px in a 100 px view
+
+	p.scroll(-50)
+
+	if p.offset != 0 {
+		t.Errorf("scrolled above the top: offset %v", p.offset)
 	}
 
-	p := newPicker(entries)
-	rows := p.rows() // 1 heading + 30 entries
+	p.scroll(1000)
 
-	if got := p.visibleRows(rows, 40); got != 0 {
-		t.Errorf("everything fits: first=%d, want 0", got)
+	if p.offset != 210 {
+		t.Errorf("offset %v after scrolling past the end, want 210", p.offset)
 	}
 
-	p.selected = 29 // the last row
+	// A short list never scrolls.
+	short := longPicker(3)
+	short.scroll(50)
 
-	if got := p.visibleRows(rows, 10); got != len(rows)-10 {
-		t.Errorf("last entry: first=%d, want %d", got, len(rows)-10)
+	if short.offset != 0 {
+		t.Errorf("short list scrolled to %v", short.offset)
+	}
+}
+
+func TestPickerKeyboardKeepsSelectionVisible(t *testing.T) {
+	t.Parallel()
+
+	p := longPicker(30)
+
+	p.move(-1) // wraps to the last entry, row 30: y 300..310
+
+	if p.offset != 210 {
+		t.Errorf("last entry: offset %v, want 210", p.offset)
 	}
 
-	p.selected = 15 // row 16
+	p.move(1) // wraps to the first entry, row 1: y 10..20
 
-	if got := p.visibleRows(rows, 10); got != 11 {
-		t.Errorf("middle entry: first=%d, want 11", got)
+	if p.offset != 10 {
+		t.Errorf("first entry: offset %v, want 10", p.offset)
+	}
+}
+
+func TestPickerEntryAt(t *testing.T) {
+	t.Parallel()
+
+	p := longPicker(30)
+
+	if _, ok := p.entryAt(5); ok {
+		t.Error("the heading row should not be an entry")
+	}
+
+	if i, ok := p.entryAt(15); !ok || i != 0 {
+		t.Errorf("y=15: entry %d %v, want 0", i, ok)
+	}
+
+	p.scroll(100) // now row 10 (entry 9) is at the top
+
+	if i, ok := p.entryAt(5); !ok || i != 9 {
+		t.Errorf("scrolled, y=5: entry %d %v, want 9", i, ok)
+	}
+
+	if _, ok := p.entryAt(150); ok {
+		t.Error("a point below the view should not be an entry")
+	}
+}
+
+func TestPointerTapAndDrag(t *testing.T) {
+	t.Parallel()
+
+	p := pointer{threshold: 8}
+
+	// A small wobble is still a tap, reported where it started.
+	p.press(image.Pt(100, 100))
+
+	if dy := p.move(image.Pt(103, 104)); dy != 0 {
+		t.Errorf("wobble scrolled by %d", dy)
+	}
+
+	if at, tap := p.release(image.Pt(103, 104)); !tap || at != image.Pt(100, 100) {
+		t.Errorf("wobble: tap=%v at %v", tap, at)
+	}
+
+	// A longer move is a drag: it scrolls and never taps.
+	p.press(image.Pt(100, 100))
+
+	if dy := p.move(image.Pt(100, 130)); dy != 30 {
+		t.Errorf("drag: dy %d, want 30", dy)
+	}
+
+	if dy := p.move(image.Pt(100, 120)); dy != -10 {
+		t.Errorf("drag back: dy %d, want -10", dy)
+	}
+
+	if _, tap := p.release(image.Pt(100, 120)); tap {
+		t.Error("a drag ended as a tap")
+	}
+
+	// Releasing without a press does nothing.
+	if _, tap := p.release(image.Pt(1, 1)); tap {
+		t.Error("release without press tapped")
+	}
+}
+
+func TestLayoutFitsPhones(t *testing.T) {
+	t.Parallel()
+
+	// iPhone 15 portrait and landscape at 3×, and a desktop window at 1×.
+	sizes := []struct {
+		w, h  int
+		scale float64
+	}{{1179, 1977, 3}, {2556, 1029, 3}, {1024, 640, 1}}
+
+	for _, sz := range sizes {
+		window := image.Rect(0, 0, sz.w, sz.h)
+		screen := screenRect(sz.w, sz.h)
+		l := computeLayout(window, screen, sz.scale, textSize*lineSpacing*sz.scale, true)
+
+		if !l.list.In(l.panel) || !l.panel.In(window) || !l.status.In(window) {
+			t.Errorf("%dx%d: rectangles outside the window: %+v", sz.w, sz.h, l)
+		}
+
+		if l.rowH < touchRowSize*sz.scale {
+			t.Errorf("%dx%d: touch rows %.0f px, want at least %.0f", sz.w, sz.h, l.rowH, touchRowSize*sz.scale)
+		}
+
+		// The picker panel uses most of the window, not just the picture.
+		if l.panel.Dy() < sz.h*7/10 {
+			t.Errorf("%dx%d: panel height %d is under 70%% of the window", sz.w, sz.h, l.panel.Dy())
+		}
+	}
+
+	// In portrait on an iPhone, most of the M3 list (16 rows) is visible at
+	// once; the rest is a short drag away.
+	l := computeLayout(image.Rect(0, 0, 1179, 1977), screenRect(1179, 1977), 3, textSize*lineSpacing*3, true)
+	if rows := float64(l.list.Dy()) / l.rowH; rows < 10 {
+		t.Errorf("portrait iPhone shows %.1f rows, want at least 10", rows)
 	}
 }
 
