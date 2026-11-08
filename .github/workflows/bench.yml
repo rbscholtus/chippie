@@ -1,0 +1,45 @@
+name: Benchmarks
+
+# Compares benchmarks of a PR with main. Results go to the job summary.
+# A slowdown of more than 10% is a warning, not a failure: CI machines are
+# noisy (README §16).
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+      - name: Benchmark PR
+        run: go test -run=NONE -bench=. -count=8 ./... | tee new.txt
+      - name: Benchmark main
+        run: |
+          git worktree add ../base "origin/${{ github.base_ref }}"
+          git -C ../base submodule update --init
+          (cd ../base && go test -run=NONE -bench=. -count=8 ./...) | tee old.txt
+      - name: Compare
+        run: |
+          benchstat old.txt new.txt | tee stat.txt
+          {
+            echo '### Benchmarks (main vs PR)'
+            echo '```'
+            cat stat.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Warn on any time/op increase above 10% that benchstat marks significant.
+          if grep -E '^\S.*\+([1-9][0-9]|[1-9][0-9]{2,})\.[0-9]+%' stat.txt | grep -v '~' > slower.txt; then
+            echo "::warning title=Slower benchmarks::$(wc -l < slower.txt) benchmark(s) more than 10% slower than main"
+          fi
