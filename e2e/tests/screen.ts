@@ -50,6 +50,16 @@ export function golden(name: string): string {
   return readFileSync(new URL(`../../testdata/golden/${name}.txt`, import.meta.url), "utf8");
 }
 
+// A game is running when the screen shows only the emulated picture (at most
+// four colours; an overlay's text has many more) and it has drawn something.
+export async function running(page: Page) {
+  const { rgb } = await sampleScreen(page);
+  const counts = new Map<string, number>();
+  for (const c of rgb) counts.set(c.join(), (counts.get(c.join()) ?? 0) + 1);
+  const background = Math.max(...counts.values());
+  return counts.size <= 4 && rgb.length - background > 20;
+}
+
 // Waits until the loader has started Go and removed itself.
 export async function waitForApp(page: Page) {
   await page.waitForFunction(() => (window as any).chippieTimings !== undefined, null, { timeout: 60_000 });

@@ -28,7 +28,7 @@ test("a SUPER-CHIP game runs in hi-res", async ({ page }) => {
   // 2x2 blocks.
   const fineDetail = async () => {
     const g = await sampleScreen(page, 128, 64);
-    const lit = (x: number, y: number) => g.rgb[y * g.cols + x].some((c) => c > 128);
+    const lit = (x: number, y: number) => g.rgb[y * g.cols + x].join();
     for (let y = 0; y < g.rows; y += 2) {
       for (let x = 0; x < g.cols; x += 2) {
         if (lit(x, y) !== lit(x + 1, y) || lit(x, y) !== lit(x, y + 1)) return true;
@@ -48,6 +48,15 @@ test("a ROM Chippie hosts itself downloads and runs", async ({ page }) => {
 
   await expect.poll(async () => (gridText(await sampleScreen(page)).match(/#/g) ?? []).length, { intervals: [500] })
     .toBeGreaterThan(0);
+});
+
+test("an XO-CHIP game shows its own colours on two planes", async ({ page }) => {
+  await page.goto("/?rom=game/redOctober&shader=clean");
+  await waitForApp(page);
+
+  const colours = async () => new Set((await sampleScreen(page)).rgb.map((c) => c.join())).size;
+
+  await expect.poll(colours, { intervals: [500], timeout: 30_000 }).toBeGreaterThan(2);
 });
 
 test("switching on opens the library", async ({ page }) => {

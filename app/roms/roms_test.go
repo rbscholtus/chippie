@@ -53,7 +53,7 @@ func TestBundledGames(t *testing.T) {
 	want := map[string]bool{
 		"game/glitchGhost": true, "game/danm8ku": true,
 		"game/turnover77": true, "game/octopeg": true,
-		"game/redOctober": false, "game/anEveningToDieFor": false,
+		"game/redOctober": true, "game/anEveningToDieFor": true,
 	}
 
 	for id, p := range want {

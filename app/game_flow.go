@@ -14,6 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
+	"github.com/rbscholtus/chippie/app/crt"
 	"github.com/rbscholtus/chippie/app/input"
 	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/app/roms"
@@ -117,12 +118,25 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 		return fmt.Errorf("%s: %w", e.Title, err)
 	}
 
+	g.renderer.SetPalette(g.paletteFor(e.SHA1))
+
 	g.current, g.currentROM, g.hasROM = e, rom, true
 	g.message = ""
 	g.state = stateRunning
 	g.renderer.Update(g.machine.Display())
 
 	return nil
+}
+
+// paletteFor returns a ROM's colours from the catalogue, or the default.
+func (g *Game) paletteFor(sha1 string) crt.Palette {
+	if rom, ok := g.Catalogue.DB.ROM(sha1); ok && rom.Colors != nil {
+		if p, ok := crt.ParsePalette(rom.Colors.Pixels); ok {
+			return p
+		}
+	}
+
+	return crt.DefaultPalette
 }
 
 // overridesKey is where a ROM's settings are saved.
@@ -178,7 +192,10 @@ func (g *Game) runFrame() {
 
 	input.Poll(g.machine)
 	g.machine.RunFrame()
-	g.sound.SetBuzzer(g.machine.Sound().Buzzer)
+
+	snd := g.machine.Sound()
+	g.sound.SetPattern(snd.HasPattern, snd.Pattern, snd.Pitch)
+	g.sound.SetBuzzer(snd.Buzzer)
 	g.renderer.Update(g.machine.Display())
 
 	if err := g.machine.State().Err; err != nil {

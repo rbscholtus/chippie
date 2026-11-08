@@ -1,17 +1,12 @@
 import { test, expect } from "@playwright/test";
 import {
-  golden, gridText, offline, pickerSearchY, rowCentre, sampleScreen, touchDrag, touchTap, waitForApp,
+  golden, gridText, offline, pickerSearchY, rowCentre, running, sampleScreen, touchDrag, touchTap, waitForApp,
 } from "./screen";
 
 // Phone only: touch input through the DevTools protocol (Chromium).
 test.skip(({ hasTouch }) => !hasTouch, "touch tests run on the phone project");
 
 test.beforeEach(async ({ page }) => offline(page));
-
-async function running(page) {
-  const text = gridText(await sampleScreen(page));
-  return !text.includes("?") && (text.match(/#/g) ?? []).length > 20;
-}
 
 test("tap the search field, type, tap a result, and it runs", async ({ page }) => {
   await page.goto("/?shader=clean");

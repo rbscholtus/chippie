@@ -1,6 +1,7 @@
 package crt
 
 import (
+	"image/color"
 	"testing"
 
 	"github.com/rbscholtus/chippie/chip8"
@@ -74,5 +75,38 @@ func BenchmarkCopyFramebuffer(b *testing.B) {
 
 	for b.Loop() {
 		CopyFramebuffer(v, &DefaultPalette, pix)
+	}
+}
+
+func TestParsePalette(t *testing.T) {
+	t.Parallel()
+
+	p, ok := ParsePalette([]string{"#102030", "#ffffff", "#ff0000", "#00FF00"})
+	if !ok || p[0] != (color.RGBA{R: 0x10, G: 0x20, B: 0x30, A: 0xFF}) || p[3] != (color.RGBA{G: 0xFF, A: 0xFF}) {
+		t.Errorf("four colours: %v %v", p, ok)
+	}
+
+	two, ok := ParsePalette([]string{"#000000", "#ffe900"})
+	if !ok || two[1] != (color.RGBA{R: 0xFF, G: 0xE9, A: 0xFF}) || two[2] != DefaultPalette[2] {
+		t.Errorf("two colours: %v %v", two, ok)
+	}
+
+	// chip8Archive's games without a second plane leave those colours empty.
+	if e, ok := ParsePalette([]string{"#000000", "#ffffff", "", ""}); !ok || e[3] != DefaultPalette[3] {
+		t.Errorf("empty entries: %v %v", e, ok)
+	}
+
+	for _, bad := range [][]string{
+		nil,
+		{"#000000"},
+		{"", "#ffffff"},
+		{"#000000", "red"},
+		{"#000000", "#12345"},
+		{"#000000", "#gggggg"},
+		{"#000000", "#111111", "#222222", "#333333", "#444444"},
+	} {
+		if p, ok := ParsePalette(bad); ok || p != DefaultPalette {
+			t.Errorf("%v: %v %v, want the default", bad, p, ok)
+		}
 	}
 }
