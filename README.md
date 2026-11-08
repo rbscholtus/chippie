@@ -177,8 +177,9 @@ chippie/
 │   └── golden-import/          # test-suite pictures → golden frames
 ├── chip8/                      # emulator core: stdlib only, no clock, no I/O
 │   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go
-│   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go
-│   └── *_test.go   perf_test.go
+│   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
+│   ├── testdata/               # disassembly goldens
+│   └── *_test.go   suite_test.go   perf_test.go
 ├── catalogue/                  # metadata + sources + profile resolution
 │   ├── db.go  sources.go  profile.go
 │   ├── snapshot/               # embedded chip-8-database JSON (go:embed)
