@@ -153,6 +153,33 @@ func TestImportPicture(t *testing.T) {
 	}
 }
 
+func TestImportPictureIgnoresStrayMarks(t *testing.T) {
+	t.Parallel()
+
+	f := Frame{Width: 2, Height: 1, Pix: []byte{0, 1}}
+	img := scaled(f, 4, []color.RGBA{off, onCol})
+	stray := color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	img.SetRGBA(1, 1, stray) // in the off block
+	img.SetRGBA(5, 1, stray) // in the lit block
+
+	withIgnore := Palette{off: 0, onCol: 1, stray: Ignore}
+
+	got, err := ImportPicture(img, 2, 1, withIgnore)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if d, _ := Diff(f, got); d != "" {
+		t.Errorf("stray marks changed the frame:\n%s", d)
+	}
+
+	// A block of nothing but stray marks can't be decided.
+	allStray := scaled(f, 1, []color.RGBA{stray, onCol})
+	if _, err := ImportPicture(allStray, 2, 1, withIgnore); !errors.Is(err, ErrMixedBlock) {
+		t.Errorf("all-ignored block: err=%v, want ErrMixedBlock", err)
+	}
+}
+
 func TestImportPictureErrors(t *testing.T) {
 	t.Parallel()
 

@@ -719,8 +719,10 @@ does this once and writes them to `testdata/golden/`.
   plane bits).
 - A `.txt` ASCII version (`#` / `.`), so diffs are readable in git and in PRs.
 
-**On failure:** the rig writes `actual.png`, `diff.png` (mismatched pixels in
-red) and an ASCII diff to `testdata/failures/`.
+**On failure:** the rig writes `actual.png`, `diff.png` (8× scale: extra lit
+pixels red, missing ones orange, the rest of the expected frame dimmed) and a
+side-by-side ASCII `diff.txt` to `testdata/failures/<platform>/<golden>/`. CI
+uploads that folder as an artifact. Each run starts by clearing it.
 
 **Test matrix:**
 

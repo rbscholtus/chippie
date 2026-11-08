@@ -15,8 +15,12 @@ var (
 )
 
 // Palette maps a picture's colours to plane bits. Several colours may map
-// to the same value (some pictures use two shades for "off").
+// to the same value (some pictures use two shades for "off"). A colour
+// mapped to [Ignore] is a stray mark: it doesn't count towards its block.
 type Palette map[color.RGBA]byte
+
+// Ignore marks a palette colour as a stray mark in the picture.
+const Ignore byte = 0xFF
 
 // ImportPicture converts a scaled-up reference picture into a w×h frame.
 // The picture must be an exact multiple of w×h, every colour must be in the
@@ -46,8 +50,9 @@ func ImportPicture(img image.Image, w, h int, pal Palette) (Frame, error) {
 }
 
 // blockValue returns the palette value of the scale×scale block at (x0, y0).
+// Ignored colours don't count; a block of only ignored colours is an error.
 func blockValue(img image.Image, x0, y0, scale int, pal Palette) (byte, error) {
-	var first byte
+	value, seen := byte(0), false
 
 	for y := y0; y < y0+scale; y++ {
 		for x := x0; x < x0+scale; x++ {
@@ -58,13 +63,19 @@ func blockValue(img image.Image, x0, y0, scale int, pal Palette) (byte, error) {
 				return 0, fmt.Errorf("%w: %v at (%d,%d)", ErrUnknownColour, c, x, y)
 			}
 
-			if x == x0 && y == y0 {
-				first = v
-			} else if v != first {
+			switch {
+			case v == Ignore:
+			case !seen:
+				value, seen = v, true
+			case v != value:
 				return 0, ErrMixedBlock
 			}
 		}
 	}
 
-	return first, nil
+	if !seen {
+		return 0, ErrMixedBlock
+	}
+
+	return value, nil
 }
