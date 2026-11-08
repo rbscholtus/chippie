@@ -139,6 +139,18 @@ func (r *Renderer) Update(v chip8.DisplayView) {
 	r.dirty = true
 }
 
+// Static shows TV static (random grey noise) at the current resolution,
+// while a ROM is tuning in. seed changes the pattern; pass the tick.
+func (r *Renderer) Static(seed uint64) {
+	if r.fb == nil {
+		return
+	}
+
+	FillStatic(r.pix, seed)
+	r.fb.WritePixels(r.pix)
+	r.dirty = true
+}
+
 // Draw draws the picture into dst at the screen rectangle.
 func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 	if r.fb == nil || r.screen.Empty() {

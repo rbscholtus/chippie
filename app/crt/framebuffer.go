@@ -18,6 +18,24 @@ var DefaultPalette = Palette{ //nolint:gochecknoglobals // read-only default
 	{R: 0x55, G: 0x55, B: 0x55, A: 0xFF},
 }
 
+// staticSeedMix spreads consecutive seeds apart (the golden ratio, 64-bit).
+const staticSeedMix = 0x9E3779B97F4A7C15
+
+// FillStatic fills an RGBA buffer with grey noise from a xorshift
+// generator: cheap enough to run every frame.
+func FillStatic(pix []byte, seed uint64) {
+	x := seed*staticSeedMix | 1
+
+	for i := 0; i+bytesPerPixel <= len(pix); i += bytesPerPixel {
+		x ^= x << 13
+		x ^= x >> 7
+		x ^= x << 17
+
+		v := byte(x >> 56)
+		pix[i], pix[i+1], pix[i+2], pix[i+3] = v, v, v, 0xFF
+	}
+}
+
 // bytesPerPixel is RGBA.
 const bytesPerPixel = 4
 
