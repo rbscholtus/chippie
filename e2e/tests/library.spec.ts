@@ -37,7 +37,7 @@ test("typing searches, Enter plays a bundled game", async ({ page }) => {
 test("a coming-soon game can't be started", async ({ page }) => {
   await offline(page);
   await openLibrary(page);
-  await search(page, "turnover");
+  await search(page, "red october");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(1500);
 

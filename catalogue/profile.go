@@ -2,29 +2,46 @@ package catalogue
 
 import "github.com/rbscholtus/chippie/chip8"
 
+// Quirk ids, as in quirks.json.
+const (
+	quirkShift                 = "shift"
+	quirkMemoryIncrementByX    = "memoryIncrementByX"
+	quirkMemoryLeaveIUnchanged = "memoryLeaveIUnchanged"
+	quirkWrap                  = "wrap"
+	quirkJump                  = "jump"
+	quirkVBlank                = "vblank"
+	quirkLogic                 = "logic"
+)
+
 // quirkIDs are the quirks.json ids Chippie understands, in chip8.Quirks
 // field order.
 var quirkIDs = []string{ //nolint:gochecknoglobals // read-only table
-	"shift", "memoryIncrementByX", "memoryLeaveIUnchanged", "wrap", "jump", "vblank", "logic",
+	quirkShift, quirkMemoryIncrementByX, quirkMemoryLeaveIUnchanged, quirkWrap, quirkJump, quirkVBlank, quirkLogic,
 }
+
+// legacyQuirk is the id of chip8.Quirks.LegacySuperChip. It is Chippie's own
+// and isn't in quirks.json, so it only ever comes from the user's overrides.
+const legacyQuirk = "legacySuperChip"
 
 // quirkField returns a pointer to the chip8.Quirks field for a quirk id.
 func quirkField(q *chip8.Quirks, id string) *bool {
 	switch id {
-	case "shift":
+	case quirkShift:
 		return &q.Shift
-	case "memoryIncrementByX":
+	case quirkMemoryIncrementByX:
 		return &q.MemoryIncrementByX
-	case "memoryLeaveIUnchanged":
+	case quirkMemoryLeaveIUnchanged:
 		return &q.MemoryLeaveIUnchanged
-	case "wrap":
+	case quirkWrap:
 		return &q.Wrap
-	case "jump":
+	case quirkJump:
 		return &q.Jump
-	case "vblank":
+	case quirkVBlank:
 		return &q.VBlank
-	case "logic":
+	case quirkLogic:
 		return &q.Logic
+	case legacyQuirk:
+		return &q.LegacySuperChip
 	default:
 		return nil
 	}
@@ -41,10 +58,12 @@ func applyQuirks(q *chip8.Quirks, m map[string]bool) {
 
 // QuirkMap returns the quirks as a quirks.json-style map.
 func QuirkMap(q chip8.Quirks) map[string]bool {
-	m := make(map[string]bool, len(quirkIDs))
+	m := make(map[string]bool, len(quirkIDs)+1)
 	for _, id := range quirkIDs {
 		m[id] = *quirkField(&q, id)
 	}
+
+	m[legacyQuirk] = q.LegacySuperChip
 
 	return m
 }

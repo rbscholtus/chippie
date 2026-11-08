@@ -25,7 +25,7 @@ func testEntries() []library.Entry {
 	return []library.Entry{
 		entry("aa", "Alpha", chip8.ModernChip8),
 		entry("bb", "Bravo", chip8.ModernChip8),
-		entry("cc", "Charlie", chip8.SuperChip),
+		entry("cc", "Charlie", chip8.XOChip),
 	}
 }
 
