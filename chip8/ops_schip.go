@@ -21,6 +21,8 @@ func (m *Machine) legacy() bool {
 // groups, and reports whether op was one.
 func (m *Machine) executeSuper0(op uint16) bool {
 	switch {
+	case m.ops&opsXO != 0 && op&0xFFF0 == 0x00D0:
+		m.op00DN(int(op & 0xF))
 	case m.ops&opsScroll != 0 && op&0xFFF0 == 0x00C0:
 		m.op00CN(int(op & 0xF))
 	case m.ops&opsScroll != 0 && op == 0x00FB:
@@ -43,6 +45,10 @@ func (m *Machine) executeSuper0(op uint16) bool {
 // executeSuperF runs the FXNN instructions from the platform's optional
 // groups, and reports whether nn was one.
 func (m *Machine) executeSuperF(x int, nn byte) bool {
+	if m.ops&opsXO != 0 && m.executeXOF(x, nn) {
+		return true
+	}
+
 	if m.ops&opsSuper == 0 {
 		return false
 	}
@@ -92,12 +98,18 @@ func (m *Machine) setHires(on bool) {
 // VX.
 func (m *Machine) opFX30(x int) { m.i = BigFontAddr + uint16(m.v[x]&0xF)*bigFontHeight }
 
-// opFX75 (LD R, VX) stores V0..VX in the flag registers. X is at most 7.
-func (m *Machine) opFX75(x int) {
-	copy(m.rpl[:min(x, legacyMaxFlag)+1], m.v[:])
-}
+// opFX75 (LD R, VX) stores V0..VX in the flag registers.
+func (m *Machine) opFX75(x int) { copy(m.rpl[:m.flagCount(x)], m.v[:]) }
 
-// opFX85 (LD VX, R) loads V0..VX from the flag registers. X is at most 7.
-func (m *Machine) opFX85(x int) {
-	copy(m.v[:min(x, legacyMaxFlag)+1], m.rpl[:])
+// opFX85 (LD VX, R) loads V0..VX from the flag registers.
+func (m *Machine) opFX85(x int) { copy(m.v[:m.flagCount(x)], m.rpl[:]) }
+
+// flagCount is how many flag registers FX75/FX85 with this X use. SUPER-CHIP
+// has 8; XO-CHIP has 16.
+func (m *Machine) flagCount(x int) int {
+	if m.ops&opsXO != 0 {
+		return x + 1
+	}
+
+	return min(x, legacyMaxFlag) + 1
 }

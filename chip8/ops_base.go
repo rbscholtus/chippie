@@ -11,6 +11,7 @@ const (
 	spriteWidth   = 8  // DXYN with N > 0
 	bigSpriteSize = 16 // DXY0 on SUPER-CHIP: width and height
 	maxSpriteRows = bigSpriteSize
+	maxPlaneBit   = 2 // the highest display plane, XO-CHIP's second
 )
 
 // b2u converts a flag to 0 or 1 for VF.
@@ -54,8 +55,14 @@ func (m *Machine) op2NNN(nnn uint16) {
 	m.pc = nnn & m.memMask
 }
 
-// skip skips the next instruction. On CHIP-8 every instruction is 2 bytes.
-func (m *Machine) skip() { m.pc = (m.pc + 2) & m.memMask }
+// skip skips the next instruction: 2 bytes, or 4 for XO-CHIP's F000 NNNN.
+func (m *Machine) skip() {
+	if m.ops&opsXO != 0 && m.mem[m.pc&m.memMask] == 0xF0 && m.mem[(m.pc+1)&m.memMask] == 0x00 {
+		m.pc = (m.pc + 2) & m.memMask
+	}
+
+	m.pc = (m.pc + 2) & m.memMask
+}
 
 // op3XNN (SE VX, NN) skips the next instruction if VX == NN.
 func (m *Machine) op3XNN(x int, nn byte) {
@@ -193,11 +200,24 @@ func (m *Machine) opDXYN(x, y, n int) {
 	width, height := m.spriteShape(n)
 	legacy := m.legacy()
 
-	var rows [maxSpriteRows]uint16
+	var (
+		rows         [maxSpriteRows]uint16
+		hit, clipped int
+		offset       uint16
+	)
 
-	m.readSprite(rows[:height], width, 0)
+	// Each selected plane has its own sprite data, one after the other. Only
+	// XO-CHIP has more than one plane, or none.
+	for plane := byte(1); plane <= maxPlaneBit; plane <<= 1 {
+		if m.plane&plane == 0 {
+			continue
+		}
 
-	hit, clipped := m.disp.drawSprite(int(m.v[x]), int(m.v[y]), rows[:height], width, m.plane, m.profile.Quirks.Wrap)
+		offset += m.readSprite(rows[:height], width, offset)
+		h, c := m.disp.drawSprite(int(m.v[x]), int(m.v[y]), rows[:height], width, plane, m.profile.Quirks.Wrap)
+		hit += h
+		clipped += c
+	}
 
 	if legacy && m.hires {
 		m.v[flagReg] = byte(hit + clipped)

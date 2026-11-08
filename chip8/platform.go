@@ -54,6 +54,9 @@ const (
 	opsSuper opSet = 1 << iota
 	// opsScroll is SUPER-CHIP 1.1's scrolling: 00CN 00FB 00FC.
 	opsScroll
+	// opsXO is XO-CHIP: 00DN 5XY2 5XY3 F000 FN01 F002 FX3A, and F000's
+	// four-byte length.
+	opsXO
 )
 
 // platformInfo holds the defaults for one platform. Tick rates, resolutions
@@ -122,6 +125,7 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 		id: "xochip", name: "XO-CHIP", ticks: 100, memSize: memSize64K,
 		maxWidth: hiresWidth, maxHeight: hiresHeight, planes: xoChipPlanes,
 		quirks: Quirks{Wrap: true},
+		ops:    opsSuper | opsScroll | opsXO, implemented: true,
 	},
 }
 

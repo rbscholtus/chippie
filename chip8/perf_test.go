@@ -26,7 +26,7 @@ func loadBenchROM(b *testing.B) []byte {
 func BenchmarkRunFrame(b *testing.B) {
 	rom := loadBenchROM(b)
 
-	for _, p := range []Platform{ModernChip8, OriginalChip8, SuperChip} {
+	for _, p := range []Platform{ModernChip8, OriginalChip8, SuperChip, XOChip} {
 		for _, ticks := range []int{p.DefaultTicks(), 1000} {
 			b.Run(p.String()+"/"+strconv.Itoa(ticks), func(b *testing.B) {
 				prof := DefaultProfile(p)
@@ -63,6 +63,21 @@ func BenchmarkDXYN(b *testing.B) {
 		for b.Loop() {
 			m.pc = ProgramStart
 			exec(m, 0xD12F)
+		}
+	})
+
+	b.Run("xo-2planes", func(b *testing.B) {
+		m := New(DefaultProfile(XOChip))
+		m.setHires(true)
+		m.plane = 3
+		m.i = BigFontAddr
+		m.v[1], m.v[2] = 120, 50
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			m.pc = ProgramStart
+			exec(m, 0xD120)
 		}
 	})
 

@@ -31,8 +31,8 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 	case 0x4:
 		return fmt.Sprintf("SNE V%X, 0x%02X", x, nn)
 	case 0x5:
-		if n == 0 {
-			return fmt.Sprintf("SE V%X, V%X", x, y)
+		if s, ok := disasm5(x, y, n, ops); ok {
+			return s
 		}
 	case 0x6:
 		return fmt.Sprintf("LD V%X, 0x%02X", x, nn)
@@ -70,6 +70,20 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 	return fmt.Sprintf("DATA 0x%04X", op)
 }
 
+// disasm5 names the 5XYN instructions the platform has.
+func disasm5(x, y, n uint16, ops opSet) (string, bool) {
+	switch {
+	case n == 0:
+		return fmt.Sprintf("SE V%X, V%X", x, y), true
+	case ops&opsXO != 0 && n == 2:
+		return fmt.Sprintf("SAVE V%X-V%X", x, y), true
+	case ops&opsXO != 0 && n == 3:
+		return fmt.Sprintf("LOAD V%X-V%X", x, y), true
+	}
+
+	return "", false
+}
+
 // disasm0 names the 00NN instructions the platform has.
 func disasm0(op uint16, ops opSet) (string, bool) {
 	switch {
@@ -77,6 +91,8 @@ func disasm0(op uint16, ops opSet) (string, bool) {
 		return "CLS", true
 	case op == 0x00EE:
 		return "RET", true
+	case ops&opsXO != 0 && op&0xFFF0 == 0x00D0:
+		return fmt.Sprintf("SCU %d", op&0xF), true
 	case ops&opsScroll != 0 && op&0xFFF0 == 0x00C0:
 		return fmt.Sprintf("SCD %d", op&0xF), true
 	case ops&opsScroll != 0 && op == 0x00FB:
@@ -120,6 +136,19 @@ var formatsSuperF = map[uint16]string{ //nolint:gochecknoglobals // read-only lo
 }
 
 func disasmF(x, nn uint16, ops opSet) (string, bool) {
+	if ops&opsXO != 0 {
+		switch {
+		case x == 0 && nn == 0x00:
+			return "LD I, long", true // the operand is the next word
+		case nn == 0x01:
+			return fmt.Sprintf("PLANE %d", x), true
+		case x == 0 && nn == 0x02:
+			return "AUDIO", true
+		case nn == 0x3A:
+			return fmt.Sprintf("PITCH V%X", x), true
+		}
+	}
+
 	format, ok := formatsF[nn]
 	if !ok && ops&opsSuper != 0 {
 		format, ok = formatsSuperF[nn]

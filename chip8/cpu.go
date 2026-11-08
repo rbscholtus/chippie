@@ -82,13 +82,7 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 	case 0x4:
 		m.op4XNN(x, nn)
 	case 0x5:
-		if n != 0 {
-			m.unknown(pc, op)
-
-			return
-		}
-
-		m.op5XY0(x, y)
+		m.execute5(pc, op, x, y)
 	case 0x6:
 		m.op6XNN(x, nn)
 	case 0x7:
@@ -130,6 +124,20 @@ func (m *Machine) execute0(pc, op uint16) {
 		if !m.executeSuper0(op) {
 			m.unknown(pc, op)
 		}
+	}
+}
+
+// execute5 decodes the 5XYN group.
+func (m *Machine) execute5(pc, op uint16, x, y int) {
+	switch {
+	case op&0xF == 0:
+		m.op5XY0(x, y)
+	case m.ops&opsXO != 0 && op&0xF == 2:
+		m.op5XY2(x, y)
+	case m.ops&opsXO != 0 && op&0xF == 3:
+		m.op5XY3(x, y)
+	default:
+		m.unknown(pc, op)
 	}
 }
 

@@ -58,9 +58,13 @@ var (
 	modernOnly    = []chip8.Platform{chip8.ModernChip8}
 	originalOnly  = []chip8.Platform{chip8.OriginalChip8}
 	superChipOnly = []chip8.Platform{chip8.SuperChip}
+	xoChipOnly    = []chip8.Platform{chip8.XOChip}
+	notXOChip     = []chip8.Platform{
+		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip,
+	}
 	// allPlatforms is every implemented platform.
 	allPlatforms = []chip8.Platform{
-		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip,
+		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.XOChip,
 	}
 )
 
@@ -91,9 +95,10 @@ var suiteCases = []suiteCase{
 	{"ibm-logo", "2-ibm-logo.ch8", allPlatforms, testrig.Script{Frames: 60}, "2-ibm-logo", true},
 	{"corax+", "3-corax+.ch8", allPlatforms, testrig.Script{Frames: 300}, "3-corax+", true},
 	{"flags", "4-flags.ch8", allPlatforms, testrig.Script{Frames: 300}, "4-flags", true},
-	// The menus' cursor blinks: frame 56 shows it on both platforms, as in
-	// the reference pictures.
-	{"quirks-menu", "5-quirks.ch8", allPlatforms, testrig.Script{Frames: 56}, "5-quirks-menu", true},
+	// The menus' cursor blinks, as in the reference pictures it must be lit:
+	// frame 56 shows it, except at XO-CHIP's speed.
+	{"quirks-menu", "5-quirks.ch8", notXOChip, testrig.Script{Frames: 56}, "5-quirks-menu", true},
+	{"quirks-menu", "5-quirks.ch8", xoChipOnly, testrig.Script{Frames: xoMenuFrames}, "5-quirks-menu", true},
 	{
 		// Quirks test with the CHIP-8 target on the COSMAC VIP: every
 		// quirk matches (quirks.png).
@@ -108,7 +113,8 @@ var suiteCases = []suiteCase{
 		testrig.Script{Pokes: poke1FF(1), Frames: 600},
 		"5-quirks-chip8-on-%s", false,
 	},
-	{"keypad-menu", "6-keypad.ch8", allPlatforms, testrig.Script{Frames: 56}, "6-keypad-menu", true},
+	{"keypad-menu", "6-keypad.ch8", notXOChip, testrig.Script{Frames: 56}, "6-keypad-menu", true},
+	{"keypad-menu", "6-keypad.ch8", xoChipOnly, testrig.Script{Frames: xoMenuFrames}, "6-keypad-menu", true},
 	{
 		"keypad-down", "6-keypad.ch8", allPlatforms,
 		testrig.Script{Pokes: poke1FF(1), Keys: []testrig.KeyEvent{held(key1), held(key6)}, Frames: 120},
@@ -135,6 +141,23 @@ var suiteCases = []suiteCase{
 		"5-quirks-schip-on-%s", false,
 	},
 	{
+		"quirks-xochip", "5-quirks.ch8", xoChipOnly,
+		testrig.Script{Pokes: poke1FF(xoChipTarget), Frames: quirkFrames},
+		"5-quirks-xochip-on-%s", false,
+	},
+	{
+		// XO-CHIP's scrolling screens draw an up arrow as well, so the
+		// suite's pictures don't apply.
+		"scrolling-xo-lores", "8-scrolling.ch8", xoChipOnly,
+		testrig.Script{Pokes: poke1FF(xoLoresTarget), Frames: scrollFrames},
+		"8-scrolling-lores-on-%s", false,
+	},
+	{
+		"scrolling-xo-hires", "8-scrolling.ch8", xoChipOnly,
+		testrig.Script{Pokes: poke1FF(xoHiresTarget), Frames: scrollFrames},
+		"8-scrolling-hires-on-%s", false,
+	},
+	{
 		"scrolling-lores", "8-scrolling.ch8", superChipOnly,
 		testrig.Script{Pokes: poke1FF(1), Frames: scrollFrames},
 		"8-scrolling-lores", true,
@@ -150,6 +173,10 @@ var suiteCases = []suiteCase{
 const (
 	schipModernTarget = 2
 	schipLegacyTarget = 4
+	xoChipTarget      = 3
+	xoLoresTarget     = 4  // in the scrolling test
+	xoHiresTarget     = 5  // in the scrolling test
+	xoMenuFrames      = 50 // the cursor is lit at XO-CHIP's speed
 	quirkFrames       = 900
 	scrollFrames      = 600
 )

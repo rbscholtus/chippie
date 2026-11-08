@@ -67,6 +67,11 @@ type Machine struct {
 	plane byte               // bit-planes that drawing, clearing and scrolling affect
 	rpl   [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
 
+	// XO-CHIP audio.
+	pattern       [patternBytes]byte // 128 one-bit samples, loaded by F002
+	patternLoaded bool
+	pitch         byte // FX3A
+
 	frame     uint32
 	stopFrame bool // set by an instruction to end the current frame early
 	err       error
@@ -115,6 +120,7 @@ func (m *Machine) Reset(p Profile) {
 	m.hires = false
 	m.plane = 1
 	m.rpl = [numRegisters]byte{}
+	m.pattern, m.patternLoaded, m.pitch = [patternBytes]byte{}, false, defaultPitch
 
 	if m.legacy() {
 		m.disp.reset(info.maxWidth, info.maxHeight, hiresWidth, hiresHeight, legacyLoresScale)
@@ -189,10 +195,18 @@ func (m *Machine) Display() DisplayView { return m.disp.view() }
 // SoundState is what the audio output needs to know.
 type SoundState struct {
 	Buzzer bool // the buzzer sounds while the sound timer is non-zero
+
+	// XO-CHIP: while the buzzer sounds, a ROM that has loaded a pattern plays
+	// it, at a rate set by Pitch.
+	HasPattern bool
+	Pattern    [patternBytes]byte // 128 one-bit samples, first sample in the top bit
+	Pitch      byte
 }
 
 // Sound returns the current sound state.
-func (m *Machine) Sound() SoundState { return SoundState{Buzzer: m.st > 0} }
+func (m *Machine) Sound() SoundState {
+	return SoundState{Buzzer: m.st > 0, HasPattern: m.patternLoaded, Pattern: m.pattern, Pitch: m.pitch}
+}
 
 // CPUState is a snapshot of the CPU, for tracing, debugging and the UI.
 type CPUState struct {
