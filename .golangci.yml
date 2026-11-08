@@ -14,6 +14,9 @@ linters:
     - nlreturn         # blank line before every return; pure style, adds no safety
     - mnd              # opcode masks and shifts (0x0F00, >>8) are clearer inline than named
     - testpackage      # opcode tests need unexported state (registers, quirks)
+    - exhaustruct_v5   # Go's zero values are idiomatic; listing every false quirk adds noise
+    - cyclop           # flags flat opcode switches at 10; gocyclo and gocognit still catch real complexity
+    - noinlineerr      # `if err := f(); err != nil` is idiomatic Go (Effective Go)
 
   settings:
     # Enforces the package rules in CONTRIBUTING.md.
@@ -23,6 +26,7 @@ linters:
           list-mode: lax
           files:
             - "**/chip8/**"
+            - "!$test"
           deny:
             - pkg: syscall/js
               desc: "chip8 is platform-free; syscall/js lives only in platform/"
@@ -62,6 +66,7 @@ linters:
             - $all
             - "!$test"
             - "!**/internal/testrig/**"
+            - "!**/cmd/golden-import/**" # dev tool that writes golden frames, not shipped
           deny:
             - pkg: github.com/rbscholtus/chippie/internal/testrig
               desc: "testrig is for tests only"
@@ -73,6 +78,14 @@ linters:
       - std-error-handling
     paths:
       - third_party$
+    rules:
+      # An emulator truncates to 8/12/16 bits on purpose (opcodes, registers, addresses).
+      - linters: [gosec]
+        path: chip8/
+        text: G115
+      # Table-driven tests are long and keep their tables and flags at package level.
+      - linters: [funlen, gochecknoglobals, goconst]
+        path: _test\.go$
 
 formatters:
   enable:
