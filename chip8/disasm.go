@@ -10,8 +10,7 @@ import (
 // have are shown as "DATA 0x1234". It is meant for viewing traces, not for
 // the hot path.
 func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per opcode group
-	_ = p // the platform selects opcode sets once SUPER-CHIP and XO-CHIP are added
-
+	ops := p.info().ops
 	x := op >> 8 & 0xF
 	y := op >> 4 & 0xF
 	n := op & 0xF
@@ -20,11 +19,8 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 
 	switch op >> 12 {
 	case 0x0:
-		switch op {
-		case 0x00E0:
-			return "CLS"
-		case 0x00EE:
-			return "RET"
+		if s, ok := disasm0(op, ops); ok {
+			return s
 		}
 	case 0x1:
 		return fmt.Sprintf("JP 0x%03X", nnn)
@@ -66,12 +62,36 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 			return fmt.Sprintf("SKNP V%X", x)
 		}
 	case 0xF:
-		if s, ok := disasmF(x, nn); ok {
+		if s, ok := disasmF(x, nn, ops); ok {
 			return s
 		}
 	}
 
 	return fmt.Sprintf("DATA 0x%04X", op)
+}
+
+// disasm0 names the 00NN instructions the platform has.
+func disasm0(op uint16, ops opSet) (string, bool) {
+	switch {
+	case op == 0x00E0:
+		return "CLS", true
+	case op == 0x00EE:
+		return "RET", true
+	case ops&opsScroll != 0 && op&0xFFF0 == 0x00C0:
+		return fmt.Sprintf("SCD %d", op&0xF), true
+	case ops&opsScroll != 0 && op == 0x00FB:
+		return "SCR", true
+	case ops&opsScroll != 0 && op == 0x00FC:
+		return "SCL", true
+	case ops&opsSuper != 0 && op == 0x00FD:
+		return "EXIT", true
+	case ops&opsSuper != 0 && op == 0x00FE:
+		return "LOW", true
+	case ops&opsSuper != 0 && op == 0x00FF:
+		return "HIGH", true
+	}
+
+	return "", false
 }
 
 var mnemonics8 = map[uint16]string{ //nolint:gochecknoglobals // read-only lookup table
@@ -94,8 +114,17 @@ var formatsF = map[uint16]string{ //nolint:gochecknoglobals // read-only lookup 
 	0x55: "LD [I], V%X", 0x65: "LD V%X, [I]",
 }
 
-func disasmF(x, nn uint16) (string, bool) {
+// formatsSuperF are SUPER-CHIP's additions to the FXNN group.
+var formatsSuperF = map[uint16]string{ //nolint:gochecknoglobals // read-only lookup table
+	0x30: "LD HF, V%X", 0x75: "LD R, V%X", 0x85: "LD V%X, R",
+}
+
+func disasmF(x, nn uint16, ops opSet) (string, bool) {
 	format, ok := formatsF[nn]
+	if !ok && ops&opsSuper != 0 {
+		format, ok = formatsSuperF[nn]
+	}
+
 	if !ok {
 		return "", false
 	}

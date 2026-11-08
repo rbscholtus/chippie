@@ -55,13 +55,16 @@ var suiteROMs = map[string]string{
 
 // The platforms the CHIP-8 tests run on.
 var (
-	chip8Platforms = []chip8.Platform{chip8.ModernChip8, chip8.OriginalChip8}
-	modernOnly     = []chip8.Platform{chip8.ModernChip8}
-	originalOnly   = []chip8.Platform{chip8.OriginalChip8}
+	modernOnly    = []chip8.Platform{chip8.ModernChip8}
+	originalOnly  = []chip8.Platform{chip8.OriginalChip8}
+	superChipOnly = []chip8.Platform{chip8.SuperChip}
+	// allPlatforms is every implemented platform.
+	allPlatforms = []chip8.Platform{
+		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip,
+	}
 )
 
-// suiteCase is one row of the screenshot table. M5 and M7 add rows for
-// SUPER-CHIP and XO-CHIP.
+// suiteCase is one row of the screenshot table.
 type suiteCase struct {
 	name      string
 	rom       string
@@ -84,13 +87,13 @@ const keysFrom = 30
 func held(k uint8) testrig.KeyEvent { return testrig.KeyEvent{Key: k, Press: keysFrom} }
 
 var suiteCases = []suiteCase{
-	{"chip8-logo", "1-chip8-logo.ch8", chip8Platforms, testrig.Script{Frames: 60}, "1-chip8-logo", true},
-	{"ibm-logo", "2-ibm-logo.ch8", chip8Platforms, testrig.Script{Frames: 60}, "2-ibm-logo", true},
-	{"corax+", "3-corax+.ch8", chip8Platforms, testrig.Script{Frames: 300}, "3-corax+", true},
-	{"flags", "4-flags.ch8", chip8Platforms, testrig.Script{Frames: 300}, "4-flags", true},
+	{"chip8-logo", "1-chip8-logo.ch8", allPlatforms, testrig.Script{Frames: 60}, "1-chip8-logo", true},
+	{"ibm-logo", "2-ibm-logo.ch8", allPlatforms, testrig.Script{Frames: 60}, "2-ibm-logo", true},
+	{"corax+", "3-corax+.ch8", allPlatforms, testrig.Script{Frames: 300}, "3-corax+", true},
+	{"flags", "4-flags.ch8", allPlatforms, testrig.Script{Frames: 300}, "4-flags", true},
 	// The menus' cursor blinks: frame 56 shows it on both platforms, as in
 	// the reference pictures.
-	{"quirks-menu", "5-quirks.ch8", chip8Platforms, testrig.Script{Frames: 56}, "5-quirks-menu", true},
+	{"quirks-menu", "5-quirks.ch8", allPlatforms, testrig.Script{Frames: 56}, "5-quirks-menu", true},
 	{
 		// Quirks test with the CHIP-8 target on the COSMAC VIP: every
 		// quirk matches (quirks.png).
@@ -105,26 +108,58 @@ var suiteCases = []suiteCase{
 		testrig.Script{Pokes: poke1FF(1), Frames: 600},
 		"5-quirks-chip8-on-%s", false,
 	},
-	{"keypad-menu", "6-keypad.ch8", chip8Platforms, testrig.Script{Frames: 56}, "6-keypad-menu", true},
+	{"keypad-menu", "6-keypad.ch8", allPlatforms, testrig.Script{Frames: 56}, "6-keypad-menu", true},
 	{
-		"keypad-down", "6-keypad.ch8", chip8Platforms,
+		"keypad-down", "6-keypad.ch8", allPlatforms,
 		testrig.Script{Pokes: poke1FF(1), Keys: []testrig.KeyEvent{held(key1), held(key6)}, Frames: 120},
 		"6-keypad-down", true,
 	},
 	{
-		"keypad-up", "6-keypad.ch8", chip8Platforms,
+		"keypad-up", "6-keypad.ch8", allPlatforms,
 		testrig.Script{Pokes: poke1FF(2), Keys: []testrig.KeyEvent{held(key1), held(key6)}, Frames: 120},
 		"6-keypad-up", true,
 	},
 	{
 		// FX0A must halt (the delay timer runs out first) and wait for the
 		// release before reporting "ALL GOOD".
-		"keypad-getkey", "6-keypad.ch8", chip8Platforms,
+		"keypad-getkey", "6-keypad.ch8", allPlatforms,
 		testrig.Script{Pokes: poke1FF(3), Keys: []testrig.KeyEvent{{Key: key1, Press: 30, Release: 40}}, Frames: 90},
 		"6-keypad-getkey", true,
 	},
-	// 8-scrolling (menu and lo-res goldens are imported) needs SUPER-CHIP's
-	// 00FE even for its menu: its rows arrive with M5.
+	{"scrolling-menu", "8-scrolling.ch8", superChipOnly, testrig.Script{Frames: 56}, "8-scrolling-menu", true},
+	{
+		// Modern SUPER-CHIP target. No reference picture exists; every line
+		// must show a check mark.
+		"quirks-schip", "5-quirks.ch8", superChipOnly,
+		testrig.Script{Pokes: poke1FF(schipModernTarget), Frames: quirkFrames},
+		"5-quirks-schip-on-%s", false,
+	},
+	{
+		"scrolling-lores", "8-scrolling.ch8", superChipOnly,
+		testrig.Script{Pokes: poke1FF(1), Frames: scrollFrames},
+		"8-scrolling-lores", true,
+	},
+	{
+		"scrolling-hires", "8-scrolling.ch8", superChipOnly,
+		testrig.Script{Pokes: poke1FF(3), Frames: scrollFrames},
+		"8-scrolling-hires", true,
+	},
+}
+
+// Quirks test targets (0x1FF), and how long the longer tests run.
+const (
+	schipModernTarget = 2
+	schipLegacyTarget = 4
+	quirkFrames       = 900
+	scrollFrames      = 600
+)
+
+// legacyProfile is SUPER-CHIP with the HP48's behaviour.
+func legacyProfile(p chip8.Platform) chip8.Profile {
+	prof := suiteProfile(p)
+	prof.Quirks.LegacySuperChip = true
+
+	return prof
 }
 
 // loadSuiteROM reads a test ROM and checks its pinned hash.
@@ -184,12 +219,52 @@ func TestSuiteScreens(t *testing.T) {
 	}
 }
 
+// TestSuiteLegacySuperChip runs the tests that have a legacy target. A lo-res
+// frame is 128×64 in legacy mode, because scrolling can leave half pixels.
+func TestSuiteLegacySuperChip(t *testing.T) {
+	t.Parallel()
+
+	checker := testrig.Checker{GoldenDir: goldenDir, FailureDir: failureDir, Update: chip8.Update()}
+
+	for _, tc := range []struct {
+		name, rom string
+		target    byte
+		frames    int
+		golden    testrig.Golden
+	}{
+		{"quirks", "5-quirks.ch8", schipLegacyTarget, quirkFrames, testrig.Golden{Name: "5-quirks-schip-legacy"}},
+		{"scrolling-lores", "8-scrolling.ch8", 2, scrollFrames, testrig.Golden{Name: "8-scrolling-lores", Imported: true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			m, err := testrig.Run(loadSuiteROM(t, tc.rom), legacyProfile(chip8.SuperChip),
+				testrig.Script{Pokes: poke1FF(tc.target), Frames: tc.frames})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			got, err := testrig.Halve(testrig.FromDisplay(m.Display()))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			c := checker
+			c.FailureDir = filepath.Join(failureDir, "superchip-legacy")
+
+			if err := c.Check(tc.golden, got); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
+
 // TestSuiteBeep checks test 7 through the buzzer state: SOS starts by
 // itself, and holding B gives manual control.
 func TestSuiteBeep(t *testing.T) {
 	t.Parallel()
 
-	for _, p := range chip8Platforms {
+	for _, p := range allPlatforms {
 		t.Run(p.String(), func(t *testing.T) {
 			t.Parallel()
 

@@ -20,7 +20,7 @@ const (
 	Chip8X                        // VIP colour extension
 	Chip48                        // HP48 CHIP-48
 	SuperChip1                    // SUPER-CHIP 1.0
-	SuperChip                     // SUPER-CHIP 1.1 (legacy behaviour)
+	SuperChip                     // SUPER-CHIP 1.1 (modern behaviour unless Quirks.LegacySuperChip)
 	MegaChip8                     // MEGA-CHIP
 	XOChip                        // XO-CHIP
 	numPlatforms
@@ -46,6 +46,16 @@ const (
 	xoChipPlanes = 2
 )
 
+// opSet says which optional instruction groups a platform has.
+type opSet uint8
+
+const (
+	// opsSuper is SUPER-CHIP 1.0: 00FD 00FE 00FF DXY0 FX30 FX75 FX85.
+	opsSuper opSet = 1 << iota
+	// opsScroll is SUPER-CHIP 1.1's scrolling: 00CN 00FB 00FC.
+	opsScroll
+)
+
 // platformInfo holds the defaults for one platform. Tick rates, resolutions
 // and quirks come from chip-8-database's platforms.json.
 type platformInfo struct {
@@ -57,6 +67,7 @@ type platformInfo struct {
 	maxHeight   int
 	planes      int // display bit-planes
 	quirks      Quirks
+	ops         opSet // optional instruction groups
 	implemented bool
 }
 
@@ -88,17 +99,19 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 	Chip48: {
 		id: "chip48", name: "CHIP-48", ticks: 30, memSize: memSize4K,
 		maxWidth: loresWidth, maxHeight: loresHeight, planes: singlePlane,
-		quirks: Quirks{Shift: true, MemoryIncrementByX: true, Jump: true},
+		quirks: Quirks{Shift: true, MemoryIncrementByX: true, Jump: true}, implemented: true,
 	},
 	SuperChip1: {
 		id: "superchip1", name: "SUPER-CHIP 1.0", ticks: 30, memSize: memSize4K,
 		maxWidth: hiresWidth, maxHeight: hiresHeight, planes: singlePlane,
 		quirks: Quirks{Shift: true, MemoryIncrementByX: true, Jump: true},
+		ops:    opsSuper, implemented: true,
 	},
 	SuperChip: {
 		id: "superchip", name: "SUPER-CHIP 1.1", ticks: 30, memSize: memSize4K,
 		maxWidth: hiresWidth, maxHeight: hiresHeight, planes: singlePlane,
 		quirks: Quirks{Shift: true, MemoryLeaveIUnchanged: true, Jump: true},
+		ops:    opsSuper | opsScroll, implemented: true,
 	},
 	MegaChip8: {
 		id: "megachip8", name: "MEGA-CHIP", ticks: 1000, memSize: memSize16M,
@@ -126,6 +139,10 @@ func (p Platform) Name() string { return p.info().name }
 
 // Implemented reports whether Chippie can run ROMs for this platform yet.
 func (p Platform) Implemented() bool { return p < numPlatforms && platforms[p].implemented }
+
+// HasLegacyMode reports whether [Quirks.LegacySuperChip] has any effect on
+// this platform.
+func (p Platform) HasLegacyMode() bool { return p == SuperChip1 || p == SuperChip }
 
 // DefaultTicks returns the platform's default instructions per frame.
 func (p Platform) DefaultTicks() int { return p.info().ticks }

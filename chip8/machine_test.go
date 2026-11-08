@@ -109,9 +109,9 @@ func TestLoadROM(t *testing.T) {
 		t.Errorf("ROM filling memory exactly: %v", err)
 	}
 
-	x := New(DefaultProfile(SuperChip))
+	x := New(DefaultProfile(MegaChip8))
 	if err := x.LoadROM(program(0x1200)); !errors.Is(err, ErrUnsupportedPlatform) {
-		t.Errorf("superchip: err=%v, want ErrUnsupportedPlatform", err)
+		t.Errorf("megachip8: err=%v, want ErrUnsupportedPlatform", err)
 	}
 }
 

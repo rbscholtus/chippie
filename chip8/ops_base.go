@@ -6,9 +6,12 @@ package chip8
 //   - chip-8-database quirks.json, https://github.com/chip-8/chip-8-database
 //   - Matthew Mikolay, "Mastering CHIP-8", https://github.com/mattmikolay/chip-8/wiki/Mastering-CHIP%E2%80%908
 
-// maxSpriteRows is the tallest sprite DXYN can draw (N = 15 on CHIP-8;
-// SUPER-CHIP's 16×16 sprites use 32 bytes).
-const maxSpriteRows = 32
+// Sprite sizes.
+const (
+	spriteWidth   = 8  // DXYN with N > 0
+	bigSpriteSize = 16 // DXY0 on SUPER-CHIP: width and height
+	maxSpriteRows = bigSpriteSize
+)
 
 // b2u converts a flag to 0 or 1 for VF.
 func b2u(b bool) byte {
@@ -20,7 +23,7 @@ func b2u(b bool) byte {
 }
 
 // op00E0 (CLS) clears the display.
-func (m *Machine) op00E0() { m.disp.clear() }
+func (m *Machine) op00E0() { m.disp.clear(m.plane) }
 
 // op00EE (RET) returns from a subroutine. An empty stack halts the machine.
 func (m *Machine) op00EE() {
@@ -182,20 +185,60 @@ func (m *Machine) opBNNN(x int, nnn uint16) {
 func (m *Machine) opCXNN(x int, nn byte) { m.v[x] = m.rng.byte() & nn }
 
 // opDXYN (DRW VX, VY, N) draws an 8×N sprite from memory at I at (VX, VY).
-// VF is 1 if any pixel was turned off. With the vblank quirk (COSMAC VIP)
-// drawing waits for the next frame, so the frame ends here.
+// On SUPER-CHIP, N = 0 is the large sprite (see spriteShape). VF is 1 if any
+// pixel was turned off. With the vblank quirk (COSMAC VIP) drawing waits for
+// the next frame, so the frame ends here; legacy SUPER-CHIP does that in
+// lo-res only.
 func (m *Machine) opDXYN(x, y, n int) {
-	var rows [maxSpriteRows]byte
-	for r := range n {
-		rows[r] = m.mem[(m.i+uint16(r))&m.memMask]
+	width, height := m.spriteShape(n)
+	legacy := m.legacy()
+
+	var rows [maxSpriteRows]uint16
+
+	m.readSprite(rows[:height], width, 0)
+
+	hit, clipped := m.disp.drawSprite(int(m.v[x]), int(m.v[y]), rows[:height], width, m.plane, m.profile.Quirks.Wrap)
+
+	if legacy && m.hires {
+		m.v[flagReg] = byte(hit + clipped)
+	} else {
+		m.v[flagReg] = b2u(hit > 0)
 	}
 
-	collided := m.disp.drawSprite(int(m.v[x]), int(m.v[y]), rows[:n], m.profile.Quirks.Wrap)
-	m.v[flagReg] = b2u(collided)
-
-	if m.profile.Quirks.VBlank {
+	if m.profile.Quirks.VBlank || (legacy && !m.hires) {
 		m.stopFrame = true
 	}
+}
+
+// spriteShape returns the size DXYN draws for its N. N = 0 draws nothing on
+// CHIP-8, 16×16 on SUPER-CHIP, and 8×16 in lo-res on legacy SUPER-CHIP.
+func (m *Machine) spriteShape(n int) (int, int) {
+	switch {
+	case n != 0 || m.ops&opsSuper == 0:
+		return spriteWidth, n
+	case m.legacy() && !m.hires:
+		return spriteWidth, bigSpriteSize
+	default:
+		return bigSpriteSize, bigSpriteSize
+	}
+}
+
+// readSprite reads sprite rows from memory at I + offset into rows, aligned
+// to the top bit. It returns the bytes read.
+func (m *Machine) readSprite(rows []uint16, width int, offset uint16) uint16 {
+	addr := m.i + offset
+
+	for r := range rows {
+		rows[r] = uint16(m.mem[addr&m.memMask]) << 8
+		addr++
+
+		if width == bigSpriteSize {
+			rows[r] |= uint16(m.mem[addr&m.memMask])
+			addr++
+		}
+	}
+
+	return addr - m.i - offset
 }
 
 // opEX9E (SKP VX) skips the next instruction if key VX is down.

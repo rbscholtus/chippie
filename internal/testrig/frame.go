@@ -38,6 +38,26 @@ func FromDisplay(v chip8.DisplayView) Frame {
 	return f
 }
 
+// Halve shrinks a frame to half its size, for comparing legacy SUPER-CHIP's
+// 128×64 lo-res screen with a 64×32 golden. It fails if any 2×2 block isn't a
+// single value: a lo-res picture must end on whole lo-res pixels.
+func Halve(f Frame) (Frame, error) {
+	out := Frame{Width: f.Width / 2, Height: f.Height / 2, Pix: make([]byte, f.Width/2*(f.Height/2))}
+
+	for y := range out.Height {
+		for x := range out.Width {
+			v := f.At(2*x, 2*y)
+			if v != f.At(2*x+1, 2*y) || v != f.At(2*x, 2*y+1) || v != f.At(2*x+1, 2*y+1) {
+				return Frame{}, fmt.Errorf("%w: mixed 2×2 block at (%d,%d)", ErrBadFrame, x, y)
+			}
+
+			out.Pix[y*out.Width+x] = v
+		}
+	}
+
+	return out, nil
+}
+
 // At returns the plane bits at (x, y).
 func (f Frame) At(x, y int) byte { return f.Pix[y*f.Width+x] }
 

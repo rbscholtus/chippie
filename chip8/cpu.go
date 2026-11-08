@@ -72,14 +72,7 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 
 	switch op >> 12 {
 	case 0x0:
-		switch op {
-		case 0x00E0:
-			m.op00E0()
-		case 0x00EE:
-			m.op00EE()
-		default: // 0NNN: machine-code routine, not supported
-			m.unknown(pc, op)
-		}
+		m.execute0(pc, op)
 	case 0x1:
 		m.op1NNN(nnn)
 	case 0x2:
@@ -122,6 +115,21 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 		m.executeE(pc, op, x)
 	case 0xF:
 		m.executeF(pc, op, x)
+	}
+}
+
+// execute0 decodes the 0NNN group. Anything the platform doesn't define is a
+// machine-code routine, which isn't supported.
+func (m *Machine) execute0(pc, op uint16) {
+	switch op {
+	case 0x00E0:
+		m.op00E0()
+	case 0x00EE:
+		m.op00EE()
+	default:
+		if !m.executeSuper0(op) {
+			m.unknown(pc, op)
+		}
 	}
 }
 
@@ -185,7 +193,9 @@ func (m *Machine) executeF(pc, op uint16, x int) {
 	case 0x65:
 		m.opFX65(x)
 	default:
-		m.unknown(pc, op)
+		if !m.executeSuperF(x, byte(op)) {
+			m.unknown(pc, op)
+		}
 	}
 }
 

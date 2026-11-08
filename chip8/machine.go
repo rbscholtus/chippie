@@ -25,6 +25,7 @@ var (
 	ErrStackOverflow       = errors.New("chip8: stack overflow")
 	ErrStackUnderflow      = errors.New("chip8: return with empty stack")
 	ErrUnsupportedPlatform = errors.New("chip8: platform not implemented yet")
+	ErrProgramExit         = errors.New("chip8: program exited")
 )
 
 // noKey marks that FX0A is waiting for a key to be pressed.
@@ -59,8 +60,12 @@ type Machine struct {
 	waitKey  int
 	lastKeys [NumKeys]bool
 
-	disp display
-	rng  rng
+	disp  display
+	rng   rng
+	ops   opSet              // the platform's optional instruction groups
+	hires bool               // SUPER-CHIP extended screen mode
+	plane byte               // bit-planes that drawing, clearing and scrolling affect
+	rpl   [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
 
 	frame     uint32
 	stopFrame bool // set by an instruction to end the current frame early
@@ -106,9 +111,20 @@ func (m *Machine) Reset(p Profile) {
 	m.stopFrame = false
 	m.err = nil
 
-	m.disp.reset(info.maxWidth, info.maxHeight, loresWidth, loresHeight)
+	m.ops = info.ops
+	m.hires = false
+	m.plane = 1
+	m.rpl = [numRegisters]byte{}
+
+	if m.legacy() {
+		m.disp.reset(info.maxWidth, info.maxHeight, hiresWidth, hiresHeight, legacyLoresScale)
+	} else {
+		m.disp.reset(info.maxWidth, info.maxHeight, loresWidth, loresHeight, 1)
+	}
+
 	m.rng.seed(p.Seed)
 	copy(m.mem[FontAddr:], smallFont[:])
+	copy(m.mem[BigFontAddr:], bigFont[:])
 
 	if m.trace != nil {
 		m.trace.clear()
@@ -153,8 +169,9 @@ func (m *Machine) KeyDown(key uint8) bool { return int(key) < NumKeys && m.keys[
 // Values below 1 mean the platform's default.
 func (m *Machine) SetTicksPerFrame(n int) { m.profile.TicksPerFrame = n }
 
-// SetQuirks changes the quirks while running. Changing the platform needs
-// Reset, because memory and display sizes may change.
+// SetQuirks changes the quirks while running. Changing the platform or
+// [Quirks.LegacySuperChip] needs Reset, because memory and display layout may
+// change.
 func (m *Machine) SetQuirks(q Quirks) { m.profile.Quirks = q }
 
 // KeysRead reports which hex keys the program has checked since the last
