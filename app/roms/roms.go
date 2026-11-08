@@ -1,6 +1,6 @@
-// Package roms lists the ROMs Chippie can play before the catalogue exists
-// (M4): the bundled CC0 games and the Timendus test suite. It loads them
-// asynchronously, so the game loop never waits.
+// Package roms holds the ROMs that need no download: the bundled CC0 games
+// (compiled in) and the Timendus test suite (shipped beside the app, GPLv3).
+// The library lists them with everything else; this package loads them.
 package roms
 
 import (
@@ -189,6 +189,38 @@ func (l *Library) Find(id string) (Entry, bool) {
 	}
 
 	return Entry{}, false
+}
+
+// Offline returns the SHA-1s of the entries that need no download.
+func (l *Library) Offline() map[string]bool {
+	out := make(map[string]bool, len(l.entries))
+	for _, e := range l.entries {
+		out[e.SHA1] = true
+	}
+
+	return out
+}
+
+// HashFor returns the SHA-1 of a library ID ("game/…" or "test/…"), so
+// links from M3 keep working.
+func (l *Library) HashFor(id string) (string, bool) {
+	e, ok := l.Find(id)
+
+	return e.SHA1, ok
+}
+
+// LoadHash loads the entry with the given SHA-1, if there is one: the
+// romstore's source for ROMs that need no download.
+func (l *Library) LoadHash(ctx context.Context, sha1 string) ([]byte, bool) {
+	for _, e := range l.entries {
+		if e.SHA1 == strings.ToLower(sha1) {
+			rom, err := l.Load(ctx, e)
+
+			return rom, err == nil
+		}
+	}
+
+	return nil, false
 }
 
 // Result is the outcome of an asynchronous load.

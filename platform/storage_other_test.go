@@ -123,6 +123,14 @@ func TestCacheUnavailableWithoutDirectory(t *testing.T) {
 	}
 }
 
+func TestCopyTextUnsupportedNatively(t *testing.T) {
+	t.Parallel()
+
+	if err := CopyText("x"); !errors.Is(err, ErrUnsupported) {
+		t.Errorf("err=%v, want ErrUnsupported", err)
+	}
+}
+
 func TestPickFileUnsupportedNatively(t *testing.T) {
 	t.Parallel()
 

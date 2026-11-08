@@ -33,11 +33,16 @@ type Cache interface {
 // FetchFunc downloads a URL, at most limit bytes; platform.Fetch by default.
 type FetchFunc func(ctx context.Context, url string, limit int) ([]byte, error)
 
+// LocalFunc returns a ROM that needs no download (bundled, or shipped beside
+// the app), or false.
+type LocalFunc func(ctx context.Context, sha1 string) ([]byte, bool)
+
 // Store finds ROMs: cache first, then each download location in order.
 type Store struct {
 	urls  func(sha1 string) []catalogue.Location
 	cache Cache
 	fetch FetchFunc
+	local LocalFunc
 	base  string // resolves relative URLs (ROMs Chippie hosts itself)
 }
 
@@ -45,6 +50,14 @@ type Store struct {
 // first (catalogue.Sources.URLs); base resolves relative URLs.
 func New(urls func(string) []catalogue.Location, cache Cache, base string) *Store {
 	return &Store{urls: urls, cache: cache, fetch: platform.Fetch, base: base}
+}
+
+// WithLocal sets where ROMs that need no download come from. They are
+// tried after the cache and before any download.
+func (s *Store) WithLocal(f LocalFunc) *Store {
+	s.local = f
+
+	return s
 }
 
 // WithFetch replaces the downloader (tests).
@@ -62,8 +75,11 @@ type Result struct {
 	Err  error
 }
 
-// FromCache is Result.From for a cached ROM.
-const FromCache = "cache"
+// Result.From for ROMs that weren't downloaded.
+const (
+	FromCache = "cache"
+	FromLocal = "local"
+)
 
 // Get finds a ROM in a goroutine and delivers the result on the returned
 // channel, which has room for it: the game loop polls it without waiting.
@@ -82,6 +98,12 @@ func (s *Store) Find(ctx context.Context, sha1 string) Result {
 
 	if rom, ok, err := s.cache.Get(key); err == nil && ok && hashOf(rom) == key {
 		return Result{SHA1: key, ROM: rom, From: FromCache}
+	}
+
+	if s.local != nil {
+		if rom, ok := s.local(ctx, key); ok && hashOf(rom) == key {
+			return Result{SHA1: key, ROM: rom, From: FromLocal}
+		}
 	}
 
 	locs := s.urls(key)

@@ -196,6 +196,26 @@ func TestGetIsAsync(t *testing.T) {
 	}
 }
 
+func TestLocalComesBeforeDownload(t *testing.T) {
+	t.Parallel()
+
+	srv, requests := server(t)
+	local := func(_ context.Context, sha1 string) ([]byte, bool) { return rom, sha1 == romHash }
+
+	res := New(locations(srv.URL+"/good"), newMemCache(), "").WithLocal(local).Find(t.Context(), romHash)
+	if res.Err != nil || res.From != FromLocal || *requests != 0 {
+		t.Errorf("local ROM: %+v, %d requests", res, *requests)
+	}
+
+	// A local copy that doesn't match its hash is ignored.
+	wrong := func(context.Context, string) ([]byte, bool) { return []byte("nope"), true }
+
+	res = New(locations(srv.URL+"/good"), newMemCache(), "").WithLocal(wrong).Find(t.Context(), romHash)
+	if res.Err != nil || res.From == FromLocal {
+		t.Errorf("bad local copy: %+v", res)
+	}
+}
+
 func TestWithFetch(t *testing.T) {
 	t.Parallel()
 
