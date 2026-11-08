@@ -1,0 +1,43 @@
+name: Refresh catalogue
+
+# Weekly: refresh the chip-8-database snapshot and sources.json from the
+# latest commits of each repository, and open a PR if anything changed.
+
+on:
+  schedule:
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Regenerate
+        run: go run ./cmd/catalogue-gen -update-pins
+      - name: Check the snapshot still loads
+        run: go test ./catalogue/
+      - name: Open a PR if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain -- catalogue/snapshot docs/coverage.md)" ]; then
+            echo "No changes."
+            exit 0
+          fi
+          branch="catalogue-refresh-$(date -u +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add catalogue/snapshot docs/coverage.md
+          git commit -m "chore(catalogue): refresh snapshot and sources"
+          git push -u origin "$branch"
+          gh pr create --title "chore(catalogue): refresh snapshot and sources" \
+            --body "Weekly refresh by \`cmd/catalogue-gen -update-pins\`. See docs/coverage.md for coverage and conflicts."
