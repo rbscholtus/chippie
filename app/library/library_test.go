@@ -125,6 +125,29 @@ func findTitle(es []Entry, title string) (Entry, bool) {
 	return Entry{}, false
 }
 
+func TestMarkOfflineAndKeys(t *testing.T) {
+	t.Parallel()
+
+	es := Build(snapshot(t), nil)
+	MarkOffline(es, map[string]bool{glitchGhost: true})
+
+	if g, _ := Find(es, glitchGhost); !g.Offline {
+		t.Error("Glitch Ghost should be offline after MarkOffline")
+	}
+
+	withKeys := 0
+
+	for _, e := range es {
+		if len(e.Keys) > 0 {
+			withKeys++
+		}
+	}
+
+	if withKeys < 20 {
+		t.Errorf("only %d entries carry a keys hint", withKeys)
+	}
+}
+
 func TestSubtitleAndLocal(t *testing.T) {
 	t.Parallel()
 

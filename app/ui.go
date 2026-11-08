@@ -12,6 +12,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font/gofont/goregular"
 
+	"github.com/rbscholtus/chippie/app/input"
 	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/chip8"
 )
@@ -35,7 +36,7 @@ const (
 	touchRowSize   = 44  // Apple's minimum touch target
 	dragThreshold  = 8   // pixels of movement before a press scrolls
 	detailsMinWide = 720 // the drawer shows a details pane from this width
-	detailsShare   = 0.42
+	detailsShare   = 0.6 // descriptions are often long
 	traceLines     = 8
 )
 
@@ -198,9 +199,35 @@ func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, screen image.Rectangl
 	mw, _ := text.Measure(mid, u.face, 0)
 	u.text(dst, mid, left+lw+gap+(space-mw)/2, y, col)
 
-	// The message wraps onto a second line if it didn't fit.
+	// The second line shows the game's keys; a message that didn't fit
+	// goes on the third.
+	if keys := u.keysLine(g); keys != "" {
+		k := u.fit(keys, right-left)
+		kw, _ := text.Measure(k, u.face, 0)
+		u.text(dst, k, left+(right-left-kw)/2, y+u.lineHeight(), inkColour)
+	}
+
 	if g.message != "" && mid != g.message {
-		u.text(dst, u.fit(g.message, right-left), left, y+u.lineHeight(), errorColour)
+		u.text(dst, u.fit(g.message, right-left), left, y+2*u.lineHeight(), errorColour)
+	}
+}
+
+// keysLine describes the running game's controls: the database's hint if
+// it has one, otherwise the keys the game has checked so far.
+func (u *ui) keysLine(g *Game) string {
+	if len(g.current.Keys) > 0 {
+		return "Keys: " + input.DescribeHints(g.current.Keys)
+	}
+
+	mask, anyKey := g.machine.KeysRead()
+
+	switch {
+	case mask != 0:
+		return "Keys it reads: " + input.DescribeMask(mask)
+	case anyKey:
+		return "Press any key (1–4, Q–R, A–F, Z–V)"
+	default:
+		return ""
 	}
 }
 
@@ -253,7 +280,9 @@ func (u *ui) drawPicker(dst *ebiten.Image, g *Game) {
 	x := float64(l.list.Min.X)
 
 	if len(p.entries) == 0 {
-		u.text(list, u.fit("Nothing matches “"+p.query+"”.", maxW), x, float64(l.list.Min.Y)+textOffset, mutedColour)
+		// Below the load-file row, where the first result would be.
+		y := float64(l.list.Min.Y) + float64(len(p.rows))*l.rowH - p.offset
+		u.text(list, u.fit("Nothing matches “"+p.query+"”.", maxW), x, y+textOffset, mutedColour)
 	}
 
 	for r, row := range p.rows {
@@ -311,6 +340,14 @@ func (u *ui) drawDetails(dst *ebiten.Image, e library.Entry) {
 	u.text(dst, u.fit(e.Title, maxW), x, y, accentColour)
 	y += lh
 	u.text(dst, u.fit(e.Subtitle(), maxW), x, y, mutedColour)
+	y += lh
+
+	keys := "Keys: shown under the picture once the game reads them."
+	if len(e.Keys) > 0 {
+		keys = "Keys: " + input.DescribeHints(e.Keys)
+	}
+
+	u.text(dst, u.fit(keys, maxW), x, y, inkColour)
 	y += 2 * lh
 
 	status := "Downloads when you play it, then works offline."

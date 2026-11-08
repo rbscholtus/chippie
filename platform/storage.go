@@ -42,6 +42,9 @@ func (c *Cache) Get(key string) ([]byte, bool, error) {
 	return c.get(key)
 }
 
+// Keys lists the keys in the store (e.g. the SHA-1s of cached ROMs).
+func (c *Cache) Keys() ([]string, error) { return c.keys() }
+
 // Put stores value under key.
 func (c *Cache) Put(key string, value []byte) error {
 	if !validKey.MatchString(key) {

@@ -213,16 +213,34 @@ func (g *Game) pollBackground() {
 			break
 		}
 
+		g.picker.markOffline(map[string]bool{res.SHA1: true})
+		g.loadingEntry.Offline = true
+
 		if err := g.run(g.loadingEntry, res.ROM); err != nil {
 			g.message = err.Error()
 			g.openPicker()
 		}
+	case keys := <-g.cached:
+		set := make(map[string]bool, len(keys))
+		for _, k := range keys {
+			set[k] = true
+		}
+
+		g.picker.markOffline(set)
 	case res := <-g.Refresh:
 		g.Refresh = nil
 
 		if res.Err == nil {
 			g.Catalogue = res.Catalogue
-			g.picker.setAll(library.Build(res.Catalogue, g.Builtin.Offline()))
+
+			offline := g.Builtin.Offline()
+			for _, e := range g.picker.all {
+				if e.Offline {
+					offline[e.SHA1] = true // keep what's cached
+				}
+			}
+
+			g.picker.setAll(library.Build(res.Catalogue, offline))
 		}
 	case f := <-g.picked:
 		g.picked = nil
@@ -335,9 +353,9 @@ func (g *Game) updatePicker(in pointerInput) error {
 		g.closePicker()
 
 		return nil
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowDown):
+	case pressedOrRepeat(ebiten.KeyArrowDown):
 		g.picker.move(1)
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowUp):
+	case pressedOrRepeat(ebiten.KeyArrowUp):
 		g.picker.move(-1)
 	case inpututil.IsKeyJustPressed(ebiten.KeyEnter):
 		g.pick()
@@ -434,13 +452,13 @@ func (g *Game) updateSettings(in pointerInput) {
 	case inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsKeyJustPressed(ebiten.KeyF2) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyTab):
 		g.state = stateRunning
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowDown):
+	case pressedOrRepeat(ebiten.KeyArrowDown):
 		s.move(1)
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowUp):
+	case pressedOrRepeat(ebiten.KeyArrowUp):
 		s.move(-1)
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft):
+	case pressedOrRepeat(ebiten.KeyArrowLeft):
 		g.applySetting(s.change(s.selected, -1))
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowRight):
+	case pressedOrRepeat(ebiten.KeyArrowRight):
 		g.applySetting(s.change(s.selected, 1))
 	case inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeySpace):
 		g.applySetting(s.change(s.selected, 0))

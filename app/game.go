@@ -50,6 +50,8 @@ type Deps struct {
 	Builtin   *roms.Library // ROMs that need no download
 	Store     *romstore.Store
 	Prefs     *platform.Prefs
+	// CachedROMs, if set, lists the SHA-1s of downloaded ROMs; it may block.
+	CachedROMs func() ([]string, error)
 	// Refresh, if set, delivers a newer catalogue in the background.
 	Refresh <-chan catalogue.RefreshResult
 }
@@ -74,6 +76,7 @@ type Game struct {
 	loading      <-chan romstore.Result
 	loadingEntry library.Entry
 	picked       <-chan platform.PickedFile
+	cached       chan []string
 	dropped      chan platform.PickedFile
 	power        float32
 	message      string
@@ -117,8 +120,16 @@ func New(d Deps) (*Game, error) {
 		scale:    1,
 		ptr:      pointer{threshold: dragThreshold},
 		dropped:  make(chan platform.PickedFile, 1),
+		cached:   make(chan []string, 1),
 	}
 	g.renderer.Update(g.machine.Display())
+
+	if d.CachedROMs != nil {
+		go func() {
+			keys, _ := d.CachedROMs() // no list just means no "offline" marks yet
+			g.cached <- keys
+		}()
+	}
 
 	if d.Params.ROM != "" {
 		g.power = 1

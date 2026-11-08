@@ -49,15 +49,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	store := romstore.New(cat.Sources.URLs, platform.NewCache(platform.StoreROMs), params.Base).
-		WithLocal(builtin.LoadHash)
+	romCache := platform.NewCache(platform.StoreROMs)
+	store := romstore.New(cat.Sources.URLs, romCache, params.Base).WithLocal(builtin.LoadHash)
 
 	game, err := app.New(app.Deps{
-		Params:    params,
-		Catalogue: cat,
-		Builtin:   builtin,
-		Store:     store,
-		Prefs:     platform.NewPrefs(),
+		Params:     params,
+		Catalogue:  cat,
+		Builtin:    builtin,
+		Store:      store,
+		Prefs:      platform.NewPrefs(),
+		CachedROMs: romCache.Keys,
 		Refresh: catalogue.Refresh(context.Background(), platform.Fetch,
 			platform.NewCache(platform.StoreMetadata), catalogue.DatabaseURL),
 	})

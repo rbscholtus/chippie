@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // defaultCacheDir is Chippie's folder in the user's cache directory, or ""
@@ -36,6 +37,32 @@ func (c *Cache) get(key string) ([]byte, bool, error) {
 	}
 
 	return data, true, nil
+}
+
+func (c *Cache) keys() ([]string, error) {
+	if c.dir == "" {
+		return nil, ErrUnavailable
+	}
+
+	entries, err := os.ReadDir(filepath.Join(c.dir, c.store))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("cache keys: %w", err)
+	}
+
+	out := make([]string, 0, len(entries))
+
+	for _, e := range entries {
+		// Skip directories and half-written temporary files (key.*).
+		if !e.IsDir() && validKey.MatchString(e.Name()) && !strings.Contains(e.Name(), ".") {
+			out = append(out, e.Name())
+		}
+	}
+
+	return out, nil
 }
 
 func (c *Cache) put(key string, value []byte) error {

@@ -43,6 +43,31 @@ func TestCacheRoundTrip(t *testing.T) {
 	}
 }
 
+func TestCacheKeys(t *testing.T) {
+	t.Parallel()
+
+	c := &Cache{store: StoreROMs, dir: t.TempDir()}
+
+	if keys, err := c.Keys(); err != nil || len(keys) != 0 {
+		t.Fatalf("empty cache: %v %v", keys, err)
+	}
+
+	for _, k := range []string{"bbb", "aaa"} {
+		if err := c.Put(k, []byte(k)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	keys, err := c.Keys()
+	if err != nil || len(keys) != 2 || keys[0] != "aaa" || keys[1] != "bbb" {
+		t.Errorf("Keys = %v, %v", keys, err)
+	}
+
+	if _, err := (&Cache{store: StoreROMs}).Keys(); !errors.Is(err, ErrUnavailable) {
+		t.Errorf("no directory: err=%v", err)
+	}
+}
+
 func TestCacheRejectsBadKeys(t *testing.T) {
 	t.Parallel()
 

@@ -21,6 +21,25 @@ var (
 // caretBlinkTicks is half the caret's blink period.
 const caretBlinkTicks = 30
 
+// Key repeat while a key is held: after repeatDelay ticks, every
+// repeatInterval ticks (like a keyboard's own repeat).
+const (
+	repeatDelay    = 30
+	repeatInterval = 3
+)
+
+// pressedOrRepeat reports a key press this tick, or a repeat while it's
+// held.
+func pressedOrRepeat(k ebiten.Key) bool {
+	if inpututil.IsKeyJustPressed(k) {
+		return true
+	}
+
+	d := inpututil.KeyPressDuration(k)
+
+	return d > repeatDelay && (d-repeatDelay)%repeatInterval == 0
+}
+
 // textField is a one-line text field. On touch screens it uses Ebitengine's
 // exp/textinput (from the prototype): the platform's input method, so phones
 // show their keyboard and IME composition works. With a physical keyboard it
@@ -138,13 +157,13 @@ func (f *textField) update() error {
 	}
 
 	switch {
-	case inpututil.IsKeyJustPressed(ebiten.KeyBackspace):
+	case pressedOrRepeat(ebiten.KeyBackspace):
 		f.composer.Confirm()
 		f.backspace()
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft):
+	case pressedOrRepeat(ebiten.KeyArrowLeft):
 		f.composer.Confirm()
 		f.moveCaret(-1)
-	case inpututil.IsKeyJustPressed(ebiten.KeyArrowRight):
+	case pressedOrRepeat(ebiten.KeyArrowRight):
 		f.composer.Confirm()
 		f.moveCaret(1)
 	}

@@ -116,6 +116,25 @@ func (c *Cache) get(key string) ([]byte, bool, error) {
 	return data, true, nil
 }
 
+func (c *Cache) keys() ([]string, error) {
+	st, err := objectStore(c.store, "readonly")
+	if err != nil {
+		return nil, err
+	}
+
+	v, err := wait(st.Call("getAllKeys"))
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]string, v.Length())
+	for i := range out {
+		out[i] = v.Index(i).String()
+	}
+
+	return out, nil
+}
+
 func (c *Cache) put(key string, value []byte) error {
 	st, err := objectStore(c.store, "readwrite")
 	if err != nil {

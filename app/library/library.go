@@ -40,7 +40,8 @@ type Entry struct {
 	Description string
 	Platform    chip8.Platform // the recommended platform
 	Group       Group
-	Offline     bool // bundled or shipped beside the app: no download needed
+	Offline     bool           // plays without a download: bundled, beside the app, or cached
+	Keys        map[string]int // the database's keys hint, e.g. "up": 5; often empty
 
 	search string // lower-case text the search matches against
 }
@@ -108,7 +109,7 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 
 	e := Entry{
 		SHA1: rom.SHA1, Title: title, Authors: rom.Program.Authors, Release: rom.Program.Release,
-		Description: rom.Program.Description, Platform: p, Offline: offline,
+		Description: rom.Program.Description, Platform: p, Offline: offline, Keys: rom.Keys,
 	}
 	if !p.Implemented() {
 		e.Group = ComingSoon
@@ -143,6 +144,16 @@ func sortEntries(es []Entry) {
 
 		return strings.ToLower(es[i].Title) < strings.ToLower(es[j].Title)
 	})
+}
+
+// MarkOffline marks the entries whose SHA-1 is in cached as playable
+// offline (after a download, or found in the cache at start-up).
+func MarkOffline(es []Entry, cached map[string]bool) {
+	for i := range es {
+		if cached[es[i].SHA1] {
+			es[i].Offline = true
+		}
+	}
 }
 
 // Filter returns the entries whose title, authors, year or platform contain

@@ -59,6 +59,12 @@ func (p *picker) setAll(all []library.Entry) {
 	}
 }
 
+// markOffline marks cached ROMs as playable offline.
+func (p *picker) markOffline(cached map[string]bool) {
+	library.MarkOffline(p.all, cached)
+	library.MarkOffline(p.entries, cached)
+}
+
 // setQuery filters the list and goes back to its top.
 func (p *picker) setQuery(q string) {
 	if q == p.query {
