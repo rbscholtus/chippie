@@ -674,8 +674,9 @@ switch, seen straight on".
 - Ebitengine's `audio` package. The audio context is created on the first
   user gesture (the power button), as browsers require.
 - **CHIP-8/SCHIP:** a square wave, gated by the sound timer.
-- **XO-CHIP:** a custom stream (`io.Reader`) that plays the 16-byte, 1-bit
-  pattern buffer at the pitch register's rate.
+- **XO-CHIP:** the same stream plays the 16-byte, 1-bit pattern buffer at the
+  pitch register's rate, from the first `F002`. A ROM that never loads a
+  pattern gets the plain square wave.
 - **Volume** from the TV's volume knob.
 
 ## 14. Browser integration
