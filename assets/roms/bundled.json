@@ -1,0 +1,68 @@
+[
+  {
+    "id": "glitchGhost",
+    "title": "Glitch Ghost",
+    "authors": ["Jackie Kircher"],
+    "release": "2014",
+    "file": "glitchGhost.ch8",
+    "sha1": "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b",
+    "platform": "modernChip8",
+    "tickrate": 200,
+    "description": "An original puzzle game about scaring people to death."
+  },
+  {
+    "id": "danm8ku",
+    "title": "Danm8ku",
+    "authors": ["buffi"],
+    "release": "2015",
+    "file": "danm8ku.ch8",
+    "sha1": "ff6b8ac59bf281cd4b5ab6e161600b00f85a0265",
+    "platform": "modernChip8",
+    "tickrate": 1000,
+    "description": "An intense bullet-hell shooter."
+  },
+  {
+    "id": "turnover77",
+    "title": "Turnover '77",
+    "authors": ["your name here"],
+    "release": "2014",
+    "file": "turnover77.ch8",
+    "sha1": "d03f27f85a1cf68465e0853cc0c4abee4a94a4e5",
+    "platform": "superchip",
+    "tickrate": 200,
+    "description": "A demake of the indie hit Roundabout."
+  },
+  {
+    "id": "octopeg",
+    "title": "Octopeg",
+    "authors": ["Chromatophore"],
+    "release": "2015",
+    "file": "octopeg.ch8",
+    "sha1": "7a4a89870f2ab23c28024dd1c3dd52cf1af1ad00",
+    "platform": "superchip",
+    "tickrate": 200,
+    "description": "A shockingly good variation on Peggle."
+  },
+  {
+    "id": "redOctober",
+    "title": "Red October V",
+    "authors": ["Kesha"],
+    "release": "2018",
+    "file": "redOctober.ch8",
+    "sha1": "e14350d3b19443e5ad2848172bef9719a8680b01",
+    "platform": "xochip",
+    "tickrate": 10000,
+    "description": "An elaborate RPG adventure."
+  },
+  {
+    "id": "anEveningToDieFor",
+    "title": "An Evening to Die For",
+    "authors": ["John Earnest"],
+    "release": "2019",
+    "file": "anEveningToDieFor.ch8",
+    "sha1": "afd9fee7565c54970b6bd7758aa8aa7843dd2e86",
+    "platform": "xochip",
+    "tickrate": 500,
+    "description": "A murder mystery game in the vein of Clue."
+  }
+]

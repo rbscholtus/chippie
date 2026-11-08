@@ -33,7 +33,8 @@ These are the coding standards for Chippie. The design is described in
   - No imports outside the standard library.
   - No `syscall/js`, `time`, `math/rand` global state, or I/O.
   - The core never reads the clock. It advances only through `RunFrame`.
-- **`catalogue/`, `romstore/`:** standard library + `net/http`; no Ebitengine,
+- **`catalogue/`, `romstore/`:** standard library + `platform.Fetch` for
+  downloads (never `net/http` directly: it would bloat the WASM); no Ebitengine,
   no `syscall/js`.
 - **`platform/`:** the only package with `syscall/js`. Every file that uses it
   is build-tagged `//go:build js && wasm` and has a `!(js && wasm)` stub, so

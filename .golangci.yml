@@ -60,6 +60,15 @@ linters:
           deny:
             - pkg: syscall/js
               desc: "syscall/js is allowed only in platform/"
+        net-http-only-in-platform:
+          list-mode: lax
+          files:
+            - $all
+            - "!$test"
+            - "!**/platform/**"
+          deny:
+            - pkg: net/http
+              desc: "use platform.Fetch; net/http adds ~1.7 MB gzip to the WASM"
         testrig-only-in-tests:
           list-mode: lax
           files:
