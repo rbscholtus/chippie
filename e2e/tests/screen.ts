@@ -55,3 +55,43 @@ export async function waitForApp(page: Page) {
   await page.waitForFunction(() => (window as any).chippieTimings !== undefined, null, { timeout: 60_000 });
   await expect(page.locator("#loader")).toBeHidden();
 }
+
+// Touch helpers (Chromium only): Playwright's tap() presses and releases
+// within one frame, which the app can miss; real fingers are slower.
+export async function touchTap(page: Page, x: number, y: number) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await page.waitForTimeout(150);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(150);
+}
+
+export async function touchDrag(page: Page, x: number, fromY: number, toY: number) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: fromY }] });
+  const steps = 10;
+  for (let i = 1; i <= steps; i++) {
+    await page.waitForTimeout(50);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: fromY + ((toY - fromY) * i) / steps }] });
+  }
+  await page.waitForTimeout(100);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(150);
+}
+
+// A mouse click that lasts long enough for the app to see it.
+export async function click(page: Page, x: number, y: number) {
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+}
+
+// Touch layout of the picker in CSS pixels (app/ui.go computeLayout):
+// the list starts below a debug line and two paddings, and rows are 44 px.
+export const pickerListTop = 24 + 16 + 16;
+export const touchRowHeight = 44;
+export function rowCentre(row: number, scrolled = 0) {
+  return pickerListTop + row * touchRowHeight + touchRowHeight / 2 - scrolled;
+}
