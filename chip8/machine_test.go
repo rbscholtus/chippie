@@ -41,6 +41,10 @@ func TestPlatformTable(t *testing.T) {
 		}
 	}
 
+	if got := Platforms(); len(got) != int(numPlatforms) || got[0] != OriginalChip8 || got[len(got)-1] != XOChip {
+		t.Errorf("Platforms() = %v", got)
+	}
+
 	if _, ok := ParsePlatform("nope"); ok {
 		t.Error("ParsePlatform accepted an unknown id")
 	}
@@ -168,6 +172,26 @@ func TestTicksPerFrame(t *testing.T) {
 
 	if m.v[1] != 6 {
 		t.Errorf("V1=%d with default ticks, want 6", m.v[1])
+	}
+}
+
+func TestSetSpeedAndQuirksWhileRunning(t *testing.T) {
+	t.Parallel()
+
+	m := New(DefaultProfile(ModernChip8))
+	mustLoad(t, m, program(0x7101, 0x1200)) // V1++; jump back
+
+	m.SetTicksPerFrame(2)
+	m.RunFrame()
+
+	if m.v[1] != 1 {
+		t.Errorf("V1=%d after 2 ticks, want 1", m.v[1])
+	}
+
+	m.SetQuirks(Quirks{Logic: true})
+
+	if p := m.Profile(); !p.Quirks.Logic || p.TicksPerFrame != 2 || p.Platform != ModernChip8 {
+		t.Errorf("profile %+v", p)
 	}
 }
 

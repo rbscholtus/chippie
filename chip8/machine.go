@@ -142,6 +142,14 @@ func (m *Machine) SetKey(key uint8, down bool) {
 // KeyDown reports whether a hex key (0..F) is down.
 func (m *Machine) KeyDown(key uint8) bool { return int(key) < NumKeys && m.keys[key] }
 
+// SetTicksPerFrame changes the speed while running (the speed knob).
+// Values below 1 mean the platform's default.
+func (m *Machine) SetTicksPerFrame(n int) { m.profile.TicksPerFrame = n }
+
+// SetQuirks changes the quirks while running. Changing the platform needs
+// Reset, because memory and display sizes may change.
+func (m *Machine) SetQuirks(q Quirks) { m.profile.Quirks = q }
+
 // Profile returns the profile the machine is running with.
 func (m *Machine) Profile() Profile { return m.profile }
 
