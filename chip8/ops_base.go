@@ -200,6 +200,8 @@ func (m *Machine) opDXYN(x, y, n int) {
 
 // opEX9E (SKP VX) skips the next instruction if key VX is down.
 func (m *Machine) opEX9E(x int) {
+	m.keysRead |= 1 << (m.v[x] & 0xF)
+
 	if m.keys[m.v[x]&0xF] {
 		m.skip()
 	}
@@ -207,6 +209,8 @@ func (m *Machine) opEX9E(x int) {
 
 // opEXA1 (SKNP VX) skips the next instruction if key VX is up.
 func (m *Machine) opEXA1(x int) {
+	m.keysRead |= 1 << (m.v[x] & 0xF)
+
 	if !m.keys[m.v[x]&0xF] {
 		m.skip()
 	}
@@ -220,6 +224,8 @@ func (m *Machine) opFX07(x int) { m.v[x] = m.dt }
 // starts doesn't count, and the timers keep running while it waits. See
 // https://laurencescotford.net/chip-8-on-the-cosmac-vip-keyboard-input/
 func (m *Machine) opFX0A(x int) {
+	m.anyKey = true
+
 	if !m.waiting {
 		m.waiting = true
 		m.waitKey = noKey

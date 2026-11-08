@@ -336,6 +336,27 @@ func TestDisplayView(t *testing.T) {
 	}
 }
 
+func TestKeysRead(t *testing.T) {
+	t.Parallel()
+
+	m := New(DefaultProfile(ModernChip8))
+	// V0 = 5; skip if key 5; V0 = 0x17 (low nibble 7); skip if not key 7; wait for a key.
+	mustLoad(t, m, program(0x6005, 0xE09E, 0x6017, 0xE0A1, 0x0000, 0xF10A))
+
+	m.RunFrame()
+
+	mask, anyKey := m.KeysRead()
+	if mask != 1<<5|1<<7 || !anyKey {
+		t.Errorf("KeysRead = %016b, %v; want keys 5 and 7, and any key", mask, anyKey)
+	}
+
+	m.Reset(m.Profile())
+
+	if mask, anyKey := m.KeysRead(); mask != 0 || anyKey {
+		t.Error("Reset should forget the keys")
+	}
+}
+
 func TestSetKeyIgnoresInvalid(t *testing.T) {
 	t.Parallel()
 
