@@ -32,7 +32,7 @@ Downloadable ROMs in the manifest: 204 of 543 in the database.
 
 ## chip8Archive vs chip-8-database
 
-chip-8-database wins; these are candidates for upstream fixes.
+wins; these are candidates for upstream fixes.
 
 - Chipcross (83300ff710acdd8417376b88adf40f68171f7ec7): platform: chip-8-database "xochip", chip8Archive "schip"
 - Eaty The Alien (fcaa793332a83c93f4ed79f5ffbc8403c8b8aea0): platform: chip-8-database "xochip", chip8Archive "schip"
