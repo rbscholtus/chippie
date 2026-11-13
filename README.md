@@ -926,6 +926,14 @@ To be settled while building, not before:
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
   usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
   keypad; show those properly instead of "?".
+- **Record the keys games use (desktop only).** Only worth it if the data
+  turns out to be useful upstream. While a ROM runs, record per SHA-1 the keys
+  it reads (`EX9E`/`EXA1`), the keys actually held when read (filters out
+  keypad scans) and the key that ends an `FX0A` wait. Merge across sessions
+  into a JSON file in the user config folder, saved off the `Update` loop via
+  `platform/` (no-op on WASM). Roles (up, fire…) can't be inferred: fill the
+  database-format `keys` block by hand, and export filled entries with a small
+  `cmd/` tool for a chip-8-database PR.
 
 ## 21. References
 
