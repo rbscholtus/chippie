@@ -94,10 +94,10 @@ func TestResolve(t *testing.T) {
 		{"known ROM: platform and tickrate", glitchGhost, Overrides{}, "modernChip8", 200, nil},
 		{"hash in upper case", strings.ToUpper(glitchGhost), Overrides{}, "modernChip8", 200, nil},
 		{
-			"first platform when none is implemented", turnover77,
+			"an Octo game runs with chip8Archive's quirks", turnover77,
 			Overrides{},
 			"superchip", 200,
-			func(q chip8.Quirks) bool { return q.Shift && q.Jump && q.MemoryLeaveIUnchanged },
+			func(q chip8.Quirks) bool { return !q.Shift && !q.Jump && !q.MemoryLeaveIUnchanged && q.Wrap },
 		},
 		{
 			"quirkyPlatforms override", superNeatBoy,
@@ -145,7 +145,7 @@ func TestResolvePrefersImplementedPlatform(t *testing.T) {
 	t.Parallel()
 
 	db := loadSnapshot(t).DB
-	rom := &ROM{SHA1: "abc", Platforms: []string{"superchip", "modernChip8"}, Program: &Program{}}
+	rom := &ROM{SHA1: "abc", Platforms: []string{"megachip8", "modernChip8"}, Program: &Program{}}
 	db.roms["abc"] = rom
 
 	if got := db.Resolve("abc", Overrides{}).PlatformID; got != "modernChip8" {
@@ -324,6 +324,57 @@ func TestMergeArchive(t *testing.T) {
 
 	if _, err := db.MergeArchive([]byte(`{`), []byte(`{}`)); !errors.Is(err, ErrInvalid) {
 		t.Errorf("bad archive JSON: err=%v", err)
+	}
+}
+
+func TestMergeArchiveQuirks(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+
+	// Octopeg was written in Octo: neither shift nor load/store quirk.
+	const octopeg = "7a4a89870f2ab23c28024dd1c3dd52cf1af1ad00"
+
+	q := db.Resolve(octopeg, Overrides{}).Profile.Quirks
+	if q.Shift || q.MemoryLeaveIUnchanged || q.MemoryIncrementByX || q.Jump {
+		t.Errorf("Octopeg quirks %+v, want the archive's", q)
+	}
+
+	merge := func(rom *ROM, program string) []Conflict {
+		var ap archiveProgram
+		if err := json.Unmarshal([]byte(program), &ap); err != nil {
+			t.Fatal(err)
+		}
+
+		return mergeROM(rom, ap)
+	}
+
+	// CHIP-8 games keep the database's platform defaults.
+	chip := &ROM{Platforms: []string{"originalChip8"}, Program: &Program{}}
+	merge(chip, `{"platform":"chip8","options":{"vBlankQuirks":false}}`)
+
+	if len(chip.QuirkyPlatforms) != 0 {
+		t.Errorf("CHIP-8 quirks merged: %v", chip.QuirkyPlatforms)
+	}
+
+	// Only platforms of the archive's family are touched, 0/1 are flags, and
+	// clipping is the opposite of wrap.
+	both := &ROM{Platforms: []string{"superchip", "modernChip8"}, Program: &Program{}}
+	merge(both, `{"platform":"schip","options":{"shiftQuirks":1,"clipQuirks":0}}`)
+
+	if q := both.QuirkyPlatforms["superchip"]; !q["shift"] || !q["wrap"] || len(both.QuirkyPlatforms) != 1 {
+		t.Errorf("merged %v", both.QuirkyPlatforms)
+	}
+
+	// The database wins, and the disagreement is reported.
+	own := &ROM{
+		Platforms: []string{"superchip"}, Program: &Program{},
+		QuirkyPlatforms: map[string]map[string]bool{"superchip": {"shift": true}},
+	}
+
+	conflicts := merge(own, `{"platform":"schip","options":{"shiftQuirks":false}}`)
+	if !own.QuirkyPlatforms["superchip"]["shift"] || len(conflicts) != 1 || conflicts[0].Field != "quirk shift" {
+		t.Errorf("quirks %v conflicts %v", own.QuirkyPlatforms, conflicts)
 	}
 }
 

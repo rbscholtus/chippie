@@ -31,6 +31,7 @@ import (
 const (
 	windowWidth  = 1024
 	windowHeight = 640
+	hostedROMs   = "web/hosted-roms" // from the repository root
 )
 
 func main() {
@@ -42,6 +43,10 @@ func main() {
 	builtin, err := roms.NewLibrary(params.TestROMs)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if params.Base == "" { // native: relative download URLs can't work
+		builtin.SetHostedDir(hostedROMs)
 	}
 
 	cat, err := catalogue.LoadSnapshot()

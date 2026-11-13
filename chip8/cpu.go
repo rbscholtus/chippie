@@ -72,14 +72,7 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 
 	switch op >> 12 {
 	case 0x0:
-		switch op {
-		case 0x00E0:
-			m.op00E0()
-		case 0x00EE:
-			m.op00EE()
-		default: // 0NNN: machine-code routine, not supported
-			m.unknown(pc, op)
-		}
+		m.execute0(pc, op)
 	case 0x1:
 		m.op1NNN(nnn)
 	case 0x2:
@@ -89,13 +82,7 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 	case 0x4:
 		m.op4XNN(x, nn)
 	case 0x5:
-		if n != 0 {
-			m.unknown(pc, op)
-
-			return
-		}
-
-		m.op5XY0(x, y)
+		m.execute5(pc, op, x, y)
 	case 0x6:
 		m.op6XNN(x, nn)
 	case 0x7:
@@ -122,6 +109,35 @@ func (m *Machine) execute(pc, op uint16) { //nolint:funlen // one case per opcod
 		m.executeE(pc, op, x)
 	case 0xF:
 		m.executeF(pc, op, x)
+	}
+}
+
+// execute0 decodes the 0NNN group. Anything the platform doesn't define is a
+// machine-code routine, which isn't supported.
+func (m *Machine) execute0(pc, op uint16) {
+	switch op {
+	case 0x00E0:
+		m.op00E0()
+	case 0x00EE:
+		m.op00EE()
+	default:
+		if !m.executeSuper0(op) {
+			m.unknown(pc, op)
+		}
+	}
+}
+
+// execute5 decodes the 5XYN group.
+func (m *Machine) execute5(pc, op uint16, x, y int) {
+	switch {
+	case op&0xF == 0:
+		m.op5XY0(x, y)
+	case m.ops&opsXO != 0 && op&0xF == 2:
+		m.op5XY2(x, y)
+	case m.ops&opsXO != 0 && op&0xF == 3:
+		m.op5XY3(x, y)
+	default:
+		m.unknown(pc, op)
 	}
 }
 
@@ -185,7 +201,9 @@ func (m *Machine) executeF(pc, op uint16, x int) {
 	case 0x65:
 		m.opFX65(x)
 	default:
-		m.unknown(pc, op)
+		if !m.executeSuperF(x, byte(op)) {
+			m.unknown(pc, op)
+		}
 	}
 }
 

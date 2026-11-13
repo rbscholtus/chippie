@@ -42,6 +42,11 @@ func (o *Output) Start() error {
 // Started reports whether audio is running.
 func (o *Output) Started() bool { return o.player != nil }
 
+// SetPattern selects XO-CHIP's sampled audio (see [Buzzer.SetPattern]).
+func (o *Output) SetPattern(has bool, pattern [PatternBytes]byte, pitch byte) {
+	o.buzzer.SetPattern(has, pattern, pitch)
+}
+
 // SetBuzzer switches the tone on or off. It works before Start too; the
 // tone is simply not heard yet.
 func (o *Output) SetBuzzer(on bool) { o.buzzer.Set(on) }

@@ -1,7 +1,9 @@
 package crt
 
 import (
+	"encoding/hex"
 	"image/color"
+	"strings"
 
 	"github.com/rbscholtus/chippie/chip8"
 )
@@ -16,6 +18,50 @@ var DefaultPalette = Palette{ //nolint:gochecknoglobals // read-only default
 	{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF},
 	{R: 0xAA, G: 0xAA, B: 0xAA, A: 0xFF},
 	{R: 0x55, G: 0x55, B: 0x55, A: 0xFF},
+}
+
+// hexColorDigits is the length of the digits in "#rrggbb".
+const hexColorDigits = 6
+
+// ParsePalette builds a palette from a ROM's "#rrggbb" colours, by plane
+// bits: off, plane 1, plane 2, both. It needs at least the first two. Empty
+// or missing later entries keep [DefaultPalette]'s colour. It reports false
+// if there are too few colours or one can't be read.
+func ParsePalette(pixels []string) (Palette, bool) {
+	p := DefaultPalette
+	if len(pixels) < 2 || len(pixels) > len(p) || pixels[0] == "" || pixels[1] == "" {
+		return DefaultPalette, false
+	}
+
+	for i, s := range pixels {
+		if s == "" {
+			continue
+		}
+
+		c, ok := parseHexColor(s)
+		if !ok {
+			return DefaultPalette, false
+		}
+
+		p[i] = c
+	}
+
+	return p, true
+}
+
+// parseHexColor reads "#rrggbb".
+func parseHexColor(s string) (color.RGBA, bool) {
+	digits, ok := strings.CutPrefix(s, "#")
+	if !ok || len(digits) != hexColorDigits {
+		return color.RGBA{}, false
+	}
+
+	v, err := hex.DecodeString(digits)
+	if err != nil {
+		return color.RGBA{}, false
+	}
+
+	return color.RGBA{R: v[0], G: v[1], B: v[2], A: 0xFF}, true
 }
 
 // staticSeedMix spreads consecutive seeds apart (the golden ratio, 64-bit).

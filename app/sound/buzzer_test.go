@@ -112,3 +112,108 @@ func BenchmarkBuzzerRead(b *testing.B) {
 		_, _ = bz.Read(buf)
 	}
 }
+
+func TestPatternRate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		pitch byte
+		want  float64
+	}{
+		{64, 4000},
+		{112, 8000},
+		{16, 2000},
+		{255, 4000 * 15.8},
+	}
+
+	for _, tt := range tests {
+		if got := patternRate(tt.pitch); got < tt.want*0.99 || got > tt.want*1.01 {
+			t.Errorf("pitch %d: %.1f, want about %.1f", tt.pitch, got, tt.want)
+		}
+	}
+}
+
+func TestPatternPlaysBitsTopFirst(t *testing.T) {
+	t.Parallel()
+
+	var (
+		b       Buzzer
+		pattern [PatternBytes]byte
+	)
+
+	// At the base pitch, each pattern bit lasts this many output samples.
+	const samplesPerBit = SampleRate / basePatternRate
+
+	pattern[0] = 0b1010_0000
+
+	b.SetPattern(true, pattern, basePitch)
+	b.Set(true)
+	samples(&b, rampSamples*2) // past the fade-in
+
+	b.patternPos = 0
+
+	got := samples(&b, samplesPerBit*4)
+	for i, wantHigh := range []bool{true, false, true, false} {
+		if s := got[i*samplesPerBit+1]; (s > 0) != wantHigh {
+			t.Errorf("bit %d: sample %v, want high=%v", i, s, wantHigh)
+		}
+	}
+}
+
+func TestPatternKeepsPositionAcrossUpdates(t *testing.T) {
+	t.Parallel()
+
+	var (
+		b       Buzzer
+		pattern [PatternBytes]byte
+	)
+
+	b.SetPattern(true, pattern, basePitch)
+	b.Set(true)
+	samples(&b, 100)
+
+	before := b.patternPos
+	if before == 0 {
+		t.Fatal("pattern didn't advance")
+	}
+
+	b.SetPattern(true, pattern, basePitch)
+
+	if b.patternPos != before {
+		t.Errorf("position reset by an update: %v, was %v", b.patternPos, before)
+	}
+}
+
+func TestPatternWrapsAndStaysInRange(t *testing.T) {
+	t.Parallel()
+
+	var (
+		b       Buzzer
+		pattern [PatternBytes]byte
+	)
+
+	b.SetPattern(true, pattern, 255)
+	b.Set(true)
+	samples(&b, SampleRate/10)
+
+	if b.patternPos < 0 || b.patternPos >= patternBits {
+		t.Errorf("position %v outside the pattern", b.patternPos)
+	}
+}
+
+func TestWithoutPatternPlaysTheSquareWave(t *testing.T) {
+	t.Parallel()
+
+	var plain, cleared Buzzer
+
+	plain.Set(true)
+	cleared.SetPattern(false, [PatternBytes]byte{0xFF}, 200)
+	cleared.Set(true)
+
+	a, c := samples(&plain, 500), samples(&cleared, 500)
+	for i := range a {
+		if a[i] != c[i] {
+			t.Fatalf("sample %d: %v, want the square wave's %v", i, c[i], a[i])
+		}
+	}
+}

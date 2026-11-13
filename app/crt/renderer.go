@@ -88,6 +88,9 @@ func New(mode Mode) (*Renderer, error) {
 	return r, nil
 }
 
+// SetPalette sets the colour of each pixel value, from the next frame on.
+func (r *Renderer) SetPalette(p Palette) { r.palette = p }
+
 // SetPower sets the power animation: 0 is off, 1 is fully on.
 func (r *Renderer) SetPower(p float32) { r.power = min(max(p, 0), 1) }
 

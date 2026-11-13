@@ -4,6 +4,7 @@
 #   chippie-gz.wasm         the app, gzip-compressed (the loader unpacks it)
 #   roms/test-suite/        the Timendus test ROMs (GPLv3), shipped as
 #                           separate files with their licence, never compiled in
+#   roms/hosted/            the ROMs only on Zophar or David Winter's page, with attribution
 #
 # Serve it with:  cd web/dist && python3 -m http.server 8080
 set -euo pipefail
@@ -18,7 +19,7 @@ if [ ! -f "$suite/bin/1-chip8-logo.ch8" ]; then
 fi
 
 rm -rf "$out"
-mkdir -p "$out/roms/test-suite"
+mkdir -p "$out/roms/test-suite" "$out/roms/hosted"
 
 GOOS=js GOARCH=wasm go build -trimpath -ldflags="-s -w" -o "$out/chippie.wasm" ./cmd/chippie
 gzip -9 -n -c "$out/chippie.wasm" > "$out/chippie-gz.wasm"
@@ -43,5 +44,7 @@ CHIP-8 test suite by Timendus, tag v4.2, licensed under GPLv3 (see LICENSE).
 Source: https://github.com/Timendus/chip8-test-suite/tree/v4.2
 These files are distributed unmodified, separately from Chippie.
 TXT
+
+cp web/hosted-roms/* "$out/roms/hosted/"
 
 echo "built $out: chippie-gz.wasm $((gz_size / 1024)) KB"

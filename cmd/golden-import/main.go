@@ -40,10 +40,24 @@ type picture struct {
 	width  int
 	height int
 	strays bool // ignore stray white pixels
+	fixes  []pixelFix
 }
 
-// pictures lists every 64×32 reference picture. The scrolling ones are used
-// from M5 (SUPER-CHIP), but are imported now with the rest.
+// pixelFix turns on a pixel that a reference picture wrongly shows off.
+type pixelFix struct{ x, y int }
+
+// The scrolling pictures show two gaps where the ROM can't leave any. The
+// routine at 0x468 (src/tests/8-scrolling.8o, scrolling-draw-borders-lores)
+// draws the upper box's sides on rows 5-14 and its bottom edge on row 15, so
+// no pixel of row 15 is drawn twice; the pictures show columns 26 and 37 of
+// that row as off. Hi-res has the same gaps at row 32, columns 58 and 69,
+// with sides on rows 22-31. Everything else in the pictures is compared.
+var (
+	loresBorderFixes = []pixelFix{{26, 15}, {37, 15}} //nolint:gochecknoglobals // read-only data
+	hiresBorderFixes = []pixelFix{{58, 32}, {69, 32}} //nolint:gochecknoglobals // read-only data
+)
+
+// pictures lists every reference picture with a native-resolution golden.
 var pictures = []picture{ //nolint:gochecknoglobals // read-only import list
 	{file: "chip-8-logo.png", golden: "1-chip8-logo", width: 64, height: 32},
 	{file: "ibm-logo.png", golden: "2-ibm-logo", width: 64, height: 32},
@@ -56,16 +70,17 @@ var pictures = []picture{ //nolint:gochecknoglobals // read-only import list
 	{file: "keypad-up.png", golden: "6-keypad-up", width: 64, height: 32},
 	{file: "keypad-getkey.png", golden: "6-keypad-getkey", width: 64, height: 32},
 	{file: "scrolling-platform.png", golden: "8-scrolling-menu", width: 64, height: 32},
-	{file: "lores-scrolling.png", golden: "8-scrolling-lores", width: 64, height: 32},
+	{file: "lores-scrolling.png", golden: "8-scrolling-lores", width: 64, height: 32, fixes: loresBorderFixes},
 	{file: "lores-no-scrolling.png", golden: "8-scrolling-lores-none", width: 64, height: 32},
 	{file: "lores-no-half-scrolling.png", golden: "8-scrolling-lores-no-half", width: 64, height: 32},
+	{file: "hires-scrolling.png", golden: "8-scrolling-hires", width: 128, height: 64, fixes: hiresBorderFixes},
+	{file: "hires-no-scrolling.png", golden: "8-scrolling-hires-none", width: 128, height: 64},
 }
 
 // skipped lists the suite's other pictures and why they aren't imported.
 var skipped = []struct{ file, reason string }{ //nolint:gochecknoglobals // read-only list
 	{"beep.png", "anti-aliased; the beep test checks the buzzer state instead"},
 	{"Cosmac-VIP-quirks.png", "screenshot of the Emma 02 emulator; quirks.png shows the same result"},
-	{"hires-scrolling.png, hires-no-scrolling.png", "128×64; imported with the SUPER-CHIP tests in M5"},
 	{"HP48SX-*.JPG, broken-on-hp48.jpg", "photos of a real HP48"},
 	{"ibm.png, splash*.png, version.png, testimonial*.png", "not test screens"},
 }
@@ -122,6 +137,10 @@ func importOne(src, dst string, p picture, pal testrig.Palette) error {
 	f, err := testrig.ImportPicture(img, p.width, p.height, pal)
 	if err != nil {
 		return fmt.Errorf("convert picture: %w", err)
+	}
+
+	for _, fix := range p.fixes {
+		f.Pix[fix.y*f.Width+fix.x] = 1
 	}
 
 	if err := testrig.WriteGolden(dst, f); err != nil {

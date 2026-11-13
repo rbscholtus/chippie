@@ -121,6 +121,9 @@ var testSuite = []Entry{ //nolint:gochecknoglobals // read-only table
 // Library holds the entries and knows how to load them.
 type Library struct {
 	entries []Entry
+	// hostedDir holds the ROMs Chippie hosts, for native builds, which can't
+	// download them from relative URLs. Empty in the browser.
+	hostedDir string
 	// testBase is where test-suite ROMs live: a directory natively, or an
 	// http(s) URL ending in "/" in the browser.
 	testBase string
@@ -209,18 +212,23 @@ func (l *Library) HashFor(id string) (string, bool) {
 	return e.SHA1, ok
 }
 
-// LoadHash loads the entry with the given SHA-1, if there is one: the
-// romstore's source for ROMs that need no download.
+// SetHostedDir sets the directory of hosted ROMs on native builds.
+func (l *Library) SetHostedDir(dir string) { l.hostedDir = dir }
+
+// LoadHash loads the ROM with the given SHA-1, if it needs no download: the
+// romstore's source for bundled, test-suite and (natively) hosted ROMs.
 func (l *Library) LoadHash(ctx context.Context, sha1 string) ([]byte, bool) {
+	sha1 = strings.ToLower(sha1)
+
 	for _, e := range l.entries {
-		if e.SHA1 == strings.ToLower(sha1) {
+		if e.SHA1 == sha1 {
 			rom, err := l.Load(ctx, e)
 
 			return rom, err == nil
 		}
 	}
 
-	return nil, false
+	return l.loadHosted(sha1)
 }
 
 // Result is the outcome of an asynchronous load.
@@ -272,6 +280,32 @@ func (l *Library) Load(ctx context.Context, e Entry) ([]byte, error) {
 	}
 
 	return rom, nil
+}
+
+// loadHosted looks for a ROM with the SHA-1 in the hosted directory.
+func (l *Library) loadHosted(want string) ([]byte, bool) {
+	if l.hostedDir == "" {
+		return nil, false
+	}
+
+	entries, err := os.ReadDir(l.hostedDir)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, e := range entries {
+		rom, err := os.ReadFile(filepath.Join(l.hostedDir, e.Name()))
+		if err != nil {
+			continue
+		}
+
+		sum := sha1.Sum(rom) //nolint:gosec // G401: see import
+		if hex.EncodeToString(sum[:]) == want {
+			return rom, true
+		}
+	}
+
+	return nil, false
 }
 
 func (l *Library) loadTest(ctx context.Context, file string) ([]byte, error) {

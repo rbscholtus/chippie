@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/rbscholtus/chippie/catalogue"
 	"github.com/rbscholtus/chippie/chip8"
 	"github.com/rbscholtus/chippie/platform"
 )
@@ -51,8 +52,8 @@ func TestBundledGames(t *testing.T) {
 
 	want := map[string]bool{
 		"game/glitchGhost": true, "game/danm8ku": true,
-		"game/turnover77": false, "game/octopeg": false,
-		"game/redOctober": false, "game/anEveningToDieFor": false,
+		"game/turnover77": true, "game/octopeg": true,
+		"game/redOctober": true, "game/anEveningToDieFor": true,
 	}
 
 	for id, p := range want {
@@ -73,6 +74,11 @@ func TestPlayableGamesRun(t *testing.T) {
 
 	l := newTestLibrary(t)
 
+	cat, err := catalogue.LoadSnapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for _, e := range l.Entries() {
 		if e.Group != Games || !e.Playable() {
 			continue
@@ -86,7 +92,7 @@ func TestPlayableGamesRun(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			m := chip8.New(e.Profile())
+			m := chip8.New(cat.DB.Resolve(e.SHA1, catalogue.Overrides{}).Profile)
 			if err := m.LoadROM(rom); err != nil {
 				t.Fatal(err)
 			}
@@ -118,8 +124,8 @@ func TestTestSuiteEntries(t *testing.T) {
 		t.Error(err)
 	}
 
-	if s, _ := l.Find("test/8-scrolling"); s.Playable() {
-		t.Error("the scrolling test needs SUPER-CHIP and shouldn't be playable yet")
+	if s, _ := l.Find("test/8-scrolling"); !s.Playable() {
+		t.Error("the scrolling test runs on SUPER-CHIP and should be playable")
 	}
 
 	if _, ok := l.Find("nope"); ok {

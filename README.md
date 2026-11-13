@@ -72,7 +72,7 @@ a product goal.
 | Target | Browser (`GOOS=js GOARCH=wasm`). Native desktop builds for development. |
 | TV look | A mid-1970s TV from AI-generated artwork (Gemini or similar), plus a CRT shader in Kage |
 | Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), used unmodified |
-| ROM files | Downloaded from their original source at runtime. Only the 12 ROMs that can't be fetched from a browser are hosted by us. |
+| ROM files | Downloaded from their original source at runtime. Only the 18 ROMs that can't be fetched from a browser are hosted by us. |
 | Profiles | Platform defaults, then the database's per-ROM overrides, then user settings |
 | Tests | Golden framebuffers made from the test suite's own reference pictures |
 | Memory | Few allocations in the per-frame path, without awkward code; optimise when profiles show the need. No `sync.Pool` for now. |
@@ -217,7 +217,7 @@ chippie/
 │   └── chip8-test-suite/       # git submodule pinned to tag v4.2
 ├── web/
 │   ├── page.html               # loader page (from the prototype); build.sh → web/dist/
-│   ├── hosted-roms/            # the 12 Zophar-only SCHIP ROMs (+ attribution)
+│   ├── hosted-roms/            # 18 ROMs only on Zophar / David Winter's page (+ attribution)
 │   └── (sources.json is embedded: catalogue/snapshot/)
 ├── e2e/                        # Playwright tests (+ fixtures/: CC0 ROM for download tests)
 ├── scripts/
@@ -261,6 +261,7 @@ type Quirks struct {
     Jump                  bool // BNNN behaves as BXNN (jump to XNN + vX)
     VBlank                bool // DXYN waits for vertical blank
     Logic                 bool // 8XY1/2/3 reset vF to 0
+    LegacySuperChip       bool // the HP48's real SUPER-CHIP behaviour (§7); not in quirks.json
 }
 
 type Profile struct {
@@ -298,7 +299,7 @@ value. Defaults come straight from that file:
 | `chip8x` | 64×32 | 15 | Colour extension (later) |
 | `chip48` | 64×32 | 30 | HP48 |
 | `superchip1` | 64×32, 128×64 | 30 | SCHIP 1.0 |
-| `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1 (legacy behaviour) |
+| `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
 | `megachip8` | up to 256×192 | 1000 | Later, if ever |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
 
@@ -306,8 +307,10 @@ value. Defaults come straight from that file:
 `superchip1` / `superchip` → `xochip`. That covers about 98% of the ROMs in the
 database (291 VIP, 105 SCHIP 1.1, 97 XO-CHIP, 42 modern).
 
-The display is two 128×64 bit-planes. Lo-res, hi-res, scrolling and XO-CHIP
-plane selection all work on that one fixed buffer.
+The display is one byte per pixel at the active resolution, with the XO-CHIP
+planes as bits of that byte. The buffer is sized for the platform's largest
+resolution. Legacy SUPER-CHIP lo-res keeps the full 128×64 screen with 2×2
+pixels, so scrolling can move half a lo-res pixel.
 
 ### 6.4 Instruction trace
 
@@ -332,6 +335,15 @@ The emulator works out a profile when a ROM is loaded:
 3. User overrides           saved per ROM hash (platform/prefs: localStorage)
 ```
 
+- **chip8Archive quirks:** SUPER-CHIP and XO-CHIP games from chip8Archive were
+  written in Octo and run with the quirks recorded there (§10). A switch that
+  isn't listed means Octo's default, off. chip-8-database wins where it sets a
+  value of its own.
+- **Legacy SUPER-CHIP** is a per-ROM setting, off by default. chip-8-database
+  has one `superchip` entry, and its quirks are the modern behaviour almost all
+  ROMs expect. The setting adds what the HP48 really did: lo-res display wait,
+  2×2 lo-res pixels with half-pixel scrolling, 8×16 lo-res `DXY0`, row-counting
+  `VF` in hi-res, and no clear on a resolution switch.
 - **Unknown ROMs** (hash not in the database) start with `modernChip8`
   defaults. The settings panel lets the user pick a platform and toggle quirks.
 - **"Reset to recommended"** drops the user's overrides for that ROM.
@@ -380,7 +392,15 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
 | [kripod/chip8-roms](https://github.com/kripod/chip8-roms) | 106 | 96 | 10 | Yes (GitHub raw, CORS `*`) |
 | [Zophar](https://www.zophar.net/pdroms/chip8.html) CHIP-8 + SCHIP packs | 34 | 33 | 1 | **No.** Zip-packed, redirect, no CORS. |
 | c8games (local collection) | 23 | 22 | 1 | n/a, a subset of the Zophar CHIP-8 pack |
-| **All combined** | **~230** | **216 (93%)** | **14** | |
+| [David Winter's page](https://www.pong-story.com/chip8/) (`chp8_220.zip`, `loopz.zip`) | 40 | 40 | 0 | **No.** Zip-packed, no CORS. 6 are new; the rest match kripod. |
+| [mattmikolay/chip-8](https://github.com/mattmikolay/chip-8) (MIT) | 6 | 4 | 2 | Yes (GitHub raw, CORS `*`) |
+| Timendus [3d-viper-maze](https://github.com/Timendus/3d-viper-maze), [3d-vipr-maze](https://github.com/Timendus/3d-vipr-maze) (GPL-3.0) | 3 | 3 | 0 | Yes (GitHub raw, CORS `*`) |
+| Octojam 6–10 games from itch.io, via [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator) (no licence) | 68 | 42 | 26 | Yes (GitHub raw, CORS `*`) |
+| **All combined** | **~310** | **268** | **42** | |
+
+Added 2026-11-14: David Winter's page, the Octojam games and the three GitHub repositories, found
+by hashing candidate sources against the database. `docs/coverage.md` has the
+current numbers.
 
 **Findings:**
 
@@ -392,6 +412,16 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
   pack, plus KALEID from the CHIP-8 pack. The versions in kripod's repo are
   different files. All 12 are in the database, and **we host these ourselves**
   in `web/hosted-roms/`, with Zophar's attribution and `.DOC` files.
+- **6 more exist only on David Winter's page:** MINES, SQUARE, MAZE (his own
+  freeware), DRAGON1/DRAGON2 (Single Dragon) and LOOPZ. We host these too.
+- **Octojam games on itch.io (2019–2023)** are only playable there as Octo
+  HTML exports, with no CORS. A third-party repository
+  ([maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator))
+  has extracted them. We link to its copies at a pinned commit, as with
+  kripod (no licence; each game belongs to its author), which adds 40
+  playable ROMs. Its other 26 aren't in chip-8-database yet: candidates for
+  M8. chip8Archive (also shown at beyondloom.com/octo) holds the earlier
+  jams.
 - **The 14 ROMs missing from the database** are `dinorun`, `mato8`, `mrworm`
   and `tick` (chip8Archive), `Guess (alt)` (same file as Zophar/c8games
   `GUESS`), `Rush Hour (alt)`, and 8 "hires" ROMs from kripod. Most of the
@@ -421,8 +451,8 @@ every URL it can be downloaded from:
                        "home": "https://johnearnest.github.io/chip8Archive/" },
     "kripod":       { "name": "kripod/chip8-roms",
                        "home": "https://github.com/kripod/chip8-roms" },
-    "chippie":      { "name": "Hosted by Chippie (from Zophar PD packs)",
-                       "home": "https://www.zophar.net/pdroms/chip8.html" }
+    "chippie":      { "name": "Hosted by Chippie (from Zophar and David Winter)",
+                       "home": "https://github.com/rbscholtus/chippie/tree/main/web/hosted-roms" }
   },
   "roms": {
     "<sha1>": [
@@ -662,8 +692,9 @@ switch, seen straight on".
 - Ebitengine's `audio` package. The audio context is created on the first
   user gesture (the power button), as browsers require.
 - **CHIP-8/SCHIP:** a square wave, gated by the sound timer.
-- **XO-CHIP:** a custom stream (`io.Reader`) that plays the 16-byte, 1-bit
-  pattern buffer at the pitch register's rate.
+- **XO-CHIP:** the same stream plays the 16-byte, 1-bit pattern buffer at the
+  pitch register's rate, from the first `F002`. A ROM that never loads a
+  pattern gets the plain square wave.
 - **Volume** from the TV's volume knob.
 
 ## 14. Browser integration
@@ -745,8 +776,11 @@ uploads that folder as an artifact. Each run starts by clearing it.
 | 5-quirks | 1 / 2 / 3 / 4 | CHIP-8, SCHIP modern, XO-CHIP, SCHIP legacy | — | `quirks*.png` + generated |
 | 6-keypad | 1 / 2 / 3 | Ex9E, ExA1, Fx0A | scripted presses of 1 and 6 | `keypad-*.png` |
 | 7-beep | — | all | press `B` | buzzer-state assertion |
-| 8-scrolling | 1–5 | SCHIP lo-res modern/legacy, SCHIP hi-res, XO lo/hi-res | — | `*-scrolling.png` |
+| 8-scrolling | 1–5 | SCHIP lo-res modern/legacy, SCHIP hi-res, XO lo/hi-res | — | `*-scrolling.png` (SCHIP, see below); generated (XO-CHIP) |
 
+- **Corrected pictures:** `lores-scrolling.png` and `hires-scrolling.png` show
+  two border pixels as off that the ROM can't turn off. `cmd/golden-import`
+  corrects exactly those pixels and explains why.
 - **Pinning:** the suite is a git submodule pinned to tag `v4.2`. The ROM
   hashes are also recorded in the test table, so an accidental submodule bump
   fails loudly.
@@ -877,7 +911,9 @@ Once the emulator works (after milestone M4):
 
 ## 19. Milestones
 
-Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md).
+Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md). For M5
+and M7: [docs/plans/M5-M7.md](docs/plans/M5-M7.md). The order is M5, M7, M6, M8;
+M7 does not depend on M6.
 
 | # | Milestone | Done when |
 |---|---|---|
@@ -908,6 +944,18 @@ To be settled while building, not before:
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
   usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
   keypad; show those properly instead of "?".
+- **Favourite games.** Mark a game as a favourite (e.g. a star in the
+  details), stored per device like the ROM cache, and list favourites first
+  in the library drawer (or behind a "Favourites" filter) so they start in
+  one tap.
+- **Record the keys games use (desktop only).** Only worth it if the data
+  turns out to be useful upstream. While a ROM runs, record per SHA-1 the keys
+  it reads (`EX9E`/`EXA1`), the keys actually held when read (filters out
+  keypad scans) and the key that ends an `FX0A` wait. Merge across sessions
+  into a JSON file in the user config folder, saved off the `Update` loop via
+  `platform/` (no-op on WASM). Roles (up, fire…) can't be inferred: fill the
+  database-format `keys` block by hand, and export filled entries with a small
+  `cmd/` tool for a chip-8-database PR.
 
 ## 21. References
 

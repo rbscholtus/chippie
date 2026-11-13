@@ -4,7 +4,8 @@
 //
 //	platforms.json quirks.json programs.json sha1-hashes.json  chip-8-database
 //	chip8archive-programs.json chip8archive-hashes.json        chip8Archive metadata
-//	sources.json                                               where each ROM can be downloaded
+//	sources.json                                               where each ROM can be downloaded,
+//	                                                           including web/hosted-roms
 //	pins.json                                                  the commits used
 //
 // and the coverage report to docs/coverage.md. It needs the network; the
@@ -14,6 +15,9 @@
 //
 //	go run ./cmd/catalogue-gen               # regenerate at the pinned commits
 //	go run ./cmd/catalogue-gen -update-pins  # follow each repository's branch or tag
+//
+// -summary writes a Markdown comparison with the previous snapshot (counts
+// and pins), which the refresh workflow shows on its run page and in its PR.
 package main
 
 import (
@@ -38,7 +42,11 @@ import (
 
 const (
 	databaseRepo = "chip-8/chip-8-database"
-	databaseRef  = "master"
+	databaseRef  = master
+
+	master     = "master" // default branch names
+	mainBranch = "main"
+	gpl3       = "GPL-3.0" // licence of Timendus's repositories
 
 	programsFile = "programs.json"
 
@@ -53,11 +61,16 @@ func main() {
 	snapshotDir := flag.String("snapshot", "catalogue/snapshot", "snapshot directory")
 	reportPath := flag.String("report", "docs/coverage.md", "coverage report")
 	updatePins := flag.Bool("update-pins", false, "follow each repository's branch or tag instead of the pins")
+	hostedDir := flag.String("hosted", "web/hosted-roms", "directory of the ROMs Chippie hosts itself")
+	summaryPath := flag.String("summary", "", "write a before/after summary here (Markdown)")
 
 	flag.Parse()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-	err := run(ctx, *snapshotDir, *reportPath, *updatePins)
+	err := run(ctx, options{
+		dir: *snapshotDir, reportPath: *reportPath, hostedDir: *hostedDir,
+		summaryPath: *summaryPath, updatePins: *updatePins,
+	})
 
 	cancel()
 
@@ -66,13 +79,23 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, dir, reportPath string, updatePins bool) error {
+// options are the command-line flags.
+type options struct {
+	dir, reportPath, hostedDir, summaryPath string
+	updatePins                              bool
+}
+
+func run(ctx context.Context, o options) error {
+	dir := o.dir
+
 	pins, err := readPins(filepath.Join(dir, "pins.json"))
 	if err != nil {
 		return err
 	}
 
-	if updatePins {
+	before, hadBefore := readState(dir)
+
+	if o.updatePins {
 		if err := resolvePins(ctx, pins); err != nil {
 			return err
 		}
@@ -95,37 +118,89 @@ func run(ctx context.Context, dir, reportPath string, updatePins bool) error {
 		log.Printf("%s@%.7s: %d files", a.repo, pins[a.repo], len(files))
 	}
 
-	res := generate(db, trees, time.Now().UTC().Format(time.RFC3339))
-	keepTimestamp(filepath.Join(dir, "sources.json"), &res.sources)
-
-	return writeOutputs(dir, reportPath, db, trees[0].files[programsFile], res, pins)
-}
-
-// writeOutputs merges chip8Archive's metadata (to find conflicts) and
-// writes the snapshot files and the report.
-func writeOutputs(dir, reportPath string, db *catalogue.DB, programs []byte, res result, pins map[string]string) error {
-	if programs == nil {
-		return fmt.Errorf("chip8Archive: %s missing: %w", programsFile, errBadTarball)
-	}
-
-	hashes, err := json.MarshalIndent(res.archiveHashes, "", "  ")
-	if err != nil {
-		return fmt.Errorf("encode archive hashes: %w", err)
-	}
-
-	conflicts, err := db.MergeArchive(programs, hashes)
-	if err != nil {
-		return fmt.Errorf("merge chip8Archive: %w", err)
-	}
-
-	sources, err := jsonMarshal(res.sources)
+	hosted, err := readHosted(o.hostedDir)
 	if err != nil {
 		return err
 	}
 
+	trees = append(trees, tree{archive: hostedArchive, files: hosted})
+
+	res := generate(db, trees, time.Now().UTC().Format(time.RFC3339))
+	keepTimestamp(filepath.Join(dir, "sources.json"), &res.sources)
+
+	conflicts, err := writeOutputs(dir, o.reportPath, db, trees[0].files[programsFile], res, pins)
+	if err != nil || o.summaryPath == "" {
+		return err
+	}
+
+	after := snapshotState{
+		counts: counts{
+			programs: len(db.Programs), roms: db.ROMCount(),
+			downloadable: len(res.sources.ROMs), conflicts: conflicts,
+		},
+		pins: pins,
+	}
+
+	if err := os.WriteFile(o.summaryPath, []byte(summary(before, hadBefore, after)), 0o600); err != nil {
+		return fmt.Errorf("write summary: %w", err)
+	}
+
+	return nil
+}
+
+// readHosted reads the files directly inside dir, by name.
+func readHosted(dir string) (map[string][]byte, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("hosted ROMs: %w", err)
+	}
+
+	files := make(map[string][]byte, len(entries))
+
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+
+		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("hosted ROMs: %w", err)
+		}
+
+		files[e.Name()] = data
+	}
+
+	return files, nil
+}
+
+// writeOutputs merges chip8Archive's metadata (to find conflicts) and
+// writes the snapshot files and the report. It returns the number of
+// conflicts.
+func writeOutputs(
+	dir, reportPath string, db *catalogue.DB, programs []byte, res result, pins map[string]string,
+) (int, error) {
+	if programs == nil {
+		return 0, fmt.Errorf("chip8Archive: %s missing: %w", programsFile, errBadTarball)
+	}
+
+	hashes, err := json.MarshalIndent(res.archiveHashes, "", "  ")
+	if err != nil {
+		return 0, fmt.Errorf("encode archive hashes: %w", err)
+	}
+
+	conflicts, err := db.MergeArchive(programs, hashes)
+	if err != nil {
+		return 0, fmt.Errorf("merge chip8Archive: %w", err)
+	}
+
+	sources, err := jsonMarshal(res.sources)
+	if err != nil {
+		return 0, err
+	}
+
 	pinsJSON, err := json.MarshalIndent(pins, "", "  ")
 	if err != nil {
-		return fmt.Errorf("encode pins: %w", err)
+		return 0, fmt.Errorf("encode pins: %w", err)
 	}
 
 	for name, data := range map[string][]byte{
@@ -135,18 +210,18 @@ func writeOutputs(dir, reportPath string, db *catalogue.DB, programs []byte, res
 		"pins.json":                  append(pinsJSON, '\n'),
 	} {
 		if err := os.WriteFile(filepath.Join(dir, name), data, 0o600); err != nil {
-			return fmt.Errorf("write %s: %w", name, err)
+			return 0, fmt.Errorf("write %s: %w", name, err)
 		}
 	}
 
 	if err := os.WriteFile(reportPath, []byte(report(res, db, conflicts)), 0o600); err != nil {
-		return fmt.Errorf("write report: %w", err)
+		return 0, fmt.Errorf("write report: %w", err)
 	}
 
 	log.Printf("%d of %d ROMs downloadable; %d conflicts; report in %s",
 		len(res.sources.ROMs), db.ROMCount(), len(conflicts), reportPath)
 
-	return nil
+	return len(conflicts), nil
 }
 
 // keepTimestamp reuses the previous manifest's timestamp when nothing else

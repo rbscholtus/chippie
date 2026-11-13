@@ -241,7 +241,7 @@ func TestRunAppliesScript(t *testing.T) {
 		t.Errorf("halting ROM: err=%v, want ErrStackUnderflow", err)
 	}
 
-	if _, err := Run(nil, chip8.DefaultProfile(chip8.SuperChip), Script{}); !errors.Is(err, chip8.ErrUnsupportedPlatform) {
+	if _, err := Run(nil, chip8.DefaultProfile(chip8.MegaChip8), Script{}); !errors.Is(err, chip8.ErrUnsupportedPlatform) {
 		t.Errorf("unsupported platform: err=%v", err)
 	}
 }

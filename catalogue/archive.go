@@ -3,6 +3,7 @@ package catalogue
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strconv"
@@ -26,6 +27,31 @@ type archiveOptions struct {
 	BackgroundColor string  `json:"backgroundColor"`
 	BuzzColor       string  `json:"buzzColor"`
 	QuietColor      string  `json:"quietColor"`
+
+	// Octo's compatibility switches. A program from before a switch existed
+	// doesn't list it, which means Octo's default: off.
+	ShiftQuirks     flexBool `json:"shiftQuirks"`
+	LoadStoreQuirks flexBool `json:"loadStoreQuirks"`
+	JumpQuirks      flexBool `json:"jumpQuirks"`
+	ClipQuirks      flexBool `json:"clipQuirks"`
+	LogicQuirks     flexBool `json:"logicQuirks"`
+	VBlankQuirks    flexBool `json:"vBlankQuirks"`
+}
+
+// flexBool is a flag that chip8Archive writes as true/false or 1/0.
+type flexBool bool
+
+func (f *flexBool) UnmarshalJSON(b []byte) error {
+	switch string(b) {
+	case "true", "1":
+		*f = true
+	case "false", "0", "null":
+		*f = false
+	default:
+		return fmt.Errorf("%w: not a flag: %s", ErrInvalid, b)
+	}
+
+	return nil
 }
 
 // flexInt is a number that chip8Archive sometimes writes as a string.
@@ -73,7 +99,8 @@ func (c Conflict) String() string {
 }
 
 // MergeArchive fills in metadata chip-8-database lacks from chip8Archive's
-// programs.json: the tick rate and colours. hashes maps archive ids to ROM
+// programs.json: the tick rate, colours and, for SUPER-CHIP and XO-CHIP
+// games, the quirks. hashes maps archive ids to ROM
 // SHA-1s (written by catalogue-gen). chip-8-database wins wherever both have
 // a value; disagreements are returned, sorted.
 func (db *DB) MergeArchive(programsJSON, hashesJSON []byte) ([]Conflict, error) {
@@ -140,7 +167,62 @@ func mergeROM(rom *ROM, ap archiveProgram) []Conflict {
 		conflict("platform", strings.Join(rom.Platforms, ","), ap.Platform)
 	}
 
+	mergeQuirks(rom, ap, conflict)
+
 	return out
+}
+
+// mergeQuirks records the quirks the author ran the game with, for its
+// SUPER-CHIP and XO-CHIP platforms. These games were written in Octo, which
+// has none of the HP48's quirks unless they are asked for, so the platform
+// defaults in platforms.json break many of them. CHIP-8 games are left to
+// chip-8-database, whose per-platform defaults describe the real machines.
+func mergeQuirks(rom *ROM, ap archiveProgram, conflict func(field, db, archive string)) {
+	if ap.Platform == "chip8" {
+		return
+	}
+
+	quirks := ap.Options.quirks()
+
+	for _, p := range rom.Platforms {
+		if !slices.Contains(archiveFamilies[ap.Platform], p) {
+			continue
+		}
+
+		if rom.QuirkyPlatforms == nil {
+			rom.QuirkyPlatforms = map[string]map[string]bool{}
+		}
+
+		if rom.QuirkyPlatforms[p] == nil {
+			rom.QuirkyPlatforms[p] = map[string]bool{}
+		}
+
+		for _, id := range slices.Sorted(maps.Keys(quirks)) {
+			have, set := rom.QuirkyPlatforms[p][id]
+
+			switch {
+			case !set:
+				rom.QuirkyPlatforms[p][id] = quirks[id]
+			case have != quirks[id]:
+				conflict("quirk "+id, strconv.FormatBool(have), strconv.FormatBool(quirks[id]))
+			}
+		}
+	}
+}
+
+// quirks translates Octo's switches into quirks.json ids. Octo's load/store
+// switch leaves I unchanged, and it has no "increment by X" behaviour; its
+// clip switch is the opposite of the wrap quirk.
+func (o archiveOptions) quirks() map[string]bool {
+	return map[string]bool{
+		quirkShift:                 bool(o.ShiftQuirks),
+		quirkMemoryLeaveIUnchanged: bool(o.LoadStoreQuirks),
+		quirkMemoryIncrementByX:    false,
+		quirkJump:                  bool(o.JumpQuirks),
+		quirkWrap:                  !bool(o.ClipQuirks),
+		quirkLogic:                 bool(o.LogicQuirks),
+		quirkVBlank:                bool(o.VBlankQuirks),
+	}
 }
 
 func overlaps(a, b []string) bool {

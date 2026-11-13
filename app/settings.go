@@ -37,7 +37,13 @@ var quirkSettings = []struct { //nolint:gochecknoglobals // read-only table
 	{"wrap", "Sprites wrap at the edges"},
 	{"shift", "Shift uses VX only"},
 	{"jump", "BNNN jumps to XNN + VX"},
+	{legacyQuirkID, "Legacy SUPER-CHIP (HP48)"},
 }
+
+// legacyQuirkID is the row for chip8.Quirks.LegacySuperChip. It is shown only
+// on platforms it affects, and changes the display layout, so it restarts
+// the ROM.
+const legacyQuirkID = "legacySuperChip"
 
 // speedSteps are the speed knob's settings, in instructions per frame.
 var speedSteps = []int{1, 2, 3, 5, 7, 10, 12, 15, 20, 30, 50, 100, 200, 300, 500, 1000, 2000, 5000, 10000} //nolint:gochecknoglobals,lll // read-only table
@@ -82,7 +88,11 @@ func (s *settings) buildRows() {
 	s.rows = s.rows[:0]
 	s.rows = append(s.rows, settingRow{kind: settingPlatform}, settingRow{kind: settingSpeed})
 
-	for i := range quirkSettings {
+	for i, q := range quirkSettings {
+		if q.id == legacyQuirkID && !s.profile.Platform.HasLegacyMode() {
+			continue
+		}
+
 		s.rows = append(s.rows, settingRow{kind: settingQuirk, quirk: i})
 	}
 
@@ -118,6 +128,7 @@ func (s *settings) change(i, dir int) settingEffect {
 		}
 
 		s.profile = s.forPlatform(next)
+		s.buildRows()
 
 		return effectRestart
 	case settingSpeed:
@@ -128,12 +139,17 @@ func (s *settings) change(i, dir int) settingEffect {
 		f := quirkPointer(&s.profile.Quirks, quirkSettings[row.quirk].id)
 		*f = !*f
 
+		if quirkSettings[row.quirk].id == legacyQuirkID {
+			return effectRestart
+		}
+
 		return effectLive
 	case settingReset:
-		old := s.profile.Platform
+		old := s.profile
 		s.profile = s.own
+		s.buildRows()
 
-		if s.profile.Platform != old {
+		if s.profile.Platform != old.Platform || s.profile.Quirks.LegacySuperChip != old.Quirks.LegacySuperChip {
 			return effectRestart
 		}
 
@@ -268,6 +284,8 @@ func quirkPointer(q *chip8.Quirks, id string) *bool {
 		return &q.Wrap
 	case "shift":
 		return &q.Shift
+	case legacyQuirkID:
+		return &q.LegacySuperChip
 	default: // "jump"
 		return &q.Jump
 	}

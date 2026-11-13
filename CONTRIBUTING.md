@@ -141,5 +141,5 @@ These are the coding standards for Chippie. The design is described in
 - **Commit messages:** Conventional Commits, e.g. `feat(chip8): add SCHIP
   scrolling`, `fix(catalogue): ...`, `test: ...`, `perf: ...`.
 - **Submodule bumps** (test suite, database snapshot) are their own commits.
-- **ROM files:** never commit any, except `web/hosted-roms/` (the 12
-  Zophar-only ROMs, with attribution) and the test suite submodule.
+- **ROM files:** never commit any, except `web/hosted-roms/` (the 18
+  ROMs browsers can't download elsewhere, with attribution) and the test suite submodule.

@@ -168,3 +168,63 @@ func keys(m map[string][]byte) []string {
 
 	return out
 }
+
+func TestGenerateHostedROMs(t *testing.T) {
+	t.Parallel()
+
+	rom := []byte("hosted ROM")
+	db := testDB(t, sha1Hex(rom))
+
+	res := generate(db, []tree{{
+		archive: hostedArchive,
+		files:   map[string][]byte{"SPACE FIG": rom, "SPACE FIG.DOC": []byte("notes"), "README.md": []byte("credit")},
+	}}, "2026-11-09T00:00:00Z")
+
+	locs := res.sources.ROMs[sha1Hex(rom)]
+	if len(locs) != 1 || locs[0].Source != catalogue.HostedSource || locs[0].URL != "roms/hosted/SPACE%20FIG" {
+		t.Errorf("locations %+v", locs)
+	}
+
+	if res.stats[0].unique != 1 || len(res.stats[0].missing) != 0 {
+		t.Errorf("notes counted as ROMs: %+v", res.stats[0])
+	}
+}
+
+// Every hosted ROM must be in the committed manifest, or nobody can play it.
+func TestHostedROMsAreInManifest(t *testing.T) {
+	t.Parallel()
+
+	files, err := readHosted("../../web/hosted-roms")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cat, err := catalogue.LoadSnapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	roms := 0
+
+	for name, data := range files {
+		if !hostedArchive.include(name) {
+			continue
+		}
+
+		roms++
+
+		found := false
+
+		for _, l := range cat.Sources.URLs(sha1Hex(data)) {
+			found = found || l.Source == catalogue.HostedSource
+		}
+
+		if !found {
+			t.Errorf("%s isn't in sources.json; run go run ./cmd/catalogue-gen", name)
+		}
+	}
+
+	if roms != 18 {
+		t.Errorf("%d hosted ROMs, want 18", roms)
+	}
+}

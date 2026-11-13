@@ -10,7 +10,7 @@ import (
 
 const (
 	glitchGhost = "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b"
-	turnover77  = "d03f27f85a1cf68465e0853cc0c4abee4a94a4e5"
+	clockVIP    = "016345d75eef34448840845a9590d41e6bfdf46a" // needs hybridVIP, not implemented
 	ibmTest     = "b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379"
 )
 
@@ -61,8 +61,8 @@ func TestBuild(t *testing.T) {
 		t.Errorf("Glitch Ghost: %+v %v", g, ok)
 	}
 
-	if tu, ok := Find(es, turnover77); !ok || tu.Playable() || tu.Group != ComingSoon {
-		t.Errorf("Turnover '77 should be coming soon: %+v", tu)
+	if cl, ok := Find(es, clockVIP); !ok || cl.Playable() || cl.Group != ComingSoon {
+		t.Errorf("Clock Program should be coming soon: %+v", cl)
 	}
 }
 

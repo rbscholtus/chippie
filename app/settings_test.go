@@ -98,7 +98,7 @@ func TestSettingsPlatformAndReset(t *testing.T) {
 	s := newTestSettings()
 	plat := rowOf(s, settingPlatform)
 
-	if eff := s.change(plat, 1); eff != effectRestart || s.profile.Platform != chip8.OriginalChip8 {
+	if eff := s.change(plat, -1); eff != effectRestart || s.profile.Platform != chip8.OriginalChip8 {
 		t.Fatalf("next platform: %v %s", eff, s.profile.Platform)
 	}
 
@@ -121,8 +121,9 @@ func TestSettingsPlatformAndReset(t *testing.T) {
 		t.Errorf("reset on the same platform should be live: %v", eff)
 	}
 
-	wraps := stepPlatform(chip8.ModernChip8, -1) == chip8.OriginalChip8 &&
-		stepPlatform(chip8.OriginalChip8, -1) == chip8.ModernChip8
+	last := stepPlatform(chip8.OriginalChip8, -1)
+
+	wraps := last != chip8.OriginalChip8 && last.Implemented() && stepPlatform(last, 1) == chip8.OriginalChip8
 	if !wraps {
 		t.Error("stepPlatform should wrap between the implemented platforms")
 	}
@@ -154,5 +155,51 @@ func TestSettingsTraceRows(t *testing.T) {
 
 	if s.selected != 0 || !s.steps(rowOf(s, settingSpeed)) || s.steps(rowOf(s, settingBack)) {
 		t.Error("move or steps wrong")
+	}
+}
+
+func TestSettingsLegacySuperChip(t *testing.T) {
+	t.Parallel()
+
+	legacyRow := func(s *settings) int {
+		for i, r := range s.rows {
+			if r.kind == settingQuirk && quirkSettings[r.quirk].id == legacyQuirkID {
+				return i
+			}
+		}
+
+		return -1
+	}
+
+	prof := chip8.DefaultProfile(chip8.ModernChip8)
+	schip := chip8.DefaultProfile(chip8.SuperChip)
+	forPlatform := chip8.DefaultProfile
+
+	s := newSettings(prof, prof, forPlatform, false)
+	if legacyRow(s) != -1 {
+		t.Error("legacy row shown on modern CHIP-8")
+	}
+
+	s = newSettings(schip, schip, forPlatform, false)
+
+	i := legacyRow(s)
+	if i < 0 {
+		t.Fatal("no legacy row on SUPER-CHIP")
+	}
+
+	if eff := s.change(i, 0); eff != effectRestart || !s.profile.Quirks.LegacySuperChip {
+		t.Errorf("toggle: effect %v, quirk %v", eff, s.profile.Quirks.LegacySuperChip)
+	}
+
+	if !s.label(i).changed {
+		t.Error("legacy on should show as changed")
+	}
+
+	if eff := s.change(rowOf(s, settingReset), 0); eff != effectRestart || s.profile.Quirks.LegacySuperChip {
+		t.Errorf("reset: effect %v, quirk %v", eff, s.profile.Quirks.LegacySuperChip)
+	}
+
+	if s.change(rowOf(s, settingPlatform), 1); s.profile.Platform.HasLegacyMode() && legacyRow(s) == -1 {
+		t.Error("legacy row missing after stepping the platform")
 	}
 }

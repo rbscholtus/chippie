@@ -23,21 +23,21 @@ type archive struct {
 }
 
 // archives are the collections in README §9.1 that browsers can download
-// from (GitHub raw, CORS *). Zophar's packs aren't: the 12 ROMs only found
-// there are hosted by Chippie from M5.
+// from (GitHub raw, CORS *). Zophar's packs and David Winter's page aren't:
+// the ROMs only found there are hosted by Chippie; see hostedArchive.
 var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 	{
 		id: "chip8archive",
 		info: catalogue.SourceInfo{
 			Name: "chip8Archive", License: "CC0-1.0", Home: "https://johnearnest.github.io/chip8Archive/",
 		},
-		repo: "JohnEarnest/chip8Archive", ref: "master",
+		repo: "JohnEarnest/chip8Archive", ref: master,
 		include: func(f string) bool { return strings.HasPrefix(f, "roms/") },
 	},
 	{
 		id:   "kripod",
 		info: catalogue.SourceInfo{Name: "kripod/chip8-roms", Home: "https://github.com/kripod/chip8-roms"},
-		repo: "kripod/chip8-roms", ref: "master",
+		repo: "kripod/chip8-roms", ref: master,
 		include: func(f string) bool {
 			ext := strings.ToLower(path.Ext(f))
 
@@ -47,11 +47,73 @@ var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 	{
 		id: "timendus",
 		info: catalogue.SourceInfo{
-			Name: "Timendus CHIP-8 test suite", License: "GPL-3.0", Home: "https://github.com/Timendus/chip8-test-suite",
+			Name: "Timendus CHIP-8 test suite", License: gpl3, Home: "https://github.com/Timendus/chip8-test-suite",
 		},
 		repo: "Timendus/chip8-test-suite", ref: "v4.2",
 		include: func(f string) bool { return strings.HasPrefix(f, "bin/") && strings.HasSuffix(f, ".ch8") },
 	},
+	{
+		id: "mattmikolay",
+		info: catalogue.SourceInfo{
+			Name: "Matthew Mikolay's CHIP-8 programs", License: "MIT", Home: "https://github.com/mattmikolay/chip-8",
+		},
+		repo: "mattmikolay/chip-8", ref: master,
+		include: func(f string) bool { return strings.HasSuffix(f, ".ch8") },
+	},
+	{
+		id: "3dvipermaze",
+		info: catalogue.SourceInfo{
+			Name: "3D Viper Maze (Timendus)", License: gpl3, Home: "https://github.com/Timendus/3d-viper-maze",
+		},
+		repo: "Timendus/3d-viper-maze", ref: mainBranch,
+		include: func(f string) bool { return f == "3dvipermaze.ch8" },
+	},
+	{
+		id: "3dviprmaze",
+		info: catalogue.SourceInfo{
+			Name: "3D VIP'r Maze (Timendus)", License: gpl3, Home: "https://github.com/Timendus/3d-vipr-maze",
+		},
+		repo: "Timendus/3d-vipr-maze", ref: mainBranch,
+		include: func(f string) bool { return strings.HasPrefix(f, "bin/") && strings.HasSuffix(f, ".ch8") },
+	},
+	{
+		// Octojam 6-10 entries, extracted from their itch.io pages (which
+		// browsers can't download from). No licence: each game's belongs
+		// to its author. We only link, as with kripod.
+		id: "octojam-itch",
+		info: catalogue.SourceInfo{
+			Name: "Octojam games from itch.io (via maxisimonazzi/chip8-emulator)",
+			Home: "https://github.com/maxisimonazzi/chip8-emulator/tree/main/roms/octojam",
+		},
+		repo: "maxisimonazzi/chip8-emulator", ref: mainBranch,
+		include: func(f string) bool { return strings.HasPrefix(f, "roms/octojam/") && strings.HasSuffix(f, ".ch8") },
+	},
+}
+
+// hostedArchive is web/hosted-roms: ROMs Chippie serves beside the app, at
+// relative URLs, because browsers can't download them anywhere else (Zophar's
+// packs and David Winter's page; see its README.md for each file's origin).
+// Only the ROMs count, not the notes and attribution next to them, which have
+// file extensions.
+var hostedArchive = archive{ //nolint:gochecknoglobals // read-only configuration
+	id: catalogue.HostedSource,
+	info: catalogue.SourceInfo{
+		Name: "Hosted by Chippie (from Zophar and David Winter)",
+		Home: "https://github.com/rbscholtus/chippie/tree/main/web/hosted-roms",
+	},
+	include: func(f string) bool { return path.Ext(f) == "" },
+}
+
+// hostedURLPrefix is where build.sh puts the hosted ROMs, relative to the app.
+const hostedURLPrefix = "roms/hosted/"
+
+// locationURL is where a file of an archive can be downloaded.
+func locationURL(t tree, file string) string {
+	if t.archive.id == catalogue.HostedSource {
+		return hostedURLPrefix + url.PathEscape(file)
+	}
+
+	return rawURL(t.archive.repo, t.commit, file)
 }
 
 // rawURL is a file's GitHub raw URL, pinned to a commit.
@@ -139,7 +201,7 @@ func generate(db *catalogue.DB, trees []tree, generated string) result {
 			st.inDB++
 
 			res.sources.ROMs[hash] = append(res.sources.ROMs[hash],
-				catalogue.Location{Source: t.archive.id, URL: rawURL(t.archive.repo, t.commit, file)})
+				catalogue.Location{Source: t.archive.id, URL: locationURL(t, file)})
 		}
 
 		res.stats = append(res.stats, st)
@@ -192,7 +254,8 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		}
 	}
 
-	b.WriteString("\n## chip8Archive vs chip-8-database\n\nwins; these are candidates for upstream fixes.\n\n")
+	b.WriteString("\n## chip8Archive vs chip-8-database\n\n")
+	b.WriteString("The database wins; these are candidates for upstream fixes.\n\n")
 
 	if len(conflicts) == 0 {
 		b.WriteString("None.\n")

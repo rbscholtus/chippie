@@ -26,7 +26,7 @@ func loadBenchROM(b *testing.B) []byte {
 func BenchmarkRunFrame(b *testing.B) {
 	rom := loadBenchROM(b)
 
-	for _, p := range []Platform{ModernChip8, OriginalChip8} {
+	for _, p := range []Platform{ModernChip8, OriginalChip8, SuperChip, XOChip} {
 		for _, ticks := range []int{p.DefaultTicks(), 1000} {
 			b.Run(p.String()+"/"+strconv.Itoa(ticks), func(b *testing.B) {
 				prof := DefaultProfile(p)
@@ -51,7 +51,7 @@ func BenchmarkRunFrame(b *testing.B) {
 	}
 }
 
-// BenchmarkDXYN measures drawing a 15-row lo-res sprite.
+// BenchmarkDXYN measures sprite drawing.
 func BenchmarkDXYN(b *testing.B) {
 	b.Run("lores", func(b *testing.B) {
 		m := New(DefaultProfile(ModernChip8))
@@ -65,6 +65,48 @@ func BenchmarkDXYN(b *testing.B) {
 			exec(m, 0xD12F)
 		}
 	})
+
+	b.Run("xo-2planes", func(b *testing.B) {
+		m := New(DefaultProfile(XOChip))
+		m.setHires(true)
+		m.plane = 3
+		m.i = BigFontAddr
+		m.v[1], m.v[2] = 120, 50
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			m.pc = ProgramStart
+			exec(m, 0xD120)
+		}
+	})
+
+	b.Run("hires", func(b *testing.B) {
+		m := New(DefaultProfile(SuperChip))
+		m.setHires(true)
+		m.i = BigFontAddr
+		m.v[1], m.v[2] = 120, 50 // crosses the corner
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			m.pc = ProgramStart
+			exec(m, 0xD120)
+		}
+	})
+}
+
+// BenchmarkScroll measures scrolling the whole hi-res screen.
+func BenchmarkScroll(b *testing.B) {
+	m := New(DefaultProfile(SuperChip))
+	m.setHires(true)
+
+	b.ReportAllocs()
+
+	for b.Loop() {
+		m.pc = ProgramStart
+		exec(m, 0x00FB)
+	}
 }
 
 // BenchmarkTrace measures a frame with tracing on.

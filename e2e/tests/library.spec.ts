@@ -1,17 +1,10 @@
 import { test, expect } from "@playwright/test";
 import {
-  br8kout, click, desktopRow, golden, gridText, offline, sampleScreen, waitForApp,
+  br8kout, click, desktopRow, golden, gridText, offline, running, sampleScreen, waitForApp,
 } from "./screen";
 
 // Desktop (mouse and keyboard) library tests. Touch is in touch.spec.ts.
 test.skip(({ hasTouch }) => hasTouch, "desktop only");
-
-// A game is running when the screen shows only the emulated picture (pure
-// black and white, no overlay) and it has drawn something.
-async function running(page) {
-  const text = gridText(await sampleScreen(page));
-  return !text.includes("?") && (text.match(/#/g) ?? []).length > 20;
-}
 
 async function openLibrary(page, url = "/?shader=clean") {
   await page.goto(url);
@@ -37,7 +30,7 @@ test("typing searches, Enter plays a bundled game", async ({ page }) => {
 test("a coming-soon game can't be started", async ({ page }) => {
   await offline(page);
   await openLibrary(page);
-  await search(page, "turnover");
+  await search(page, "clock program");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(1500);
 
