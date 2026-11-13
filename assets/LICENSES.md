@@ -30,11 +30,16 @@ fetches them at runtime. Native builds read them from
 
 ## Hosted ROMs (`web/hosted-roms/`, shipped separately, not compiled in)
 
-Twelve ROMs that no browser-reachable archive carries, unmodified, from
-[Zophar's Domain CHIP-8 public-domain packs](https://www.zophar.net/pdroms/chip8.html)
-(ALIEN, ANT, BLINKY, CAR, FIELD, JOUST, PIPER, RACE, SPACEFIG, UBOAT, WORM3 from
-the Super Chip Games Pack; KALEID from the Chip-8 Games Pack). Credit belongs to
-their authors. The build copies them, with `web/hosted-roms/README.md` and the
+Eighteen ROMs that no browser-reachable archive carries, unmodified:
+
+- From [Zophar's Domain CHIP-8 public-domain packs](https://www.zophar.net/pdroms/chip8.html):
+  ALIEN, ANT, BLINKY, CAR, FIELD, JOUST, PIPER, RACE, SPACEFIG, UBOAT, WORM3
+  from the Super Chip Games Pack; KALEID from the Chip-8 Games Pack.
+- From [David Winter's CHIP-8 page](https://www.pong-story.com/chip8/), offered
+  there as freeware: MINES, SQUARE, MAZE (David Winter), DRAGON1, DRAGON2
+  (David Nurser) and LOOPZ (Andreas Daumann).
+
+Credit belongs to their authors. The build copies them, with `web/hosted-roms/README.md` and the
 authors' `.DOC` notes, into `roms/hosted/` next to the app.
 
 ## Fonts
@@ -52,5 +57,6 @@ authors' `.DOC` notes, into `roms/hosted/` next to the app.
 - **chip8Archive** `programs.json`: CC0 1.0.
 
 ROMs in the library are not shipped: they are downloaded from their original
-archives (chip8Archive, kripod/chip8-roms, the Timendus test suite) at pinned
+archives (chip8Archive, kripod/chip8-roms, the Timendus test suite and 3D
+maze repositories (GPL-3.0), Matthew Mikolay's chip-8 repository (MIT)) at pinned
 commits and cached in the browser, apart from the hosted ROMs above.

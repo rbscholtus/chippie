@@ -1,19 +1,34 @@
 {
   "version": 1,
-  "generated": "2026-11-08T20:56:08Z",
+  "generated": "2026-11-13T18:10:09Z",
   "sources": {
+    "3dvipermaze": {
+      "name": "3D Viper Maze (Timendus)",
+      "license": "GPL-3.0",
+      "home": "https://github.com/Timendus/3d-viper-maze"
+    },
+    "3dviprmaze": {
+      "name": "3D VIP'r Maze (Timendus)",
+      "license": "GPL-3.0",
+      "home": "https://github.com/Timendus/3d-vipr-maze"
+    },
     "chip8archive": {
       "name": "chip8Archive",
       "license": "CC0-1.0",
       "home": "https://johnearnest.github.io/chip8Archive/"
     },
     "chippie": {
-      "name": "Hosted by Chippie (from Zophar PD packs)",
-      "home": "https://www.zophar.net/pdroms/chip8.html"
+      "name": "Hosted by Chippie (from Zophar and David Winter)",
+      "home": "https://github.com/rbscholtus/chippie/tree/main/web/hosted-roms"
     },
     "kripod": {
       "name": "kripod/chip8-roms",
       "home": "https://github.com/kripod/chip8-roms"
+    },
+    "mattmikolay": {
+      "name": "Matthew Mikolay's CHIP-8 programs",
+      "license": "MIT",
+      "home": "https://github.com/mattmikolay/chip-8"
     },
     "timendus": {
       "name": "Timendus CHIP-8 test suite",
@@ -148,6 +163,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Guess%20%5BDavid%20Winter%5D.ch8"
       }
     ],
+    "17238bcd1cb8e21142a1d7533f878c833ef19caa": [
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/cavern/cavern.ch8"
+      }
+    ],
     "1830eb401ba8789a477dfcf294873a5479ebcfe8": [
       {
         "source": "kripod",
@@ -230,6 +251,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/horseWorldOnline.ch8"
+      }
+    ],
+    "2925c79f35e4ced1923b5ef8ba3e795951e6de21": [
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/morsecode/morse_demo.ch8"
       }
     ],
     "2c761f70a44e521ee848834cfdd2bd1646157d29": [
@@ -326,6 +353,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/petdog.ch8"
+      }
+    ],
+    "3c444e43e5f02dac4324b7b24cd38ef4938a4b56": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/LOOPZ"
       }
     ],
     "3d1d029d6e31206d245c0ba881c0d1f003953bad": [
@@ -454,6 +487,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sweetcopter.ch8"
       }
     ],
+    "5551471e152afcbf61707393ce79cde360bbc23c": [
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/heartmonitor/heart_monitor.ch8"
+      }
+    ],
     "55a6716dacc2f93dce3d39fb8d231083016a1cc0": [
       {
         "source": "timendus",
@@ -532,6 +571,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/DVN8.ch8"
       }
     ],
+    "62e204572ac05be3748a746ac7831d6844f43003": [
+      {
+        "source": "3dvipermaze",
+        "url": "https://raw.githubusercontent.com/Timendus/3d-viper-maze/6cdb7b1788bfa0e1479031fceccbbe743681a4e9/3dvipermaze.ch8"
+      }
+    ],
     "63e787fc3e78e5fb3a394cf1bc654ad9633d8907": [
       {
         "source": "chip8archive",
@@ -562,10 +607,28 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Timebomb.ch8"
       }
     ],
+    "6b6502b03183e492f8170172308df9876c29d1d9": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/DRAGON2"
+      }
+    ],
+    "6d4514ae3a43c307763648b0bdd485fb77bcf20d": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/MINES"
+      }
+    ],
     "6d677bb44500a5ee4754b3a75516cfd9e73947fc": [
       {
         "source": "chippie",
         "url": "roms/hosted/JOUST"
+      }
+    ],
+    "6dc9b7bee24f9793b929d20a7757725f3183d12e": [
+      {
+        "source": "3dviprmaze",
+        "url": "https://raw.githubusercontent.com/Timendus/3d-vipr-maze/cc8d4d9a9299931f30dd235753b4b1d6bd57e74f/bin/3dviprmaze-schip.ch8"
       }
     ],
     "6df358d77961a0bf21e98876f9f616791cba31e3": [
@@ -1102,6 +1165,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Wipe%20Off%20%5BJoseph%20Weisbecker%5D.ch8"
       }
     ],
+    "d6cbd3af85b4c55b83c4e01f3a17c66fcebe9ccc": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/DRAGON1"
+      }
+    ],
     "d6d8efef811350e7fba6197024c4973b360749b8": [
       {
         "source": "chip8archive",
@@ -1138,6 +1207,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Hi-Lo%20%5BJef%20Winsor%2C%201978%5D.ch8"
       }
     ],
+    "dea204fbfda4ed63fe2a2be255617bb9ee770a61": [
+      {
+        "source": "3dviprmaze",
+        "url": "https://raw.githubusercontent.com/Timendus/3d-vipr-maze/cc8d4d9a9299931f30dd235753b4b1d6bd57e74f/bin/3dviprmaze-vip.ch8"
+      }
+    ],
     "df5ced9c20d00bf7be7d3361d76f27d0d577abfb": [
       {
         "source": "chip8archive",
@@ -1162,6 +1237,12 @@
         "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/5-quirks.ch8"
       }
     ],
+    "e4ef6fff9813c43bd7ad2ecaf02d1a3135d68418": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/SQUARE"
+      }
+    ],
     "e6af47843f0ecc3302027a3756dd7b389a15e437": [
       {
         "source": "chip8archive",
@@ -1172,6 +1253,12 @@
       {
         "source": "chippie",
         "url": "roms/hosted/RACE"
+      }
+    ],
+    "e6d910b7c9f9680df462662ce16336ebcb0eab1e": [
+      {
+        "source": "chippie",
+        "url": "roms/hosted/MAZE"
       }
     ],
     "e74f20f234753e0cc2f58e29dc02d6128a6a3d97": [
@@ -1244,6 +1331,10 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chipquarium.ch8"
+      },
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/chipquarium/chipquarium.ch8"
       }
     ],
     "f8008875a4b35dc7188eeca2a05535116371eaf0": [

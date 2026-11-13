@@ -1,6 +1,9 @@
 {
   "JohnEarnest/chip8Archive": "761e3ffc63f43e6a849e80714122feff2afca208",
+  "Timendus/3d-viper-maze": "6cdb7b1788bfa0e1479031fceccbbe743681a4e9",
+  "Timendus/3d-vipr-maze": "cc8d4d9a9299931f30dd235753b4b1d6bd57e74f",
   "Timendus/chip8-test-suite": "cb24d5595384a80b49ddedae13bec4042b16d41d",
   "chip-8/chip-8-database": "4b2a2a33f3392d813e8be4c7b955838d0797b425",
-  "kripod/chip8-roms": "c723a9ed1205a215c5b1e45e994eb54acc243c9e"
+  "kripod/chip8-roms": "c723a9ed1205a215c5b1e45e994eb54acc243c9e",
+  "mattmikolay/chip-8": "fb6f4463537e79d9e64068559176c818e561062e"
 }

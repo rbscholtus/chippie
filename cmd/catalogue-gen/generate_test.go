@@ -224,7 +224,7 @@ func TestHostedROMsAreInManifest(t *testing.T) {
 		}
 	}
 
-	if roms != 12 {
-		t.Errorf("%d hosted ROMs, want 12", roms)
+	if roms != 18 {
+		t.Errorf("%d hosted ROMs, want 18", roms)
 	}
 }

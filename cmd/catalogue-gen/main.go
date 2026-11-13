@@ -42,7 +42,10 @@ import (
 
 const (
 	databaseRepo = "chip-8/chip-8-database"
-	databaseRef  = "master"
+	databaseRef  = master
+
+	master = "master"  // the usual default branch
+	gpl3   = "GPL-3.0" // licence of Timendus's repositories
 
 	programsFile = "programs.json"
 

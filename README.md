@@ -72,7 +72,7 @@ a product goal.
 | Target | Browser (`GOOS=js GOARCH=wasm`). Native desktop builds for development. |
 | TV look | A mid-1970s TV from AI-generated artwork (Gemini or similar), plus a CRT shader in Kage |
 | Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), used unmodified |
-| ROM files | Downloaded from their original source at runtime. Only the 12 ROMs that can't be fetched from a browser are hosted by us. |
+| ROM files | Downloaded from their original source at runtime. Only the 18 ROMs that can't be fetched from a browser are hosted by us. |
 | Profiles | Platform defaults, then the database's per-ROM overrides, then user settings |
 | Tests | Golden framebuffers made from the test suite's own reference pictures |
 | Memory | Few allocations in the per-frame path, without awkward code; optimise when profiles show the need. No `sync.Pool` for now. |
@@ -217,7 +217,7 @@ chippie/
 │   └── chip8-test-suite/       # git submodule pinned to tag v4.2
 ├── web/
 │   ├── page.html               # loader page (from the prototype); build.sh → web/dist/
-│   ├── hosted-roms/            # the 12 Zophar-only SCHIP ROMs (+ attribution)
+│   ├── hosted-roms/            # 18 ROMs only on Zophar / David Winter's page (+ attribution)
 │   └── (sources.json is embedded: catalogue/snapshot/)
 ├── e2e/                        # Playwright tests (+ fixtures/: CC0 ROM for download tests)
 ├── scripts/
@@ -392,7 +392,14 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
 | [kripod/chip8-roms](https://github.com/kripod/chip8-roms) | 106 | 96 | 10 | Yes (GitHub raw, CORS `*`) |
 | [Zophar](https://www.zophar.net/pdroms/chip8.html) CHIP-8 + SCHIP packs | 34 | 33 | 1 | **No.** Zip-packed, redirect, no CORS. |
 | c8games (local collection) | 23 | 22 | 1 | n/a, a subset of the Zophar CHIP-8 pack |
-| **All combined** | **~230** | **216 (93%)** | **14** | |
+| [David Winter's page](https://www.pong-story.com/chip8/) (`chp8_220.zip`, `loopz.zip`) | 40 | 40 | 0 | **No.** Zip-packed, no CORS. 6 are new; the rest match kripod. |
+| [mattmikolay/chip-8](https://github.com/mattmikolay/chip-8) (MIT) | 6 | 4 | 2 | Yes (GitHub raw, CORS `*`) |
+| Timendus [3d-viper-maze](https://github.com/Timendus/3d-viper-maze), [3d-vipr-maze](https://github.com/Timendus/3d-vipr-maze) (GPL-3.0) | 3 | 3 | 0 | Yes (GitHub raw, CORS `*`) |
+| **All combined** | **~244** | **228** | **16** | |
+
+Added 2026-11-14: David Winter's page and the three GitHub repositories, found
+by hashing candidate sources against the database. `docs/coverage.md` has the
+current numbers.
 
 **Findings:**
 
@@ -404,6 +411,14 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
   pack, plus KALEID from the CHIP-8 pack. The versions in kripod's repo are
   different files. All 12 are in the database, and **we host these ourselves**
   in `web/hosted-roms/`, with Zophar's attribution and `.DOC` files.
+- **6 more exist only on David Winter's page:** MINES, SQUARE, MAZE (his own
+  freeware), DRAGON1/DRAGON2 (Single Dragon) and LOOPZ. We host these too.
+- **Octojam games on itch.io (2019–2023)** are only playable there as Octo
+  HTML exports, with no CORS. A third-party repository
+  ([maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator))
+  has extracted 42 of the missing ROMs from them, without a licence; not used
+  for now. chip8Archive (also shown at beyondloom.com/octo) holds the earlier
+  jams.
 - **The 14 ROMs missing from the database** are `dinorun`, `mato8`, `mrworm`
   and `tick` (chip8Archive), `Guess (alt)` (same file as Zophar/c8games
   `GUESS`), `Rush Hour (alt)`, and 8 "hires" ROMs from kripod. Most of the
@@ -433,8 +448,8 @@ every URL it can be downloaded from:
                        "home": "https://johnearnest.github.io/chip8Archive/" },
     "kripod":       { "name": "kripod/chip8-roms",
                        "home": "https://github.com/kripod/chip8-roms" },
-    "chippie":      { "name": "Hosted by Chippie (from Zophar PD packs)",
-                       "home": "https://www.zophar.net/pdroms/chip8.html" }
+    "chippie":      { "name": "Hosted by Chippie (from Zophar and David Winter)",
+                       "home": "https://github.com/rbscholtus/chippie/tree/main/web/hosted-roms" }
   },
   "roms": {
     "<sha1>": [

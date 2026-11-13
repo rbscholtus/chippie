@@ -4,7 +4,7 @@
 #   chippie-gz.wasm         the app, gzip-compressed (the loader unpacks it)
 #   roms/test-suite/        the Timendus test ROMs (GPLv3), shipped as
 #                           separate files with their licence, never compiled in
-#   roms/hosted/            the ROMs only available from Zophar, with attribution
+#   roms/hosted/            the ROMs only on Zophar or David Winter's page, with attribution
 #
 # Serve it with:  cd web/dist && python3 -m http.server 8080
 set -euo pipefail

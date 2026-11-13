@@ -1,6 +1,6 @@
 # ROM coverage
 
-Generated 2026-11-08T20:56:08Z by `cmd/catalogue-gen`.
+Generated 2026-11-13T18:10:09Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
@@ -9,10 +9,13 @@ chip-8-database: 484 programs, 543 ROMs.
 | chip8Archive | 104 | 100 | 4 |
 | kripod/chip8-roms | 106 | 96 | 10 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
-| Hosted by Chippie (from Zophar PD packs) | 12 | 12 | 0 |
-| **All combined** | **230** | **216** | **14** |
+| Matthew Mikolay's CHIP-8 programs | 6 | 4 | 2 |
+| 3D Viper Maze (Timendus) | 1 | 1 | 0 |
+| 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
+| Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
+| **All combined** | **244** | **228** | **16** |
 
-Downloadable ROMs in the manifest: 216 of 543 in the database.
+Downloadable ROMs in the manifest: 228 of 543 in the database.
 
 ## Not in chip-8-database
 
@@ -30,6 +33,8 @@ Downloadable ROMs in the manifest: 216 of 543 in the database.
 - kripod/chip8-roms: `hires/Hires Test [Tom Swan, 1979].ch8`
 - kripod/chip8-roms: `hires/Hires Worm V4 [RB-Revival Studios, 2007].ch8`
 - kripod/chip8-roms: `hires/Trip8 Hires Demo (2008) [Revival Studios].ch8`
+- Matthew Mikolay's CHIP-8 programs: `delaytimer/delay_timer_test.ch8`
+- Matthew Mikolay's CHIP-8 programs: `randomnumber/random_number_test.ch8`
 
 ## chip8Archive vs chip-8-database
 
