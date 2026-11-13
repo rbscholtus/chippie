@@ -395,9 +395,10 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
 | [David Winter's page](https://www.pong-story.com/chip8/) (`chp8_220.zip`, `loopz.zip`) | 40 | 40 | 0 | **No.** Zip-packed, no CORS. 6 are new; the rest match kripod. |
 | [mattmikolay/chip-8](https://github.com/mattmikolay/chip-8) (MIT) | 6 | 4 | 2 | Yes (GitHub raw, CORS `*`) |
 | Timendus [3d-viper-maze](https://github.com/Timendus/3d-viper-maze), [3d-vipr-maze](https://github.com/Timendus/3d-vipr-maze) (GPL-3.0) | 3 | 3 | 0 | Yes (GitHub raw, CORS `*`) |
-| **All combined** | **~244** | **228** | **16** | |
+| Octojam 6–10 games from itch.io, via [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator) (no licence) | 68 | 42 | 26 | Yes (GitHub raw, CORS `*`) |
+| **All combined** | **~310** | **268** | **42** | |
 
-Added 2026-11-14: David Winter's page and the three GitHub repositories, found
+Added 2026-11-14: David Winter's page, the Octojam games and the three GitHub repositories, found
 by hashing candidate sources against the database. `docs/coverage.md` has the
 current numbers.
 
@@ -416,8 +417,10 @@ current numbers.
 - **Octojam games on itch.io (2019–2023)** are only playable there as Octo
   HTML exports, with no CORS. A third-party repository
   ([maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator))
-  has extracted 42 of the missing ROMs from them, without a licence; not used
-  for now. chip8Archive (also shown at beyondloom.com/octo) holds the earlier
+  has extracted them. We link to its copies at a pinned commit, as with
+  kripod (no licence; each game belongs to its author), which adds 40
+  playable ROMs. Its other 26 aren't in chip-8-database yet: candidates for
+  M8. chip8Archive (also shown at beyondloom.com/octo) holds the earlier
   jams.
 - **The 14 ROMs missing from the database** are `dinorun`, `mato8`, `mrworm`
   and `tick` (chip8Archive), `Guess (alt)` (same file as Zophar/c8games

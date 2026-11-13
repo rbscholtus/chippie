@@ -44,8 +44,9 @@ const (
 	databaseRepo = "chip-8/chip-8-database"
 	databaseRef  = master
 
-	master = "master"  // the usual default branch
-	gpl3   = "GPL-3.0" // licence of Timendus's repositories
+	master     = "master" // default branch names
+	mainBranch = "main"
+	gpl3       = "GPL-3.0" // licence of Timendus's repositories
 
 	programsFile = "programs.json"
 

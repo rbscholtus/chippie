@@ -5,5 +5,6 @@
   "Timendus/chip8-test-suite": "cb24d5595384a80b49ddedae13bec4042b16d41d",
   "chip-8/chip-8-database": "4b2a2a33f3392d813e8be4c7b955838d0797b425",
   "kripod/chip8-roms": "c723a9ed1205a215c5b1e45e994eb54acc243c9e",
-  "mattmikolay/chip-8": "fb6f4463537e79d9e64068559176c818e561062e"
+  "mattmikolay/chip-8": "fb6f4463537e79d9e64068559176c818e561062e",
+  "maxisimonazzi/chip8-emulator": "7a805355bad0c0a8ca26caf74c17a9a968e04f5a"
 }

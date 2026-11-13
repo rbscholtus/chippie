@@ -65,7 +65,7 @@ var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 		info: catalogue.SourceInfo{
 			Name: "3D Viper Maze (Timendus)", License: gpl3, Home: "https://github.com/Timendus/3d-viper-maze",
 		},
-		repo: "Timendus/3d-viper-maze", ref: "main",
+		repo: "Timendus/3d-viper-maze", ref: mainBranch,
 		include: func(f string) bool { return f == "3dvipermaze.ch8" },
 	},
 	{
@@ -73,8 +73,20 @@ var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 		info: catalogue.SourceInfo{
 			Name: "3D VIP'r Maze (Timendus)", License: gpl3, Home: "https://github.com/Timendus/3d-vipr-maze",
 		},
-		repo: "Timendus/3d-vipr-maze", ref: "main",
+		repo: "Timendus/3d-vipr-maze", ref: mainBranch,
 		include: func(f string) bool { return strings.HasPrefix(f, "bin/") && strings.HasSuffix(f, ".ch8") },
+	},
+	{
+		// Octojam 6-10 entries, extracted from their itch.io pages (which
+		// browsers can't download from). No licence: each game's belongs
+		// to its author. We only link, as with kripod.
+		id: "octojam-itch",
+		info: catalogue.SourceInfo{
+			Name: "Octojam games from itch.io (via maxisimonazzi/chip8-emulator)",
+			Home: "https://github.com/maxisimonazzi/chip8-emulator/tree/main/roms/octojam",
+		},
+		repo: "maxisimonazzi/chip8-emulator", ref: mainBranch,
+		include: func(f string) bool { return strings.HasPrefix(f, "roms/octojam/") && strings.HasSuffix(f, ".ch8") },
 	},
 }
 

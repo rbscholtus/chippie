@@ -58,5 +58,7 @@ authors' `.DOC` notes, into `roms/hosted/` next to the app.
 
 ROMs in the library are not shipped: they are downloaded from their original
 archives (chip8Archive, kripod/chip8-roms, the Timendus test suite and 3D
-maze repositories (GPL-3.0), Matthew Mikolay's chip-8 repository (MIT)) at pinned
+maze repositories (GPL-3.0), Matthew Mikolay's chip-8 repository (MIT), and
+the Octojam games that maxisimonazzi/chip8-emulator extracted from itch.io,
+which carry no licence and belong to their authors) at pinned
 commits and cached in the browser, apart from the hosted ROMs above.
