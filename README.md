@@ -912,8 +912,9 @@ Once the emulator works (after milestone M4):
 ## 19. Milestones
 
 Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md). For M5
-and M7: [docs/plans/M5-M7.md](docs/plans/M5-M7.md). The order is M5, M7, M6, M8;
-M7 does not depend on M6.
+and M7: [docs/plans/M5-M7.md](docs/plans/M5-M7.md). For M6 and M8:
+[docs/plans/M6-M8.md](docs/plans/M6-M8.md). The order is M5, M7, M6, M8;
+M7 does not depend on M6, and M8 does not depend on M6.
 
 | # | Milestone | Done when |
 |---|---|---|
