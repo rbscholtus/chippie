@@ -1,0 +1,19 @@
+{
+  "source": "Gemini_Generated_Image_ixja8tixja8tixja.png",
+  "crop": { "x": 140, "y": 166, "w": 2100, "h": 1554 },
+  "paintOut": [{ "x": 2228, "y": 1620, "w": 120, "h": 120 }],
+  "screenSeed": { "x": 983, "y": 854 },
+  "feather": 32,
+  "controls": [
+    {
+      "id": "channel", "kind": "dial", "cx": 1907, "cy": 494, "r": 98, "steps": 13,
+      "erase": { "inner": 64, "outer": 98, "keep": [{ "x": -15, "y": -71, "w": 30, "h": 131 }] },
+      "labels": ["U", "2", "3", "4", "5", "6.", "7", "8", "9.", "10", "11", "12", "13"],
+      "labelRadius": 84, "labelSize": 17, "labelColour": "#e8dcc2"
+    },
+    { "id": "speed", "kind": "knob", "cx": 2109, "cy": 490, "r": 27, "minAngle": -135, "maxAngle": 135 },
+    { "id": "volume", "kind": "knob", "cx": 1848, "cy": 730, "r": 32, "minAngle": -135, "maxAngle": 135 },
+    { "id": "tint", "kind": "knob", "cx": 1981, "cy": 733, "r": 29, "minAngle": -60, "maxAngle": 60 },
+    { "id": "power", "kind": "rocker", "x": 2087, "y": 700, "w": 45, "h": 75 }
+  ]
+}

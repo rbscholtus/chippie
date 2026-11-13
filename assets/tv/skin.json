@@ -1,0 +1,63 @@
+{
+  "width": 2100,
+  "height": 1554,
+  "background": "#d1cfd0",
+  "cabinet": "cabinet",
+  "mask": "cabinet-mask",
+  "screen": {
+    "x": 190,
+    "y": 165,
+    "w": 1306,
+    "h": 1046
+  },
+  "controls": [
+    {
+      "id": "channel",
+      "kind": "dial",
+      "image": "channel",
+      "cx": 1767,
+      "cy": 328,
+      "r": 98,
+      "steps": 13
+    },
+    {
+      "id": "speed",
+      "kind": "knob",
+      "image": "speed",
+      "cx": 1969,
+      "cy": 324,
+      "r": 27,
+      "minAngle": -135,
+      "maxAngle": 135
+    },
+    {
+      "id": "volume",
+      "kind": "knob",
+      "image": "volume",
+      "cx": 1708,
+      "cy": 564,
+      "r": 32,
+      "minAngle": -135,
+      "maxAngle": 135
+    },
+    {
+      "id": "tint",
+      "kind": "knob",
+      "image": "tint",
+      "cx": 1841,
+      "cy": 567,
+      "r": 29,
+      "minAngle": -60,
+      "maxAngle": 60
+    },
+    {
+      "id": "power",
+      "kind": "rocker",
+      "image": "power",
+      "x": 1947,
+      "y": 534,
+      "w": 45,
+      "h": 75
+    }
+  ]
+}
