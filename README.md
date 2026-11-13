@@ -926,6 +926,10 @@ To be settled while building, not before:
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
   usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
   keypad; show those properly instead of "?".
+- **Favourite games.** Mark a game as a favourite (e.g. a star in the
+  details), stored per device like the ROM cache, and list favourites first
+  in the library drawer (or behind a "Favourites" filter) so they start in
+  one tap.
 - **Record the keys games use (desktop only).** Only worth it if the data
   turns out to be useful upstream. While a ROM runs, record per SHA-1 the keys
   it reads (`EX9E`/`EXA1`), the keys actually held when read (filters out
