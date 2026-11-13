@@ -46,9 +46,9 @@ type program struct {
 
 func loadPrograms() []*program {
 	var raw []struct {
-		Title   string                       `json:"title"`
-		Authors []string                     `json:"authors"`
-		Release string                       `json:"release"`
+		Title   string                                  `json:"title"`
+		Authors []string                                `json:"authors"`
+		Release string                                  `json:"release"`
 		ROMs    map[string]struct{ Platforms []string } `json:"roms"`
 	}
 	if err := json.Unmarshal(programsJSON, &raw); err != nil {
@@ -99,17 +99,17 @@ type game struct {
 
 	face, small text.Face
 
-	fb       [fbH][fbW]bool
-	fbImg    *ebiten.Image
-	upImg    *ebiten.Image
-	phos     [2]*ebiten.Image
-	crt      *ebiten.Shader
-	phosSh   *ebiten.Shader
-	screen   image.Rectangle
-	power    float64
+	fb        [fbH][fbW]bool
+	fbImg     *ebiten.Image
+	upImg     *ebiten.Image
+	phos      [2]*ebiten.Image
+	crt       *ebiten.Shader
+	phosSh    *ebiten.Shader
+	screen    image.Rectangle
+	power     float64
 	poweredOn bool
-	tint     int
-	osdUntil int
+	tint      int
+	osdUntil  int
 
 	ballX, ballY, ballDX, ballDY int
 
