@@ -15,6 +15,11 @@
   wait and logic quirks on, the rest off) are the original COSMAC VIP's. It
   plays correctly as both `originalChip8` and `modernChip8` (2026-11-15), so
   both are listed, the author's first.
+- [x] Compared with what the database's own script produces once its bug
+  (draft 02) is fixed, tested 2026-11-15: every field matches, except that
+  the script marks the platforms for manual checking, adds no `keys`, and
+  gives Dino Run an empty gamejam `origin`. These entries set the
+  play-tested platforms, add the keys and leave the empty origin out.
 - [ ] Text below approved.
 
 ## The PR
@@ -35,8 +40,9 @@
 >
 > Why not `npm run update`: it currently stops on Mato8, the only archive
 > entry without `options` (see #ISSUE, which has a one-line fix). With that
-> fixed, it would also mark these platforms for manual checking, because
-> the archive's `chip8` and the detected quirks disagree.
+> fix, its output matches these entries field by field, apart from the
+> platforms (which it marks for manual checking), the `keys` hints, and an
+> empty gamejam `origin` it gives Dino Run.
 >
 > Checked by playing each ROM in Chippie (https://rbscholtus.github.io/chippie/).
 
