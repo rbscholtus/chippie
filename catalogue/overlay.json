@@ -6,7 +6,7 @@
         "title": "Dino Run",
         "authors": ["Andrezinrc"],
         "release": "2026-05-25",
-        "description": "An endless runner game for Chip-8. Key 5 jumps.",
+        "description": "An endless runner game for Chip-8.",
         "roms": {
           "1a7a2138161b06e083722f978f8cbaaa1ad5344d": { "file": "dinorun.ch8", "platforms": ["modernChip8"], "keys": { "a": 5 } }
         }
@@ -18,7 +18,7 @@
         "title": "Mato8",
         "authors": ["nortti"],
         "release": "2023-01-14",
-        "description": "Snake game (matopeli in Finnish). Made for the GAMES MADE QVIICK??? jam.",
+        "description": "Snake game (matopeli in Finnish)",
         "roms": {
           "673f98c66168190aa5b1e5dda5d0d80da7826dd1": { "file": "mato8.ch8", "platforms": ["modernChip8"] }
         }
@@ -30,7 +30,7 @@
         "title": "Tick",
         "authors": ["StanislavDidus"],
         "release": "2026-08-11",
-        "description": "Rhythm one button game for Chip-8. Tap key A in time with the beat.",
+        "description": "Rhythm one button game for Chip-8",
         "roms": {
           "3d81c0462c722c2d8a79f6e1b571e9aa21d36b1f": { "file": "tick.ch8", "platforms": ["modernChip8"], "keys": { "a": 10 } }
         }
