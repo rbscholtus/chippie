@@ -31,9 +31,15 @@
   without errors (2026-11-15).
 - [x] Played in Chippie by the owner, 2026-11-15: all work (speed seemed
   fine).
-- [ ] **Rotation:** H8 2: Carry Flag (270°), Destroy The Line (270°) and
-  Octris (90°) re-checked the right way up, once Chippie applies
-  `screenRotation`.
+- [x] **Rotation:** H8 2: Carry Flag (270°), Destroy The Line (270°) and
+  Octris (90°) re-checked the right way up by the owner, 2026-11-15, after
+  Chippie learned to apply `screenRotation`: all play well.
+- [x] **The three rotation corrections** (below) played turned, 2026-11-15:
+  all play well. (Computer Simulator shows no text, which isn't a rotation
+  problem.)
+- [x] **Octojam 6:** nothing to add. Of its 11 entries, 10 are already in
+  the database (6 from itch.io, 4 via the CHIP-8 Archive), and Dump Trump's
+  page has no playable version.
 - [ ] Text below approved.
 
 ## The programs
@@ -66,6 +72,19 @@
 | 510 | [RPN Calculator](https://tquester.itch.io/upn-calculator) | tquester | Octojam 10 | superchip (quirky) | 200 | |
 | 511 | [XO-NYANCAT!!](https://kouzeru.itch.io/xo-nyancat) | Kouzerumatsukite | Octojam 9 | xochip | 20000 | |
 | 512 | [XO-TRACKER DEMO](https://kouzeru.itch.io/xo-tracker-demo) | Kouzerumatsukite | Octojam 8 | xochip | 6400 | |
+
+## Also: rotation for three games already in the database
+
+These Octojam games are in `programs.json`, but without the
+`screenRotation` their Octo exports set, so they show sideways. In the same
+PR, one line added to each ROM entry (from the overlay's three "change"
+entries):
+
+| Program | SHA-1 | `screenRotation` | Octo export |
+|---|---|---|---|
+| Computer Simulator | `46b281516a3e9d1526bea224b79cc18ddd71833d` | 90 | [atomr.itch.io/computer-simulator](https://atomr.itch.io/computer-simulator) |
+| Infini Br8kr | `2cda3b309234e693e5ab6179767a8f019dfd5c6e` | 90 | [hailthefish.itch.io/infinibr8kr](https://hailthefish.itch.io/infinibr8kr) |
+| Octo Space Program | `838706ee2d7001e6e909360f9a02f48d81d3a0d6` | 270 | [badcloudgames.itch.io/octo-space-program](https://badcloudgames.itch.io/octo-space-program) |
 
 One entry in full (Octris):
 
@@ -116,9 +135,10 @@ One entry in full (Octris):
 **Body:**
 
 > Octojams 6–10 were hosted on itch.io, and many of their entries never
-> made it into the CHIP-8 Archive, so they're missing here too. This adds
-> 26 of them (Octojam 7–10), appended after #30's programs: please merge
-> #30 first.
+> made it into the CHIP-8 Archive. The database already has nearly all of
+> Octojam 6–8, but none of Octojam 9 and 10. This adds the 26 that are
+> missing (13 from Octojam 9, 11 from Octojam 10, and one each from 7 and
+> 8), appended after #30's programs: please merge #30 first.
 >
 > The ROMs are the ones embedded in each game's playable page on itch.io
 > (an Octo HTML export), as extracted by
@@ -129,5 +149,11 @@ One entry in full (Octris):
 > none exactly), tickrate, colours, touchInputMode, fontStyle and
 > screenRotation. "Octojam 10 Entry - Fencing" is entered as "Fencing".
 >
+> It also adds the `screenRotation` that the Octo exports of three games
+> already in the database set, but their entries lack, so they show
+> sideways: Computer Simulator (90), Infini Br8kr (90) and Octo Space
+> Program (270).
+>
 > Each was played in Chippie (https://rbscholtus.github.io/chippie/) with
-> exactly these settings. `sha1-hashes.json` is extended to match.
+> exactly these settings, the right way up. `sha1-hashes.json` is extended
+> to match.
