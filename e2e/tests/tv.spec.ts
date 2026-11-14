@@ -67,3 +67,19 @@ test("T turns the tint knob", async ({ page }) => {
 
   await expect.poll(async () => (await appLayout(page)).status.tint, { intervals: [300] }).toBe(1);
 });
+
+test("Settings switches the TV skin, and it stays after a reload", async ({ page }) => {
+  await startGame(page);
+  expect((await appLayout(page)).status.skin).toBe("classic");
+
+  await page.keyboard.press("F2"); // Settings: the TV row is first
+  await page.waitForTimeout(500);
+  await page.keyboard.press("ArrowRight");
+
+  await expect.poll(async () => (await appLayout(page)).status.skin, { intervals: [300] }).toBe("portable");
+  await expect.poll(async () => (await appLayout(page)).art, { intervals: [500] }).toBe(true);
+
+  await page.reload();
+  await waitForApp(page);
+  await expect.poll(async () => (await appLayout(page)).status.skin, { intervals: [300] }).toBe("portable");
+});

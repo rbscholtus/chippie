@@ -64,9 +64,10 @@ func mix(a, b color.NRGBA, t float64) color.NRGBA {
 }
 
 // tubeMask finds the dark picture tube by flooding from seed over pixels no
-// brighter than tubeDark. It returns a greyscale mask the size of m, black
-// in the (slightly shrunk) tube with a one-pixel soft edge, white elsewhere,
-// and the tube's bounding box.
+// brighter than tubeDark, then fills any holes in it (highlights on the
+// glass). It returns a greyscale mask the size of m, black in the (slightly
+// shrunk) tube with a one-pixel soft edge, white elsewhere, and the tube's
+// bounding box.
 func tubeMask(m *image.NRGBA, seed image.Point) (*image.Gray, image.Rectangle) {
 	b := m.Bounds()
 	in := make([]bool, b.Dx()*b.Dy())
@@ -86,6 +87,8 @@ func tubeMask(m *image.NRGBA, seed image.Point) (*image.Gray, image.Rectangle) {
 		box = box.Union(image.Rectangle{Min: p, Max: p.Add(image.Pt(1, 1))})
 		stack = append(stack, p.Add(image.Pt(1, 0)), p.Add(image.Pt(-1, 0)), p.Add(image.Pt(0, 1)), p.Add(image.Pt(0, -1)))
 	}
+
+	in = fillHoles(in, b.Dx(), b.Dy())
 
 	for range maskErode {
 		in = erode(in, b.Dx(), b.Dy())
@@ -111,6 +114,57 @@ func tubeMask(m *image.NRGBA, seed image.Point) (*image.Gray, image.Rectangle) {
 	}
 
 	return mask, box
+}
+
+// fillHoles sets every unset cell that the unset cells along the edges
+// can't reach: the holes inside a region.
+func fillHoles(in []bool, w, h int) []bool {
+	outside := make([]bool, len(in))
+
+	var stack []int
+
+	for x := range w {
+		stack = append(stack, x, (h-1)*w+x)
+	}
+
+	for y := range h {
+		stack = append(stack, y*w, y*w+w-1)
+	}
+
+	for len(stack) > 0 {
+		i := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+
+		if in[i] || outside[i] {
+			continue
+		}
+
+		outside[i] = true
+		x, y := i%w, i/w
+
+		if x > 0 {
+			stack = append(stack, i-1)
+		}
+
+		if x < w-1 {
+			stack = append(stack, i+1)
+		}
+
+		if y > 0 {
+			stack = append(stack, i-w)
+		}
+
+		if y < h-1 {
+			stack = append(stack, i+w)
+		}
+	}
+
+	out := make([]bool, len(in))
+	for i := range in {
+		out[i] = in[i] || !outside[i]
+	}
+
+	return out
 }
 
 // erode removes every set cell that has an unset 4-neighbour.

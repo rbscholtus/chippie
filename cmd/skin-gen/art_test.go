@@ -54,7 +54,13 @@ func TestTubeMask(t *testing.T) {
 	m := filled(60, 40, grey)
 	fillRect(m, image.Rect(10, 8, 50, 32), black) // the tube
 
+	fillRect(m, image.Rect(20, 12, 40, 14), white) // a highlight on the glass
+
 	mask, box := tubeMask(m, image.Pt(30, 20))
+
+	if y := mask.GrayAt(30, 13).Y; y != 0 {
+		t.Errorf("highlight = %d, want part of the hole", y)
+	}
 
 	if box != image.Rect(10, 8, 50, 32) {
 		t.Errorf("box = %v", box)

@@ -38,6 +38,17 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 - The separately generated knob, dial and switch images in `assets/source/`
   are not used.
 
+### Portable (`assets/tv/portable/`)
+
+- **Generator:** Google Gemini image generation (the Gemini app), November
+  2026, from the portable prompt in README §12.3. Master:
+  `Gemini_Generated_Image_j6ll0j6ll0j6ll0j.png` (2400×1792), kept outside the
+  repository in `assets/source/`.
+- **Made by `cmd/skin-gen`** from that master and
+  `assets/tv/portable/recipe.json`, as above; the crop leaves out the sparkle
+  mark. Its channel knob has no numbers, so none are drawn.
+- **Terms:** the same to-do as above.
+
 ## Timendus CHIP-8 test suite (shipped separately, not compiled in)
 
 The test ROMs from [Timendus/chip8-test-suite](https://github.com/Timendus/chip8-test-suite)

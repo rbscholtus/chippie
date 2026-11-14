@@ -661,7 +661,7 @@ large and scaled **down**:
 Written for Gemini but generator-neutral: plain-language prompts, with the
 aspect ratio set in the tool and things to avoid listed in the prompt.
 
-**Cabinet** (front view, flat-on, 4:3):
+**Cabinet: Walnut console** (`classic` skin; front view, flat-on, 4:3):
 
 ```
 front-facing straight-on product photograph of a mid-1970s tabletop colour
@@ -677,7 +677,26 @@ symmetrical, high detail, photorealistic, 4:3 aspect ratio. Avoid: logos,
 text, brand names, people, reflections on the screen, perspective, tilt
 ```
 
-**Knobs and buttons** (one per generation, square):
+**Cabinet: Portable** (`portable` skin, made 2026-11-14 for more picture and
+less cabinet; the same background and lighting phrases keep the skins
+consistent):
+
+```
+front-facing straight-on product photograph of a compact mid-1970s portable
+colour television set, cream and walnut plastic case with rounded corners and
+a chrome carrying handle on top, the rounded-rectangle picture tube fills
+almost the whole front with only a thin bezel around it, the screen is
+completely black and switched off with no reflection, a narrow control strip
+below the screen with one rotary channel selector dial without numbers, two
+small knobs and a small rocker power switch, small speaker slots in the strip,
+plain light grey studio background, soft even lighting, no logo, no brand
+name, orthographic, symmetrical, high detail, photorealistic, 4:3 aspect
+ratio. Avoid: logos, text, numbers, brand names, people, reflections on the
+screen, perspective, tilt
+```
+
+**Knobs and buttons** (one per generation, square; not used: the controls are
+cut from the cabinets):
 
 ```
 top-down orthographic photograph of a single 1970s television rotary knob,
