@@ -1,0 +1,61 @@
+{
+  "name": "Portable",
+  "width": 1616,
+  "height": 1642,
+  "background": "#d9d8d8",
+  "cabinet": "cabinet",
+  "mask": "cabinet-mask",
+  "backdrop": "backdrop.jpg",
+  "backdropRect": {
+    "x": -700,
+    "y": -700,
+    "w": 3016,
+    "h": 3042
+  },
+  "screen": {
+    "x": 128,
+    "y": 267,
+    "w": 1361,
+    "h": 1076
+  },
+  "controls": [
+    {
+      "id": "channel",
+      "kind": "dial",
+      "image": "channel",
+      "cx": 808,
+      "cy": 1460,
+      "r": 72,
+      "steps": 13
+    },
+    {
+      "id": "volume",
+      "kind": "knob",
+      "image": "volume",
+      "cx": 1042,
+      "cy": 1461,
+      "r": 34,
+      "minAngle": -135,
+      "maxAngle": 135
+    },
+    {
+      "id": "tint",
+      "kind": "knob",
+      "image": "tint",
+      "cx": 1188,
+      "cy": 1461,
+      "r": 34,
+      "minAngle": -60,
+      "maxAngle": 60
+    },
+    {
+      "id": "power",
+      "kind": "rocker",
+      "image": "power",
+      "x": 1310,
+      "y": 1428,
+      "w": 41,
+      "h": 67
+    }
+  ]
+}

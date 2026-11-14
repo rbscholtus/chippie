@@ -1,6 +1,11 @@
 package catalogue
 
-import "github.com/rbscholtus/chippie/chip8"
+import (
+	"maps"
+	"slices"
+
+	"github.com/rbscholtus/chippie/chip8"
+)
 
 // Quirk ids, as in quirks.json.
 const (
@@ -129,16 +134,17 @@ func (db *DB) OverridesFor(sha1 string, p chip8.Profile) Overrides {
 //  3. the user's overrides.
 //
 // The ROM's platform is the first one in its list that Chippie implements,
-// or the first one if none is implemented yet. Unknown ROMs use modern
-// CHIP-8.
+// or the first one if none is implemented yet. A few ROMs list no platform
+// but name one in quirkyPlatforms; then those count. Unknown ROMs use
+// modern CHIP-8.
 func (db *DB) Resolve(sha1 string, o Overrides) Resolved {
 	rom, _ := db.ROM(sha1)
 
 	id := DefaultPlatform
-	if rom != nil && len(rom.Platforms) > 0 {
-		id = rom.Platforms[0]
+	if candidates := romPlatforms(rom); len(candidates) > 0 {
+		id = candidates[0]
 
-		for _, p := range rom.Platforms {
+		for _, p := range candidates {
 			if cp, ok := chip8.ParsePlatform(p); ok && cp.Implemented() {
 				id = p
 
@@ -174,4 +180,17 @@ func (db *DB) Resolve(sha1 string, o Overrides) Resolved {
 	}
 
 	return Resolved{Profile: prof, PlatformID: id, ROM: rom}
+}
+
+// romPlatforms is the ROM's platforms, or, if it lists none, the platforms
+// its quirkyPlatforms name (sorted, so the choice is stable).
+func romPlatforms(rom *ROM) []string {
+	switch {
+	case rom == nil:
+		return nil
+	case len(rom.Platforms) > 0:
+		return rom.Platforms
+	}
+
+	return slices.Sorted(maps.Keys(rom.QuirkyPlatforms))
 }

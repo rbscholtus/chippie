@@ -217,3 +217,20 @@ func TestWithoutPatternPlaysTheSquareWave(t *testing.T) {
 		}
 	}
 }
+
+func TestBuzzerVolume(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct{ volume, want float64 }{
+		{1, Amplitude}, {0.5, Amplitude * 0.25}, {0, 0}, {-1, 0}, {2, Amplitude},
+	} {
+		var b Buzzer
+		b.SetVolume(tc.volume)
+		b.Set(true)
+
+		s := samples(&b, 1000)
+		if got := math.Abs(float64(s[len(s)-1])); math.Abs(got-tc.want) > 1e-6 {
+			t.Errorf("volume %v: peak %v, want %v", tc.volume, got, tc.want)
+		}
+	}
+}

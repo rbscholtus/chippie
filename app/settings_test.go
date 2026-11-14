@@ -203,3 +203,40 @@ func TestSettingsLegacySuperChip(t *testing.T) {
 		t.Error("legacy row missing after stepping the platform")
 	}
 }
+
+func TestSkinRow(t *testing.T) {
+	t.Parallel()
+
+	p := chip8.DefaultProfile(chip8.ModernChip8)
+	forPlatform := chip8.DefaultProfile
+
+	one := newSettings(p, p, forPlatform, false)
+	one.setSkins([]string{"Walnut console"}, 0)
+
+	if one.rows[0].kind == settingSkin {
+		t.Error("a TV row with only one skin")
+	}
+
+	s := newSettings(p, p, forPlatform, false)
+	s.setSkins([]string{"Walnut console", "Portable"}, 0)
+
+	if s.rows[0].kind != settingSkin || !s.steps(0) {
+		t.Fatalf("first row %v, want the TV row with steps", s.rows[0].kind)
+	}
+
+	if l := s.label(0); l.name != "TV" || l.value != "Walnut console" {
+		t.Errorf("label = %+v", l)
+	}
+
+	if eff := s.change(0, 1); eff != effectSkin || s.skin != 1 {
+		t.Errorf("step right: effect %v, skin %d", eff, s.skin)
+	}
+
+	if s.change(0, 1); s.skin != 0 {
+		t.Errorf("no wrap: skin %d", s.skin)
+	}
+
+	if s.change(0, -1); s.skin != 1 {
+		t.Errorf("step left: skin %d", s.skin)
+	}
+}

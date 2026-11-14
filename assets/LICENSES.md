@@ -19,6 +19,62 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 | `redOctober.ch8` | Red October V | Kesha | `e14350d3b19443e5ad2848172bef9719a8680b01` |
 | `anEveningToDieFor.ch8` | An Evening to Die For | John Earnest | `afd9fee7565c54970b6bd7758aa8aa7843dd2e86` |
 
+## TV artwork (`assets/tv/<skin>/`, shipped separately, not compiled in)
+
+**Licence: none needed; believed to be in the public domain.** The TV
+artwork was AI-generated using Google Gemini and is free to use and
+distribute. Because AI-generated images without substantial human
+authorship lack copyright under US law (and in many other jurisdictions),
+these images are believed to be in the public domain and are distributed
+here without copyright restrictions. Chippie's BSD 3-Clause licence covers
+its own code, not these images.
+
+- **Google's terms** (as reviewed in November 2026): Google does not claim
+  ownership of content generated with Gemini, and allows its use for
+  personal and commercial purposes, subject to Google's Prohibited Use
+  Policy. Using the images in this BSD 3-Clause project is consistent with
+  that.
+- **What was done to them** (`cmd/skin-gen`): cropping, scaling, masking,
+  blurring (the backdrop), cutting the controls out, and on the walnut
+  console erasing and redrawing the channel numbers. The crops leave out
+  Gemini's visible sparkle mark; Google's invisible SynthID watermark
+  remains in the pixels.
+
+### Walnut console (`assets/tv/classic/`)
+
+- **Generator:** Google Gemini image generation (the Gemini app), November
+  2026, from the cabinet prompt in README §12.3. Master:
+  `Gemini_Generated_Image_ixja8tixja8tixja.png` (2400×1792), kept outside the
+  repository in `assets/source/`.
+- **Made by `cmd/skin-gen`** from that master and `assets/tv/classic/recipe.json`: the
+  cabinet cropped (which leaves out Gemini's visible sparkle mark), its edges
+  faded into the background, and three sizes; the tube mask; and the control
+  sprites cut out of the same image. The channel dial's printed numbers were
+  garbled, so they are erased and redrawn in Go Medium (below).
+- The separately generated knob, dial and switch images in `assets/source/`
+  are not used.
+
+### Portable (`assets/tv/portable/`)
+
+- **Generator:** Google Gemini image generation (the Gemini app), November
+  2026, from the portable prompt in README §12.3. Master:
+  `Gemini_Generated_Image_j6ll0j6ll0j6ll0j.png` (2400×1792), kept outside the
+  repository in `assets/source/`.
+- **Made by `cmd/skin-gen`** from that master and
+  `assets/tv/portable/recipe.json`, as above; the crop leaves out the sparkle
+  mark. Its channel knob has no numbers, so none are drawn.
+
+### Slim walnut (`assets/tv/slim/`)
+
+- **Generator:** Google Gemini image generation (the Gemini app), November
+  2026, from the slim prompt in README §12.3. Master:
+  `Gemini_Generated_Image_56jp856jp856jp85.png` (2400×1792), kept outside the
+  repository in `assets/source/`.
+- **Made by `cmd/skin-gen`** from that master and
+  `assets/tv/slim/recipe.json`, as above; the crop leaves out the sparkle
+  mark. Its channel dial's tiny printed numbers were garbled, so they are
+  erased and redrawn in Go Medium.
+
 ## Timendus CHIP-8 test suite (shipped separately, not compiled in)
 
 The test ROMs from [Timendus/chip8-test-suite](https://github.com/Timendus/chip8-test-suite)
@@ -45,8 +101,8 @@ authors' `.DOC` notes, into `roms/hosted/` next to the app.
 ## Fonts
 
 - **Go fonts** (`golang.org/x/image/font/gofont`), BSD 3-Clause, by the Go
-  Authors and Bigelow & Holmes. Used for the M3 picker and messages; a
-  period font replaces them in M6.
+  Authors and Bigelow & Holmes. Used for the picker and messages, and Go
+  Medium for the channel dial's numbers (drawn into `assets/tv/classic/channel@*.png`).
 
 ## Game metadata (`catalogue/snapshot/`, compiled in)
 

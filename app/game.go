@@ -7,7 +7,7 @@ package app
 import (
 	"errors"
 	"fmt"
-	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -15,7 +15,9 @@ import (
 	"github.com/rbscholtus/chippie/app/crt"
 	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/app/roms"
+	"github.com/rbscholtus/chippie/app/skin"
 	"github.com/rbscholtus/chippie/app/sound"
+	"github.com/rbscholtus/chippie/assets"
 	"github.com/rbscholtus/chippie/catalogue"
 	"github.com/rbscholtus/chippie/chip8"
 	"github.com/rbscholtus/chippie/platform"
@@ -54,6 +56,11 @@ type Deps struct {
 	CachedROMs func() ([]string, error)
 	// Refresh, if set, delivers a newer catalogue in the background.
 	Refresh <-chan catalogue.RefreshResult
+	// Art, if set, reads the TV's images; without it only the picture shows.
+	Art ArtFetcher
+	// SkinFile, if set, rereads a skin's skin.json from its folder
+	// (natively, for F5 while calibrating).
+	SkinFile func(dir string) ([]byte, error)
 }
 
 // Game is the ebiten.Game.
@@ -71,6 +78,12 @@ type Game struct {
 	search   *textField
 	settings *settings
 	ui       *ui
+	tv       *tv
+	skins    []skinChoice
+	skin     int // index into skins
+	osd      *osd
+	remote   remote
+	grab     *grab // a control being turned
 
 	state        state
 	loading      <-chan romstore.Result
@@ -81,6 +94,8 @@ type Game struct {
 	power        float32
 	message      string
 	debug        bool
+	calibrate    bool
+	published    pageStatus // the status last given to the page
 
 	width, height int // layout size in real pixels
 	scale         float64
@@ -109,20 +124,32 @@ func New(d Deps) (*Game, error) {
 		return nil, err
 	}
 
+	t, skins, skinIdx, o, err := newTVParts(d, r)
+	if err != nil {
+		return nil, err
+	}
+
 	g := &Game{
-		Deps:     d,
-		machine:  chip8.New(chip8.DefaultProfile(chip8.ModernChip8)),
-		renderer: r,
-		picker:   newPicker(library.Build(d.Catalogue, d.Builtin.Offline()), platform.CanPickFiles()),
-		search:   newTextField("Search title, author, year or platform"),
-		ui:       u,
-		debug:    d.Params.Debug,
-		scale:    1,
-		ptr:      pointer{threshold: dragThreshold},
-		dropped:  make(chan platform.PickedFile, 1),
-		cached:   make(chan []string, 1),
+		Deps:      d,
+		machine:   chip8.New(chip8.DefaultProfile(chip8.ModernChip8)),
+		renderer:  r,
+		picker:    newPicker(library.Build(d.Catalogue, d.Builtin.Offline()), platform.CanPickFiles()),
+		search:    newTextField("Search title, author, year or platform"),
+		ui:        u,
+		tv:        t,
+		skins:     skins,
+		skin:      skinIdx,
+		osd:       o,
+		debug:     d.Params.Debug,
+		calibrate: d.Params.Calibrate,
+		scale:     1,
+		ptr:       pointer{threshold: dragThreshold},
+		dropped:   make(chan platform.PickedFile, 1),
+		cached:    make(chan []string, 1),
 	}
 	g.renderer.Update(g.machine.Display())
+	g.loadVolume()
+	g.ui.touch = platform.TouchScreen() // the remote shows from the start on phones
 
 	if d.CachedROMs != nil {
 		go func() {
@@ -144,6 +171,70 @@ func New(d Deps) (*Game, error) {
 	return g, nil
 }
 
+// skinChoice is one TV skin the user can pick.
+type skinChoice struct {
+	dir  string // its folder, under tv/
+	skin *skin.Skin
+}
+
+// skinPrefKey is where the chosen skin's folder is saved.
+const skinPrefKey = "skin"
+
+// loadSkins parses every embedded skin, the default first.
+func loadSkins() ([]skinChoice, error) {
+	files, err := assets.Skins()
+	if err != nil {
+		return nil, err //nolint:wrapcheck // says what failed
+	}
+
+	out := make([]skinChoice, 0, len(files))
+
+	for _, f := range files {
+		sk, err := skin.Parse(f.JSON)
+		if err != nil {
+			return nil, fmt.Errorf("TV skin %s: %w", f.Dir, err)
+		}
+
+		out = append(out, skinChoice{dir: f.Dir, skin: sk})
+	}
+
+	if len(out) == 0 {
+		return nil, fmt.Errorf("TV skins: %w", skin.ErrInvalid)
+	}
+
+	return out, nil
+}
+
+// savedSkin is the index of the skin saved in prefs, or the default's.
+func savedSkin(skins []skinChoice, prefs *platform.Prefs) int {
+	if dir, ok := prefs.Get(skinPrefKey); ok {
+		for i, s := range skins {
+			if s.dir == dir {
+				return i
+			}
+		}
+	}
+
+	return 0
+}
+
+// newTVParts builds the TV with the saved skin, and its on-screen display.
+func newTVParts(d Deps, r *crt.Renderer) (*tv, []skinChoice, int, *osd, error) {
+	skins, err := loadSkins()
+	if err != nil {
+		return nil, nil, 0, nil, err
+	}
+
+	o, err := newOSD(r)
+	if err != nil {
+		return nil, nil, 0, nil, fmt.Errorf("OSD font: %w", err)
+	}
+
+	i := savedSkin(skins, d.Prefs)
+
+	return newTV(skins[i].skin, skins[i].dir, d.Art), skins, i, o, nil
+}
+
 // Update runs one 60 Hz tick: input, background results, then at most one
 // emulated frame.
 func (g *Game) Update() error {
@@ -161,19 +252,27 @@ func (g *Game) Update() error {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		g.debug = !g.debug
-	}
-
+	g.functionKeys()
 	g.pollBackground()
 	g.checkDrops()
+
+	if g.tv.update() {
+		g.publishLayout() // the controls work now
+	}
+
+	g.remote.update()
+
+	wasOff := g.state == stateOff
+	if g.updateControls(in) {
+		in = pointerInput{touch: in.touch, pos: in.pos} // a control used it
+	}
 
 	var err error
 
 	switch g.state {
 	case stateOff:
-		if gesture {
-			g.openPicker()
+		if gesture && wasOff {
+			g.switchOn()
 			g.ptr.release(in.pos) // this press switched on; it doesn't pick
 		}
 	case statePicker:
@@ -187,6 +286,12 @@ func (g *Game) Update() error {
 	}
 
 	g.animatePower()
+	g.tv.controls.on = g.state != stateOff
+	g.osd.update()
+
+	if g.status() != g.published {
+		g.publishLayout()
+	}
 
 	return err
 }
@@ -212,29 +317,31 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return w, h
 }
 
-// screenRect is the largest 2:1 rectangle (the CHIP-8 picture's shape)
-// centred in the window, with a margin and room for a status line below.
-func screenRect(w, h int) image.Rectangle {
-	const (
-		margin    = 0.06
-		statusGap = 0.08
-		aspect    = 2
-	)
+// Draw draws the picture, the TV around it, the remote, then any overlay.
+func (g *Game) Draw(screen *ebiten.Image) {
+	c := g.tv.skin.Colour()
+	screen.Fill(color.RGBA{R: c[0], G: c[1], B: c[2], A: 0xFF})
+	g.tv.drawBackdrop(screen)
+	g.renderer.Draw(screen, uint64(ebiten.Tick())) //nolint:gosec // G115: Tick is never negative
+	g.tv.draw(screen)
+	g.remote.draw(screen, g.ui.face, g.keysHint())
+	g.ui.draw(screen, g)
 
-	availW := float64(w) * (1 - 2*margin)
-	availH := float64(h) * (1 - 2*margin - statusGap)
-
-	sw := min(availW, availH*aspect)
-	sh := sw / aspect
-	x := (float64(w) - sw) / 2
-	y := (float64(h) - sh) / 2 * (1 - statusGap)
-
-	return image.Rect(int(x), int(y), int(x+sw), int(y+sh))
+	if g.calibrate {
+		g.tv.drawCalibration(screen, g.minHit())
+	}
 }
 
-// Draw draws the picture, then any overlay.
-func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(roomColour)
-	g.renderer.Draw(screen, uint64(ebiten.Tick())) //nolint:gosec // G115: Tick is never negative
-	g.ui.draw(screen, g)
+// keysHint is the running game's keys from the database, as a bit per hex
+// key, for the remote to light up.
+func (g *Game) keysHint() uint16 {
+	var mask uint16
+
+	for _, hex := range g.current.Keys {
+		if hex >= 0 && hex < 16 {
+			mask |= 1 << hex
+		}
+	}
+
+	return mask
 }

@@ -1,0 +1,61 @@
+{
+  "name": "Slim walnut",
+  "width": 1586,
+  "height": 1222,
+  "background": "#dedddd",
+  "cabinet": "cabinet",
+  "mask": "cabinet-mask",
+  "backdrop": "backdrop.jpg",
+  "backdropRect": {
+    "x": -700,
+    "y": -700,
+    "w": 2986,
+    "h": 2622
+  },
+  "screen": {
+    "x": 100,
+    "y": 105,
+    "w": 1212,
+    "h": 993
+  },
+  "controls": [
+    {
+      "id": "channel",
+      "kind": "dial",
+      "image": "channel",
+      "cx": 1428,
+      "cy": 294,
+      "r": 56,
+      "steps": 13
+    },
+    {
+      "id": "volume",
+      "kind": "knob",
+      "image": "volume",
+      "cx": 1433,
+      "cy": 729,
+      "r": 33,
+      "minAngle": -135,
+      "maxAngle": 135
+    },
+    {
+      "id": "tint",
+      "kind": "knob",
+      "image": "tint",
+      "cx": 1433,
+      "cy": 841,
+      "r": 33,
+      "minAngle": -60,
+      "maxAngle": 60
+    },
+    {
+      "id": "power",
+      "kind": "rocker",
+      "image": "power",
+      "x": 1415,
+      "y": 955,
+      "w": 32,
+      "h": 60
+    }
+  ]
+}

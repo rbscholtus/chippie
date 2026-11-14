@@ -19,6 +19,9 @@ type Params struct {
 	TestROMs string
 	// Debug shows the TPS/FPS overlay from the start.
 	Debug bool
+	// Calibrate outlines the TV's controls and screen over the art, for
+	// checking skin.json (-calibrate natively, ?skin=debug in the browser).
+	Calibrate bool
 	// Base is the page's base URL ("" natively): relative download URLs,
 	// for ROMs Chippie hosts itself, resolve against it.
 	Base string

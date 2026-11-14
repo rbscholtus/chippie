@@ -69,10 +69,13 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 
+  // Settings rows: TV (with more than one skin), Platform, Speed, …
   await page.keyboard.press("F2");
   await page.waitForTimeout(300);
-  await page.keyboard.press("ArrowDown"); // Speed
-  await page.waitForTimeout(300);
+  for (let i = 0; i < 2; i++) {
+    await page.keyboard.press("ArrowDown"); // to Speed
+    await page.waitForTimeout(100);
+  }
   await page.keyboard.press("ArrowRight"); // 200 → 300
   await page.waitForTimeout(300);
   await page.keyboard.press("Escape");
@@ -87,7 +90,7 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
   await page.keyboard.press("F2");
   await page.waitForTimeout(300);
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     await page.keyboard.press("ArrowDown"); // to "Reset to recommended"
     await page.waitForTimeout(100);
   }

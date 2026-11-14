@@ -20,7 +20,6 @@ import (
 
 // Colours of the room and the overlays.
 var (
-	roomColour     = color.RGBA{R: 0x16, G: 0x13, B: 0x0F, A: 0xFF} //nolint:gochecknoglobals // read-only colour
 	panelColour    = color.RGBA{R: 0x10, G: 0x0E, B: 0x0B, A: 0xF0} //nolint:gochecknoglobals // read-only colour
 	selectedColour = color.RGBA{R: 0x2C, G: 0x26, B: 0x1E, A: 0xFF} //nolint:gochecknoglobals // read-only colour
 	inkColour      = color.RGBA{R: 0xEF, G: 0xE3, B: 0xCC, A: 0xFF} //nolint:gochecknoglobals // read-only colour
@@ -51,6 +50,7 @@ type ui struct {
 	monoSrc *text.GoTextFaceSource
 	scale   float64
 	touch   bool // a touch was seen: bigger rows, touch wording
+	light   bool // the background around the TV is light: dark status text
 
 	layout layout
 }
@@ -63,8 +63,9 @@ type layout struct {
 	list        image.Rectangle // the scrolling rows
 	content     image.Rectangle // below the search line, full width (settings)
 	details     image.Rectangle // the selected ROM, on wide screens; else empty
-	statusLeft  image.Rectangle // below the picture: tap for the ROM list
-	statusRight image.Rectangle // below the picture: tap for settings
+	below       image.Rectangle // the status lines under the TV
+	statusLeft  image.Rectangle // below the TV: tap for the ROM list
+	statusRight image.Rectangle // below the TV: tap for settings
 	rowH        float64
 }
 
@@ -87,18 +88,20 @@ func newUI() (*ui, error) {
 
 func (u *ui) lineHeight() float64 { return textSize * lineSpacing * u.scale }
 
-// resize lays out the overlays for a window and the picture's rectangle.
-func (u *ui) resize(window, screen image.Rectangle, scale float64) {
+// resize lays out the overlays for a window and the status lines' area
+// under the TV.
+func (u *ui) resize(window, below image.Rectangle, scale float64) {
 	u.scale = scale
 	u.face = &text.GoTextFace{Source: u.source, Size: textSize * scale}
 	u.mono = &text.GoTextFace{Source: u.monoSrc, Size: monoSize * scale}
-	u.layout = computeLayout(window, screen, scale, u.lineHeight(), u.touch)
+	u.layout = computeLayout(window, below, scale, u.lineHeight(), u.touch)
 }
 
 // computeLayout places the panel over the whole window, leaving a line at
 // the top (debug) and two at the bottom (status). Inside: the search field,
-// the list, and on wide screens a details pane beside the list.
-func computeLayout(window, screen image.Rectangle, scale, lineH float64, touch bool) layout {
+// the list, and on wide screens a details pane beside the list. The status
+// lines' tap areas (ROM list, settings) are the outer thirds of below.
+func computeLayout(window, below image.Rectangle, scale, lineH float64, touch bool) layout {
 	pad := int(panelPad * scale)
 	statusH := int(2 * lineH)
 
@@ -127,11 +130,12 @@ func computeLayout(window, screen image.Rectangle, scale, lineH float64, touch b
 		search.Max.X = split
 	}
 
-	third := window.Dx() / 3
-	status := image.Rect(window.Min.X, screen.Max.Y, window.Max.X, window.Max.Y)
+	third := below.Dx() / 3
+	status := below
 
 	return layout{
 		window:      window,
+		below:       below,
 		panel:       panel,
 		search:      search,
 		list:        list,
@@ -144,7 +148,7 @@ func computeLayout(window, screen image.Rectangle, scale, lineH float64, touch b
 }
 
 func (u *ui) draw(dst *ebiten.Image, g *Game) {
-	screen := g.renderer.Screen()
+	screen := g.renderer.Picture()
 
 	switch g.state {
 	case stateOff:
@@ -156,7 +160,8 @@ func (u *ui) draw(dst *ebiten.Image, g *Game) {
 	case stateLoading:
 		u.centred(dst, screen, "Tuning in "+g.loadingEntry.Title+"…", inkColour)
 	case stateRunning:
-		u.drawRunningStatus(dst, g, screen)
+		cab := g.tv.lay.cabinet
+		u.drawRunningStatus(dst, g, image.Rect(cab.Min.X, u.layout.below.Min.Y, cab.Max.X, u.layout.below.Max.Y))
 	}
 
 	if g.state == statePicker || g.state == stateSettings {
@@ -174,24 +179,48 @@ func (u *ui) draw(dst *ebiten.Image, g *Game) {
 	if g.debug {
 		msg := fmt.Sprintf("TPS %.0f  FPS %.0f  scale %.1f×  %d×%d",
 			ebiten.ActualTPS(), ebiten.ActualFPS(), g.scale, g.width, g.height)
+		if g.tv.artErr != nil {
+			msg += "  ·  TV art: " + g.tv.artErr.Error()
+		}
+
 		u.text(dst, msg, panelPad*u.scale, panelPad*u.scale/2, mutedColour)
 	}
 }
 
-// drawRunningStatus draws the line under the picture: "ROM list" on the
-// left, the title (or a message) in the middle, "Settings" on the right.
-func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, screen image.Rectangle) {
-	y := float64(screen.Max.Y) + u.lineHeight()/2
-	left, right := float64(screen.Min.X), float64(screen.Max.X)
+// textPalette is the colours of text drawn straight on the background.
+type textPalette struct{ ink, muted, accent, error color.RGBA }
 
-	u.text(dst, "< ROM list", left, y, accentColour)
+// statusPalette is dark ink on a light background (the studio around the
+// TV), else the overlays' light ink.
+func (u *ui) statusPalette() textPalette {
+	if u.light {
+		return textPalette{
+			ink:    color.RGBA{R: 0x2E, G: 0x27, B: 0x20, A: 0xFF},
+			muted:  color.RGBA{R: 0x5E, G: 0x53, B: 0x48, A: 0xFF},
+			accent: color.RGBA{R: 0x9A, G: 0x4A, B: 0x00, A: 0xFF},
+			error:  color.RGBA{R: 0xA3, G: 0x26, B: 0x1A, A: 0xFF},
+		}
+	}
+
+	return textPalette{ink: inkColour, muted: mutedColour, accent: accentColour, error: errorColour}
+}
+
+// drawRunningStatus draws the lines under the TV (in area): "ROM list" on
+// the left, the title (or a message) in the middle, "Settings" on the
+// right; then the game's keys.
+func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, area image.Rectangle) {
+	pal := u.statusPalette()
+	y := float64(area.Min.Y) + u.lineHeight()/2
+	left, right := float64(area.Min.X), float64(area.Max.X)
+
+	u.text(dst, "< ROM list", left, y, pal.accent)
 
 	w, _ := text.Measure("Settings >", u.face, 0)
-	u.text(dst, "Settings >", right-w, y, accentColour)
+	u.text(dst, "Settings >", right-w, y, pal.accent)
 
-	mid, col := g.current.Title, mutedColour
+	mid, col := g.current.Title, pal.muted
 	if g.message != "" {
-		mid, col = g.message, errorColour
+		mid, col = g.message, pal.error
 	}
 
 	lw, _ := text.Measure("< ROM list", u.face, 0)
@@ -214,11 +243,11 @@ func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, screen image.Rectangl
 	if keys := u.keysLine(g); keys != "" {
 		k := u.fit(keys, right-left)
 		kw, _ := text.Measure(k, u.face, 0)
-		u.text(dst, k, left+(right-left-kw)/2, y+u.lineHeight(), inkColour)
+		u.text(dst, k, left+(right-left-kw)/2, y+u.lineHeight(), pal.ink)
 	}
 
 	if g.message != "" && mid != g.message {
-		u.text(dst, u.fit(g.message, right-left), left, y+2*u.lineHeight(), errorColour)
+		u.text(dst, u.fit(g.message, right-left), left, y+2*u.lineHeight(), pal.error)
 	}
 }
 

@@ -40,8 +40,9 @@ func patternRate(pitch byte) float64 {
 // from the game loop while the audio goroutine reads.
 type Buzzer struct {
 	on    atomic.Bool
-	phase int     // sample position within one wave period
-	level float32 // current envelope level, 0..1
+	quiet atomic.Uint32 // float32 bits of 1 - volume, so the zero value is full volume
+	phase int           // sample position within one wave period
+	level float32       // current envelope level, 0..1
 
 	patternPos float64 // bit position within the pattern, kept across updates
 
@@ -65,6 +66,13 @@ func (b *Buzzer) SetPattern(has bool, pattern [PatternBytes]byte, pitch byte) {
 	b.step = patternRate(pitch) / SampleRate
 }
 
+// SetVolume sets the loudness, 0 (silent) to 1 (full). The knob's position
+// is squared, so equal turns sound like equal steps.
+func (b *Buzzer) SetVolume(v float64) {
+	v = min(max(v, 0), 1)
+	b.quiet.Store(math.Float32bits(float32(1 - v*v)))
+}
+
 // On reports whether the tone is switched on.
 func (b *Buzzer) On() bool { return b.on.Load() }
 
@@ -85,6 +93,7 @@ func (b *Buzzer) Read(p []byte) (int, error) {
 	b.mu.Unlock()
 
 	n := len(p) / bytesPerFrame * bytesPerFrame
+	gain := float32(Amplitude) * (1 - math.Float32frombits(b.quiet.Load()))
 
 	for i := 0; i < n; i += bytesPerFrame {
 		switch {
@@ -94,7 +103,7 @@ func (b *Buzzer) Read(p []byte) (int, error) {
 			b.level = max(target, b.level-step)
 		}
 
-		sample := float32(Amplitude) * b.level
+		sample := gain * b.level
 
 		if hasPattern {
 			bit := int(b.patternPos)

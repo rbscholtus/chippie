@@ -25,10 +25,11 @@ type KeySetter interface {
 	SetKey(key uint8, down bool)
 }
 
-// Poll reads the keyboard and sets every hex key's state.
-func Poll(m KeySetter) {
+// Poll reads the keyboard and sets every hex key's state. Keys in also
+// (bit n for hex key n, e.g. from the touch remote) count as held too.
+func Poll(m KeySetter, also uint16) {
 	for hex, k := range Keypad {
-		m.SetKey(uint8(hex), ebiten.IsKeyPressed(k))
+		m.SetKey(uint8(hex), ebiten.IsKeyPressed(k) || also&(1<<hex) != 0)
 	}
 }
 

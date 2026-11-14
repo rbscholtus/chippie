@@ -1,0 +1,15 @@
+{
+  "name": "Portable",
+  "source": "Gemini_Generated_Image_j6ll0j6ll0j6ll0j.png",
+  "crop": { "x": 392, "y": 80, "w": 1616, "h": 1642 },
+  "paintOut": [],
+  "screenSeed": { "x": 1200, "y": 884 },
+  "feather": 32,
+  "backdrop": { "pad": 700, "shrink": 8 },
+  "controls": [
+    { "id": "channel", "kind": "dial", "cx": 1200, "cy": 1540, "r": 72, "steps": 13 },
+    { "id": "volume", "kind": "knob", "cx": 1434, "cy": 1541, "r": 34, "minAngle": -135, "maxAngle": 135 },
+    { "id": "tint", "kind": "knob", "cx": 1580, "cy": 1541, "r": 34, "minAngle": -60, "maxAngle": 60 },
+    { "id": "power", "kind": "rocker", "x": 1702, "y": 1508, "w": 41, "h": 67 }
+  ]
+}

@@ -32,12 +32,13 @@ func ReadParams(_ []string) (Params, error) {
 	}
 
 	return Params{
-		ROM:      q.Get("rom"),
-		Platform: q.Get("platform"),
-		Shader:   shader,
-		TestROMs: tests.String(),
-		Debug:    q.Get("debug") == "1",
-		Base:     dir.String(),
+		ROM:       q.Get("rom"),
+		Platform:  q.Get("platform"),
+		Shader:    shader,
+		TestROMs:  tests.String(),
+		Debug:     q.Get("debug") == "1",
+		Calibrate: q.Get("skin") == "debug",
+		Base:      dir.String(),
 	}, nil
 }
 

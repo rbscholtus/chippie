@@ -23,6 +23,7 @@ func ReadParams(args []string) (Params, error) {
 	fs.StringVar(&p.Shader, "shader", ShaderCRT, "crt or clean")
 	fs.StringVar(&p.TestROMs, "testroms", defaultTestROMs, "directory with the test-suite ROMs")
 	fs.BoolVar(&p.Debug, "debug", false, "show the TPS/FPS overlay")
+	fs.BoolVar(&p.Calibrate, "calibrate", false, "outline the TV's controls (F3 toggles; F5 reloads skin.json)")
 
 	if err := fs.Parse(args); err != nil {
 		return Params{}, fmt.Errorf("parse flags: %w", err)

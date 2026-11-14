@@ -51,10 +51,13 @@ type Renderer struct {
 	phos [2]*ebiten.Image
 	cur  int // index of the current phosphor image
 
-	screen image.Rectangle
-	dirty  bool // a new emulated frame hasn't gone through the phosphor yet
+	screen  image.Rectangle // the picture tube: the area the shader draws
+	picture image.Rectangle // the emulated picture within it; empty = all of it
+	overlay *ebiten.Image   // the on-screen display, screen-sized; may be nil
+	dirty   bool            // a new frame or overlay hasn't gone through the phosphor yet
 
 	upOpts      ebiten.DrawImageOptions
+	overOpts    ebiten.DrawImageOptions
 	phosOpts    ebiten.DrawRectShaderOptions
 	crtOpts     ebiten.DrawRectShaderOptions
 	tint        []float32
@@ -120,8 +123,37 @@ func (r *Renderer) SetScreen(rect image.Rectangle) {
 	r.dirty = true
 }
 
-// Screen returns where the picture is drawn.
+// Screen returns where the picture tube is drawn.
 func (r *Renderer) Screen() image.Rectangle { return r.screen }
+
+// SetPicture sets where the emulated picture goes, within the screen (in
+// destination pixels). The rest of the tube stays black, as on a real TV
+// showing a picture of another shape. Empty means the whole screen.
+func (r *Renderer) SetPicture(rect image.Rectangle) {
+	r.picture = rect
+	r.dirty = true
+}
+
+// Picture returns where the emulated picture is drawn.
+func (r *Renderer) Picture() image.Rectangle {
+	if r.picture.Empty() || !r.picture.In(r.screen) {
+		return r.screen
+	}
+
+	return r.picture
+}
+
+// SetOverlay sets an image drawn over the picture before the CRT effect, so
+// it glows and curves with it: the on-screen display. It must be the
+// screen's size. Call Redraw after changing its contents.
+func (r *Renderer) SetOverlay(img *ebiten.Image) {
+	r.overlay = img
+	r.dirty = true
+}
+
+// Redraw makes the next Draw pick up a changed overlay, even while no new
+// frames arrive.
+func (r *Renderer) Redraw() { r.dirty = true }
 
 // Update copies a new emulated frame into the texture. Call it once per
 // RunFrame.
@@ -166,14 +198,21 @@ func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 		return
 	}
 
-	sx := float64(r.screen.Dx()) / float64(r.frameWidth)
-	sy := float64(r.screen.Dy()) / float64(r.frameHeight)
+	pic := r.Picture()
+	sx := float64(pic.Dx()) / float64(r.frameWidth)
+	sy := float64(pic.Dy()) / float64(r.frameHeight)
 
 	if r.dirty {
-		r.up.Clear()
+		r.up.Fill(r.palette[0]) // the whole tube shows the game's background
 		r.upOpts.GeoM.Reset()
 		r.upOpts.GeoM.Scale(sx, sy)
+		r.upOpts.GeoM.Translate(float64(pic.Min.X-r.screen.Min.X), float64(pic.Min.Y-r.screen.Min.Y))
 		r.up.DrawImage(r.fb, &r.upOpts)
+
+		if r.overlay != nil {
+			r.overOpts.GeoM.Reset()
+			r.up.DrawImage(r.overlay, &r.overOpts)
+		}
 
 		// Phosphor: new glow = max(current picture, previous glow × decay).
 		prev := r.phos[r.cur]
@@ -191,10 +230,22 @@ func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 	dst.DrawRectShader(r.screen.Dx(), r.screen.Dy(), r.crt, &r.crtOpts)
 }
 
-// drawClean draws the plain picture with nearest-neighbour scaling.
+// drawClean draws the plain picture with nearest-neighbour scaling, on a
+// black tube, with the overlay on top.
 func (r *Renderer) drawClean(dst *ebiten.Image) {
+	if tube, ok := dst.SubImage(r.screen).(*ebiten.Image); ok {
+		tube.Fill(r.palette[0])
+	}
+
+	pic := r.Picture()
 	r.upOpts.GeoM.Reset()
-	r.upOpts.GeoM.Scale(float64(r.screen.Dx())/float64(r.frameWidth), float64(r.screen.Dy())/float64(r.frameHeight))
-	r.upOpts.GeoM.Translate(float64(r.screen.Min.X), float64(r.screen.Min.Y))
+	r.upOpts.GeoM.Scale(float64(pic.Dx())/float64(r.frameWidth), float64(pic.Dy())/float64(r.frameHeight))
+	r.upOpts.GeoM.Translate(float64(pic.Min.X), float64(pic.Min.Y))
 	dst.DrawImage(r.fb, &r.upOpts)
+
+	if r.overlay != nil {
+		r.overOpts.GeoM.Reset()
+		r.overOpts.GeoM.Translate(float64(r.screen.Min.X), float64(r.screen.Min.Y))
+		dst.DrawImage(r.overlay, &r.overOpts)
+	}
 }

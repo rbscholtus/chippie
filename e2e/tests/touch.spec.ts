@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
-  golden, gridText, offline, pickerSearchY, rowCentre, running, sampleScreen, touchDrag, touchTap, waitForApp,
+  appLayout, centre, golden, gridText, offline, pickerSearchY, rowCentre, running, sampleScreen, touchDrag, touchTap,
+  waitForApp,
 } from "./screen";
 
 // Phone only: touch input through the DevTools protocol (Chromium).
@@ -42,15 +43,33 @@ test("tapping under the picture opens the list or the settings", async ({ page }
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 
-  const vp = page.viewportSize()!;
-  await touchTap(page, 30, vp.height - 40); // left: ROM list
+  let l = await appLayout(page);
+  await touchTap(page, ...centre(l.library, l.scale)); // left: ROM list
   await page.waitForTimeout(500);
   expect(gridText(await sampleScreen(page))).toContain("?");
 
   await page.goto("/?rom=game/glitchGhost&shader=clean");
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
-  await touchTap(page, vp.width - 30, vp.height - 40); // right: settings
+  l = await appLayout(page);
+  await touchTap(page, ...centre(l.settings, l.scale)); // right: settings
   await page.waitForTimeout(500);
   expect(gridText(await sampleScreen(page))).toContain("?");
+});
+
+test("the remote shows on a touch screen and presses keypad keys", async ({ page }) => {
+  await page.goto("/?rom=test/6-keypad&shader=clean");
+  await waitForApp(page);
+  await expect.poll(async () => (await appLayout(page)).remote !== undefined, { intervals: [500] }).toBe(true);
+  await page.waitForTimeout(1000); // the test's menu is drawn
+
+  const before = gridText(await sampleScreen(page));
+  const l = await appLayout(page);
+  const [x, y] = l.remote!["1"]; // "1": the FX0A test
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x / l.scale, y: y / l.scale }] });
+  await page.waitForTimeout(300);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  await expect.poll(async () => gridText(await sampleScreen(page)), { intervals: [500] }).not.toBe(before);
 });

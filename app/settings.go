@@ -18,6 +18,7 @@ const (
 	settingTrace
 	settingCopyTrace
 	settingBack
+	settingSkin // the TV skin; not per ROM, shown only with more than one
 )
 
 // settingRow is one line of the settings panel.
@@ -61,6 +62,7 @@ const (
 	effectTrace                 // tracing was switched on or off
 	effectCopy                  // copy the trace to the clipboard
 	effectClose                 // close the panel
+	effectSkin                  // switch the TV skin
 )
 
 // settings is the panel's state for the running ROM. It holds no
@@ -72,6 +74,15 @@ type settings struct {
 	own         chip8.Profile                      // the ROM's recommended profile
 	forPlatform func(chip8.Platform) chip8.Profile // recommended on another platform
 	trace       bool
+	skins       []string // the skins' names, for the TV row
+	skin        int      // index into skins
+}
+
+// setSkins offers the TV skins (by name), cur being the one shown. With
+// fewer than two there is no TV row.
+func (s *settings) setSkins(names []string, cur int) {
+	s.skins, s.skin = names, cur
+	s.buildRows()
 }
 
 // newSettings opens the panel. own is the ROM's recommended profile;
@@ -86,6 +97,11 @@ func newSettings(current, own chip8.Profile, forPlatform func(chip8.Platform) ch
 
 func (s *settings) buildRows() {
 	s.rows = s.rows[:0]
+
+	if len(s.skins) > 1 {
+		s.rows = append(s.rows, settingRow{kind: settingSkin})
+	}
+
 	s.rows = append(s.rows, settingRow{kind: settingPlatform}, settingRow{kind: settingSpeed})
 
 	for i, q := range quirkSettings {
@@ -121,6 +137,10 @@ func (s *settings) change(i, dir int) settingEffect {
 	row := s.rows[i]
 
 	switch row.kind {
+	case settingSkin:
+		s.stepSkin(dir)
+
+		return effectSkin
 	case settingPlatform:
 		next := stepPlatform(s.profile.Platform, dir)
 		if next == s.profile.Platform {
@@ -168,6 +188,17 @@ func (s *settings) change(i, dir int) settingEffect {
 	}
 }
 
+// stepSkin moves the TV row to the next (dir ≥ 0) or previous skin,
+// wrapping.
+func (s *settings) stepSkin(dir int) {
+	step := 1
+	if dir < 0 {
+		step = -1
+	}
+
+	s.skin = ((s.skin+step)%len(s.skins) + len(s.skins)) % len(s.skins)
+}
+
 // settingLabel is how a row is shown: its name and value, and whether the
 // value differs from the recommendation.
 type settingLabel struct {
@@ -185,6 +216,8 @@ func (s *settings) label(i int) settingLabel {
 	}
 
 	switch row.kind {
+	case settingSkin:
+		return settingLabel{"TV", s.skins[s.skin], false}
 	case settingPlatform:
 		return settingLabel{"Platform", s.profile.Platform.Name(), s.profile.Platform != s.own.Platform}
 	case settingSpeed:
@@ -209,9 +242,15 @@ func (s *settings) label(i int) settingLabel {
 	}
 }
 
-// steps reports whether a row takes left/right steps (platform, speed).
+// steps reports whether a row takes left/right steps (TV, platform, speed).
 func (s *settings) steps(i int) bool {
-	return i >= 0 && i < len(s.rows) && (s.rows[i].kind == settingPlatform || s.rows[i].kind == settingSpeed)
+	if i < 0 || i >= len(s.rows) {
+		return false
+	}
+
+	k := s.rows[i].kind
+
+	return k == settingPlatform || k == settingSpeed || k == settingSkin
 }
 
 func onOff(b bool) string {

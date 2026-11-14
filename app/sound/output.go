@@ -50,3 +50,6 @@ func (o *Output) SetPattern(has bool, pattern [PatternBytes]byte, pitch byte) {
 // SetBuzzer switches the tone on or off. It works before Start too; the
 // tone is simply not heard yet.
 func (o *Output) SetBuzzer(on bool) { o.buzzer.Set(on) }
+
+// SetVolume sets the loudness, 0 to 1 (see [Buzzer.SetVolume]).
+func (o *Output) SetVolume(v float64) { o.buzzer.SetVolume(v) }

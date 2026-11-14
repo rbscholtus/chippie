@@ -1,0 +1,20 @@
+{
+  "name": "Slim walnut",
+  "source": "Gemini_Generated_Image_56jp856jp856jp85.png",
+  "crop": { "x": 407, "y": 297, "w": 1586, "h": 1222 },
+  "paintOut": [],
+  "screenSeed": { "x": 1112, "y": 898 },
+  "feather": 32,
+  "backdrop": { "pad": 700, "shrink": 8 },
+  "controls": [
+    {
+      "id": "channel", "kind": "dial", "cx": 1835, "cy": 591, "r": 56, "steps": 13,
+      "erase": { "inner": 44, "outer": 54, "keep": [] },
+      "labels": ["U", "2", "3", "4", "5", "6.", "7", "8", "9.", "10", "11", "12", "13"],
+      "labelRadius": 49, "labelSize": 8, "labelColour": "#d8d2c4"
+    },
+    { "id": "volume", "kind": "knob", "cx": 1840, "cy": 1026, "r": 33, "minAngle": -135, "maxAngle": 135 },
+    { "id": "tint", "kind": "knob", "cx": 1840, "cy": 1138, "r": 33, "minAngle": -60, "maxAngle": 60 },
+    { "id": "power", "kind": "rocker", "x": 1822, "y": 1252, "w": 32, "h": 60 }
+  ]
+}
