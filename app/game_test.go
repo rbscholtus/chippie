@@ -1,11 +1,14 @@
 package app
 
 import (
+	"fmt"
 	"image"
 	"strings"
 	"testing"
 
 	"github.com/rbscholtus/chippie/app/library"
+	"github.com/rbscholtus/chippie/app/skin"
+	"github.com/rbscholtus/chippie/assets"
 	"github.com/rbscholtus/chippie/chip8"
 )
 
@@ -233,8 +236,8 @@ func TestLayoutFitsPhones(t *testing.T) {
 
 	for _, sz := range sizes {
 		window := image.Rect(0, 0, sz.w, sz.h)
-		screen := screenRect(sz.w, sz.h)
-		l := computeLayout(window, screen, sz.scale, textSize*lineSpacing*sz.scale, true)
+		below := testTV(t, window, sz.scale, true).below
+		l := computeLayout(window, below, sz.scale, textSize*lineSpacing*sz.scale, true)
 
 		if !l.list.In(l.panel) || !l.search.In(l.panel) || !l.panel.In(window) ||
 			!l.statusLeft.In(window) || !l.statusRight.In(window) || l.statusLeft.Overlaps(l.statusRight) {
@@ -253,13 +256,17 @@ func TestLayoutFitsPhones(t *testing.T) {
 
 	// In portrait on an iPhone, at least ten rows are visible at once, and
 	// the details pane is left out (too narrow).
-	l := computeLayout(image.Rect(0, 0, 1179, 1977), screenRect(1179, 1977), 3, textSize*lineSpacing*3, true)
+	phone := image.Rect(0, 0, 1179, 1977)
+
+	l := computeLayout(phone, testTV(t, phone, 3, true).below, 3, textSize*lineSpacing*3, true)
 	if rows := float64(l.list.Dy()) / l.rowH; rows < 10 || !l.details.Empty() {
 		t.Errorf("portrait iPhone: %.1f rows, details %v", rows, l.details)
 	}
 
 	// A desktop window is wide enough for the details pane beside the list.
-	d := computeLayout(image.Rect(0, 0, 2048, 1280), screenRect(2048, 1280), 2, textSize*lineSpacing*2, false)
+	desk := image.Rect(0, 0, 2048, 1280)
+
+	d := computeLayout(desk, testTV(t, desk, 2, false).below, 2, textSize*lineSpacing*2, false)
 	if d.details.Empty() || d.details.Overlaps(d.list) || d.details.Min.X < d.list.Max.X {
 		t.Errorf("desktop: list %v, details %v", d.list, d.details)
 	}
@@ -288,22 +295,62 @@ func TestShouldRun(t *testing.T) {
 	}
 }
 
-func TestScreenRect(t *testing.T) {
+// testTV lays out the real skin in a window.
+func testTV(t *testing.T, window image.Rectangle, scale float64, remote bool) tvLayout {
+	t.Helper()
+
+	sk, err := skin.Parse(assets.Skin)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return computeTV(sk, window, scale, textSize*lineSpacing*scale, remote)
+}
+
+func TestComputeTV(t *testing.T) {
 	t.Parallel()
 
-	for _, size := range []image.Point{{1024, 640}, {780, 1688}, {2560, 1440}, {300, 300}} {
-		r := screenRect(size.X, size.Y)
+	for _, tc := range []struct {
+		w, h   int
+		scale  float64
+		remote bool
+	}{
+		{1024, 640, 1, false},
+		{2560, 1440, 2, false},
+		{300, 300, 1, false},
+		{1179, 1977, 3, true},
+		{780, 1688, 2, true},
+		{2556, 1029, 3, true},
+		{1179, 1977, 3, false},
+	} {
+		window := image.Rect(0, 0, tc.w, tc.h)
+		l := testTV(t, window, tc.scale, tc.remote)
+		name := fmt.Sprintf("%dx%d remote=%v", tc.w, tc.h, tc.remote)
 
-		if !r.In(image.Rect(0, 0, size.X, size.Y)) || r.Empty() {
-			t.Errorf("%v: rect %v outside the window", size, r)
+		if !l.cabinet.In(window) || !l.tube.In(l.cabinet) || !l.picture.In(l.tube) || l.picture.Empty() {
+			t.Errorf("%s: cabinet %v, tube %v, picture %v don't nest in the window", name, l.cabinet, l.tube, l.picture)
 		}
 
-		if ratio := float64(r.Dx()) / float64(r.Dy()); ratio < 1.98 || ratio > 2.02 {
-			t.Errorf("%v: aspect %.3f, want 2", size, ratio)
+		if ratio := float64(l.picture.Dx()) / float64(l.picture.Dy()); ratio < 1.98 || ratio > 2.02 {
+			t.Errorf("%s: picture aspect %.3f, want 2", name, ratio)
 		}
 
-		if cx := r.Min.X + r.Dx()/2; cx < size.X/2-1 || cx > size.X/2+1 {
-			t.Errorf("%v: not centred horizontally (centre %d)", size, cx)
+		if l.below.Min.Y != l.cabinet.Max.Y || l.below.Max.Y > tc.h {
+			t.Errorf("%s: status %v not right under the TV %v", name, l.below, l.cabinet)
+		}
+
+		if tc.remote != !l.remote.Empty() || l.remote.Overlaps(l.cabinet) || l.remote.Overlaps(l.below) {
+			t.Errorf("%s: remote %v (TV %v, status %v)", name, l.remote, l.cabinet, l.below)
+		}
+
+		if tc.remote && tc.h > tc.w && min(l.remote.Dx(), l.remote.Dy())/4 < int(remoteMinKey*tc.scale) {
+			t.Errorf("%s: remote %v leaves keys under %d pt", name, l.remote, remoteMinKey)
+		}
+
+		// Cabinet pixels map back and forth.
+		x, y := l.toCabinet(l.cabinet.Max)
+		if bx, by := l.fromCabinet(x, y); int(bx+0.5) != l.cabinet.Max.X || int(by+0.5) != l.cabinet.Max.Y {
+			t.Errorf("%s: toCabinet/fromCabinet don't round-trip", name)
 		}
 	}
 }

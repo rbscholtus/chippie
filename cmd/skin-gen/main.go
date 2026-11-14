@@ -38,18 +38,27 @@ import (
 	"github.com/rbscholtus/chippie/app/skin"
 )
 
-const jpegQuality = 85
+const (
+	jpegQuality  = 85
+	backdropFile = "backdrop.jpg" // one size: it's blurred anyway
+)
 
 var errRecipe = errors.New("skin-gen: bad recipe")
 
 // recipe is assets/tv/recipe.json, in the master image's pixels.
 type recipe struct {
-	Source     string       `json:"source"`
-	Crop       rectJSON     `json:"crop"`
-	PaintOut   []rectJSON   `json:"paintOut"`
-	ScreenSeed pointJSON    `json:"screenSeed"`
-	Feather    int          `json:"feather"`
-	Controls   []controlRec `json:"controls"`
+	Source     string     `json:"source"`
+	Crop       rectJSON   `json:"crop"`
+	PaintOut   []rectJSON `json:"paintOut"`
+	ScreenSeed pointJSON  `json:"screenSeed"`
+	Feather    int        `json:"feather"`
+	// Backdrop is how far the backdrop reaches beyond the crop, and how
+	// much it is shrunk.
+	Backdrop struct {
+		Pad    int `json:"pad"`
+		Shrink int `json:"shrink"`
+	} `json:"backdrop"`
+	Controls []controlRec `json:"controls"`
 }
 
 type rectJSON struct {
@@ -107,10 +116,11 @@ func main() {
 
 // outputs are everything skin-gen writes, at @3x.
 type outputs struct {
-	skin    skin.Skin
-	cabinet *image.NRGBA
-	mask    *image.Gray
-	sprites map[string]*image.NRGBA
+	skin     skin.Skin
+	cabinet  *image.NRGBA
+	mask     *image.Gray
+	backdrop *image.NRGBA
+	sprites  map[string]*image.NRGBA
 }
 
 func run(srcDir, dir, preview string, angle float64) error {
@@ -161,12 +171,23 @@ func build(rc *recipe, master *image.NRGBA) (outputs, error) {
 		sprites: map[string]*image.NRGBA{},
 	}
 	fill := borderColour(out.cabinet)
-	fadeEdges(out.cabinet, fill, rc.Feather)
+	fadeMask(out.mask, rc.Feather)
+
+	pad, shrink := rc.Backdrop.Pad, rc.Backdrop.Shrink
+	if pad <= 0 || shrink <= 0 {
+		return outputs{}, fmt.Errorf("%w: backdrop pad and shrink must be positive", errRecipe)
+	}
+
+	out.backdrop = makeBackdrop(master, crop, pad, shrink, fill)
 
 	out.skin = skin.Skin{
 		Width: float64(crop.Dx()), Height: float64(crop.Dy()),
 		Background: fmt.Sprintf("#%02x%02x%02x", fill.R, fill.G, fill.B),
 		Cabinet:    "cabinet", Mask: "cabinet-mask",
+		Backdrop: backdropFile,
+		BackdropRect: skin.Rect{
+			X: float64(-pad), Y: float64(-pad), W: float64(crop.Dx() + 2*pad), H: float64(crop.Dy() + 2*pad),
+		},
 		Screen: skin.Rect{
 			X: float64(tube.Min.X - crop.Min.X), Y: float64(tube.Min.Y - crop.Min.Y),
 			W: float64(tube.Dx()), H: float64(tube.Dy()),
@@ -248,6 +269,12 @@ func toGray(m *image.Gray, crop image.Rectangle) *image.Gray {
 // writeScaled writes every image at @1x, @2x and @3x.
 func writeScaled(dir string, out *outputs) error {
 	w, h := out.cabinet.Bounds().Dx(), out.cabinet.Bounds().Dy()
+
+	if err := writeFile(filepath.Join(dir, backdropFile), func(f *os.File) error {
+		return jpeg.Encode(f, out.backdrop, &jpeg.Options{Quality: jpegQuality})
+	}); err != nil {
+		return err
+	}
 
 	for n := 1; n <= skin.MaxScale; n++ {
 		size := func(v int) int { return int(math.Round(float64(v*n) / skin.MaxScale)) }

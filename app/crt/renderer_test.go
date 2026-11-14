@@ -57,3 +57,32 @@ func TestSetScreenIgnoresEmpty(t *testing.T) {
 		t.Errorf("Screen() = %v, want %v", r.Screen(), want)
 	}
 }
+
+func TestPictureFallsBackToScreen(t *testing.T) {
+	t.Parallel()
+
+	r, err := New(ModeClean)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tube := image.Rect(0, 0, 200, 160)
+	r.SetScreen(tube)
+
+	if r.Picture() != tube {
+		t.Errorf("no picture set: Picture() = %v, want the screen", r.Picture())
+	}
+
+	pic := image.Rect(10, 30, 190, 120)
+	r.SetPicture(pic)
+
+	if r.Picture() != pic {
+		t.Errorf("Picture() = %v, want %v", r.Picture(), pic)
+	}
+
+	r.SetPicture(image.Rect(-10, 0, 100, 50)) // sticks out of the tube
+
+	if r.Picture() != tube {
+		t.Errorf("picture outside the tube: Picture() = %v, want the screen", r.Picture())
+	}
+}

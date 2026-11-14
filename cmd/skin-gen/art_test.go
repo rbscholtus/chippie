@@ -73,26 +73,49 @@ func TestTubeMask(t *testing.T) {
 	}
 }
 
-func TestFadeEdges(t *testing.T) {
+func TestFadeMask(t *testing.T) {
 	t.Parallel()
 
-	m := filled(40, 40, black)
-	fadeEdges(m, white, 10)
-
-	if c := m.NRGBAAt(0, 20); c != white {
-		t.Errorf("edge = %v, want the fill", c)
+	m := image.NewGray(image.Rect(0, 0, 40, 40))
+	for i := range m.Pix {
+		m.Pix[i] = 0xFF
 	}
 
-	if c := m.NRGBAAt(20, 20); c != black {
-		t.Errorf("middle = %v, want unchanged", c)
+	fadeMask(m, 10)
+
+	if y := m.GrayAt(0, 20).Y; y != 0 {
+		t.Errorf("edge = %d, want transparent", y)
 	}
 
-	if c := m.NRGBAAt(5, 20); c.R <= black.R || c.R >= white.R {
-		t.Errorf("halfway = %v, want a blend", c)
+	if y := m.GrayAt(20, 20).Y; y != 0xFF {
+		t.Errorf("middle = %d, want opaque", y)
+	}
+
+	if y := m.GrayAt(5, 20).Y; y == 0 || y == 0xFF {
+		t.Errorf("halfway = %d, want between", y)
 	}
 
 	if c := borderColour(filled(5, 5, grey)); c != grey {
 		t.Errorf("borderColour = %v", c)
+	}
+}
+
+func TestBackdrop(t *testing.T) {
+	t.Parallel()
+
+	master := filled(100, 80, black)
+	b := makeBackdrop(master, image.Rect(20, 20, 80, 60), 40, 4, white)
+
+	if b.Bounds() != image.Rect(0, 0, 35, 30) {
+		t.Fatalf("bounds = %v", b.Bounds())
+	}
+
+	if c := b.NRGBAAt(17, 15); c.R > 40 {
+		t.Errorf("centre = %v, want the master's colour", c)
+	}
+
+	if c := b.NRGBAAt(0, 0); c.R < 220 {
+		t.Errorf("corner = %v, want the fill", c)
 	}
 }
 

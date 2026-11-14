@@ -5,6 +5,7 @@
 #   roms/test-suite/        the Timendus test ROMs (GPLv3), shipped as
 #                           separate files with their licence, never compiled in
 #   roms/hosted/            the ROMs only on Zophar or David Winter's page, with attribution
+#   tv/                     the TV artwork in three sizes (cmd/skin-gen), fetched at runtime
 #
 # Serve it with:  cd web/dist && python3 -m http.server 8080
 set -euo pipefail
@@ -19,7 +20,7 @@ if [ ! -f "$suite/bin/1-chip8-logo.ch8" ]; then
 fi
 
 rm -rf "$out"
-mkdir -p "$out/roms/test-suite" "$out/roms/hosted"
+mkdir -p "$out/roms/test-suite" "$out/roms/hosted" "$out/tv"
 
 GOOS=js GOARCH=wasm go build -trimpath -ldflags="-s -w" -o "$out/chippie.wasm" ./cmd/chippie
 gzip -9 -n -c "$out/chippie.wasm" > "$out/chippie-gz.wasm"
@@ -46,5 +47,6 @@ These files are distributed unmodified, separately from Chippie.
 TXT
 
 cp web/hosted-roms/* "$out/roms/hosted/"
+cp assets/tv/*@[123]x.* assets/tv/backdrop.jpg "$out/tv/"
 
 echo "built $out: chippie-gz.wasm $((gz_size / 1024)) KB"

@@ -2,17 +2,33 @@ import { readFileSync } from "node:fs";
 import { Page, expect } from "@playwright/test";
 import { PNG } from "pngjs";
 
-// Same as screenRect in app/game.go: the largest 2:1 rectangle centred in
-// the canvas, with a margin and room for the status line.
-export function screenRect(w: number, h: number) {
-  const margin = 0.06, statusGap = 0.08, aspect = 2;
-  const availW = w * (1 - 2 * margin);
-  const availH = h * (1 - 2 * margin - statusGap);
-  const sw = Math.min(availW, availH * aspect);
-  const sh = sw / aspect;
-  const x = (w - sw) / 2;
-  const y = ((h - sh) / 2) * (1 - statusGap);
-  return { x: Math.trunc(x), y: Math.trunc(y), w: Math.trunc(x + sw) - Math.trunc(x), h: Math.trunc(y + sh) - Math.trunc(y) };
+// The app's layout and status, as it publishes them (app/game_flow.go
+// publishLayout), in real (device) pixels: [x, y, w, h] and [x, y].
+export type Box = [number, number, number, number];
+export type AppLayout = {
+  scale: number;
+  art: boolean;
+  cabinet: Box;
+  tube: Box;
+  picture: Box;
+  library: Box;
+  settings: Box;
+  controls: Record<string, [number, number]>;
+  remote?: Record<string, [number, number]>;
+  status: { state: number; title: string; channel: number; volume: number; tint: number; speed: number };
+};
+
+// The app's states (app/game.go).
+export const stateOff = 0, stateRunning = 4;
+
+export async function appLayout(page: Page): Promise<AppLayout> {
+  const json = await page.evaluate(() => (window as any).chippieLayout);
+  return JSON.parse(json);
+}
+
+// The centre of a box, in CSS pixels (for clicks and taps).
+export function centre(b: Box, scale: number): [number, number] {
+  return [(b[0] + b[2] / 2) / scale, (b[1] + b[3] / 2) / scale];
 }
 
 // A sampled CHIP-8 frame: the colour at the centre of each emulated pixel.
@@ -20,7 +36,8 @@ export type Grid = { cols: number; rows: number; rgb: [number, number, number][]
 
 export async function sampleScreen(page: Page, cols = 64, rows = 32): Promise<Grid> {
   const png = PNG.sync.read(await page.screenshot());
-  const r = screenRect(png.width, png.height);
+  const [x0, y0, w, h] = (await appLayout(page)).picture;
+  const r = { x: x0, y: y0, w, h };
   const rgb: [number, number, number][] = [];
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {

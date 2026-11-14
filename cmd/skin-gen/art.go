@@ -20,9 +20,10 @@ import (
 
 // Image thresholds: luminance (0–255) and distances in pixels.
 const (
-	tubeDark  = 40  // the switched-off picture tube is at most this bright
-	maskErode = 2   // pixels the tube mask is shrunk by, so no bezel shows
-	ringBlend = 2.0 // pixels over which an erased ring blends into its edges
+	tubeDark     = 40  // the switched-off picture tube is at most this bright
+	maskErode    = 2   // pixels the tube mask is shrunk by, so no bezel shows
+	ringBlend    = 2.0 // pixels over which an erased ring blends into its edges
+	backdropBlur = 2   // backdrop pixels of blur radius
 )
 
 func lum(c color.NRGBA) int { return (int(c.R)*3 + int(c.G)*6 + int(c.B)) / 10 }
@@ -132,9 +133,9 @@ func erode(in []bool, w, h int) []bool {
 	return out
 }
 
-// fadeEdges blends the outer feather pixels of m into fill, so the cut-out
-// cabinet meets a flat page background without a seam.
-func fadeEdges(m *image.NRGBA, fill color.NRGBA, feather int) {
+// fadeMask makes the outer feather pixels of a mask fade to transparent
+// (smoothly), so the cabinet's cut edges disappear into the backdrop.
+func fadeMask(m *image.Gray, feather int) {
 	b := m.Bounds()
 
 	for y := b.Min.Y; y < b.Max.Y; y++ {
@@ -144,9 +145,84 @@ func fadeEdges(m *image.NRGBA, fill color.NRGBA, feather int) {
 				continue
 			}
 
-			m.SetNRGBA(x, y, mix(fill, m.NRGBAAt(x, y), float64(d)/float64(feather)))
+			t := float64(d) / float64(feather)
+			t = t * t * (3 - 2*t) // smoothstep
+			m.SetGray(x, y, color.Gray{Y: uint8(math.Round(float64(m.GrayAt(x, y).Y) * t))})
 		}
 	}
+}
+
+// makeBackdrop is a small, blurred picture of the studio behind the TV: the
+// master image around crop, extended by pad on every side (beyond the
+// master, its edge pixels continue), shrunk by shrink, and fading into fill
+// towards its outer edges. The app draws it behind the cabinet, so the
+// cabinet's faded edges meet the background they were cut from.
+func makeBackdrop(master *image.NRGBA, crop image.Rectangle, pad, shrink int, fill color.NRGBA) *image.NRGBA {
+	area := crop.Inset(-pad)
+	w, h := area.Dx()/shrink, area.Dy()/shrink
+	out := image.NewNRGBA(image.Rect(0, 0, w, h))
+	mb := master.Bounds()
+
+	for y := range h {
+		for x := range w {
+			var r, g, bl, n int
+
+			for dy := range shrink {
+				for dx := range shrink {
+					px := min(max(area.Min.X+x*shrink+dx, mb.Min.X), mb.Max.X-1)
+					py := min(max(area.Min.Y+y*shrink+dy, mb.Min.Y), mb.Max.Y-1)
+					c := master.NRGBAAt(px, py)
+					r, g, bl, n = r+int(c.R), g+int(c.G), bl+int(c.B), n+1
+				}
+			}
+
+			avg := func(sum int) uint8 { return uint8(sum / n) } //nolint:gosec // G115: an average of bytes
+			c := color.NRGBA{R: avg(r), G: avg(g), B: avg(bl), A: 0xFF}
+
+			// Distance outside the crop, as a share of the padding.
+			cx, cy := area.Min.X+x*shrink+shrink/2, area.Min.Y+y*shrink+shrink/2
+			dx := max(crop.Min.X-cx, cx-crop.Max.X, 0)
+			dy := max(crop.Min.Y-cy, cy-crop.Max.Y, 0)
+			t := min(math.Hypot(float64(dx), float64(dy))/float64(pad), 1)
+			out.SetNRGBA(x, y, mix(c, fill, t*t*(3-2*t)))
+		}
+	}
+
+	return boxBlur(out, backdropBlur)
+}
+
+// boxBlur blurs m with a (2r+1)² box, twice (close to a Gaussian).
+func boxBlur(m *image.NRGBA, r int) *image.NRGBA {
+	b := m.Bounds()
+
+	for range 2 {
+		next := image.NewNRGBA(b)
+
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			for x := b.Min.X; x < b.Max.X; x++ {
+				var sr, sg, sb, n int
+
+				for dy := -r; dy <= r; dy++ {
+					for dx := -r; dx <= r; dx++ {
+						p := image.Pt(x+dx, y+dy)
+						if !p.In(b) {
+							continue
+						}
+
+						c := m.NRGBAAt(p.X, p.Y)
+						sr, sg, sb, n = sr+int(c.R), sg+int(c.G), sb+int(c.B), n+1
+					}
+				}
+
+				avg := func(sum int) uint8 { return uint8(sum / n) } //nolint:gosec // G115: an average of bytes
+				next.SetNRGBA(x, y, color.NRGBA{R: avg(sr), G: avg(sg), B: avg(sb), A: 0xFF})
+			}
+		}
+
+		m = next
+	}
+
+	return m
 }
 
 // borderColour is the average colour of m's outermost pixels.

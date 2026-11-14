@@ -105,6 +105,11 @@ type Skin struct {
 	// tube shows through.
 	Cabinet string `json:"cabinet"`
 	Mask    string `json:"mask"`
+	// Backdrop is a small blurred image of the background around the
+	// cabinet, drawn behind it at BackdropRect (which reaches beyond the
+	// cabinet), so the cabinet's faded edges meet what they were cut from.
+	Backdrop     string `json:"backdrop"`
+	BackdropRect Rect   `json:"backdropRect"`
 	// Screen is the picture tube's bounding box; the mask gives its shape.
 	Screen   Rect      `json:"screen"`
 	Controls []Control `json:"controls"`

@@ -4,6 +4,7 @@
   "paintOut": [{ "x": 2228, "y": 1620, "w": 120, "h": 120 }],
   "screenSeed": { "x": 983, "y": 854 },
   "feather": 32,
+  "backdrop": { "pad": 700, "shrink": 8 },
   "controls": [
     {
       "id": "channel", "kind": "dial", "cx": 1907, "cy": 494, "r": 98, "steps": 13,

@@ -18,6 +18,7 @@ import (
 	"github.com/rbscholtus/chippie/app/input"
 	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/app/roms"
+	"github.com/rbscholtus/chippie/app/skin"
 	"github.com/rbscholtus/chippie/catalogue"
 	"github.com/rbscholtus/chippie/chip8"
 	"github.com/rbscholtus/chippie/platform"
@@ -118,9 +119,11 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 		return fmt.Errorf("%s: %w", e.Title, err)
 	}
 
-	g.renderer.SetPalette(g.paletteFor(e.SHA1))
+	g.loadTint(e.SHA1)
+	g.renderer.SetPalette(g.paletteWithTint(e.SHA1))
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
+	g.syncSpeedKnob()
 	g.message = ""
 	g.state = stateRunning
 	g.renderer.Update(g.machine.Display())
@@ -190,7 +193,7 @@ func (g *Game) runFrame() {
 		return
 	}
 
-	input.Poll(g.machine)
+	input.Poll(g.machine, g.remote.held)
 	g.machine.RunFrame()
 
 	snd := g.machine.Sound()
@@ -564,13 +567,143 @@ func (g *Game) animatePower() {
 	g.renderer.SetPower(g.power)
 }
 
-// relayout places the picture and the overlays for the current size.
+// functionKeys: F1 statistics, F3 calibration outlines, F5 (natively)
+// reload skin.json.
+func (g *Game) functionKeys() {
+	switch {
+	case inpututil.IsKeyJustPressed(ebiten.KeyF1):
+		g.debug = !g.debug
+	case inpututil.IsKeyJustPressed(ebiten.KeyF3):
+		g.calibrate = !g.calibrate
+	case inpututil.IsKeyJustPressed(ebiten.KeyF5) && g.SkinFile != nil:
+		g.reloadSkin()
+	}
+}
+
+// reloadSkin rereads skin.json, keeping the art and controls, so its
+// numbers can be tuned while looking at the outlines.
+func (g *Game) reloadSkin() {
+	data, err := g.SkinFile()
+	if err == nil {
+		var sk *skin.Skin
+		if sk, err = skin.Parse(data); err == nil {
+			g.tv.skin = sk
+			g.relayout()
+			g.message = "skin.json reloaded."
+
+			return
+		}
+	}
+
+	g.message = err.Error()
+}
+
+// switchOn switches the TV on: back to the game if there is one, else the
+// library.
+func (g *Game) switchOn() {
+	if g.hasROM {
+		g.state = stateRunning
+
+		return
+	}
+
+	g.openPicker()
+}
+
+// relayout places the TV, the picture, the remote and the overlays for the
+// current size.
 func (g *Game) relayout() {
-	screen := screenRect(g.width, g.height)
-	g.renderer.SetScreen(screen)
-	g.ui.resize(image.Rect(0, 0, g.width, g.height), screen, g.scale)
+	window := image.Rect(0, 0, g.width, g.height)
+	g.tv.relayout(window, g.scale, textSize*lineSpacing*g.scale, g.ui.touch)
+
+	bg := g.tv.skin.Colour()
+	g.ui.light = int(bg[0])*3+int(bg[1])*6+int(bg[2]) > 0xFF*10/2
+
+	l := g.tv.lay
+	g.renderer.SetScreen(l.tube)
+	g.renderer.SetPicture(l.picture)
+	g.osd.resize(l.tube)
+	g.remote.layout(l.remote)
+	g.ui.resize(window, l.below, g.scale)
 	g.picker.setView(float64(g.ui.layout.list.Dy()), g.ui.layout.rowH)
 	g.search.bounds, g.search.face, g.search.pad = g.ui.layout.search, g.ui.face, int(panelPad*g.scale/2)
+	g.publishLayout()
+}
+
+// pageLayout is what the browser tests read (window.chippieLayout), in
+// real pixels: [x, y, w, h] rectangles and [x, y] centres.
+type pageLayout struct {
+	Scale    float64           `json:"scale"`
+	Art      bool              `json:"art"` // the cabinet is drawn and the controls work
+	Cabinet  [4]int            `json:"cabinet"`
+	Tube     [4]int            `json:"tube"`
+	Picture  [4]int            `json:"picture"`
+	Library  [4]int            `json:"library"`  // tap: the ROM list
+	Settings [4]int            `json:"settings"` // tap: the settings panel
+	Controls map[string][2]int `json:"controls"`
+	Status   pageStatus        `json:"status"`
+	Remote   map[string][2]int `json:"remote,omitempty"` // hex key → centre
+}
+
+// pageStatus is what the TV is doing, for the browser tests. It is
+// comparable, so Update can tell cheaply whether to publish again.
+type pageStatus struct {
+	State   int     `json:"state"` // the state constant
+	Title   string  `json:"title"` // the game playing or tuning in
+	Channel int     `json:"channel"`
+	Volume  float64 `json:"volume"`
+	Tint    int     `json:"tint"`
+	Speed   int     `json:"speed"` // instructions per frame
+}
+
+// status is the current pageStatus.
+func (g *Game) status() pageStatus {
+	title := g.current.Title
+	if g.state == stateLoading {
+		title = g.loadingEntry.Title
+	}
+
+	c := g.tv.controls
+
+	return pageStatus{
+		State: int(g.state), Title: title, Channel: c.channel, Volume: c.volume, Tint: c.tint,
+		Speed: g.machine.Profile().TicksPerFrame,
+	}
+}
+
+func box(r image.Rectangle) [4]int { return [4]int{r.Min.X, r.Min.Y, r.Dx(), r.Dy()} }
+
+// publishLayout tells the page where things are (platform.PublishLayout).
+func (g *Game) publishLayout() {
+	l := g.tv.lay
+	pl := pageLayout{
+		Scale: g.scale, Art: g.tv.art != nil,
+		Cabinet: box(l.cabinet), Tube: box(l.tube), Picture: box(l.picture),
+		Library: box(g.ui.layout.statusLeft), Settings: box(g.ui.layout.statusRight),
+		Controls: map[string][2]int{},
+		Status:   g.status(),
+	}
+
+	g.published = pl.Status
+
+	for _, c := range g.tv.skin.Controls {
+		cx, cy := c.Centre()
+		x, y := l.fromCabinet(cx, cy)
+		pl.Controls[c.ID] = [2]int{int(x), int(y)}
+	}
+
+	if !g.remote.area.Empty() {
+		pl.Remote = map[string][2]int{}
+
+		for hex, k := range g.remote.keys {
+			c := k.Min.Add(k.Max).Div(2)
+			pl.Remote[fmt.Sprintf("%X", hex)] = [2]int{c.X, c.Y}
+		}
+	}
+
+	if data, err := json.Marshal(pl); err == nil {
+		platform.PublishLayout(string(data))
+	}
 }
 
 // pointerInput is this tick's mouse or touch input, already turned into

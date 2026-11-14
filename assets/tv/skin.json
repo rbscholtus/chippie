@@ -4,6 +4,13 @@
   "background": "#d1cfd0",
   "cabinet": "cabinet",
   "mask": "cabinet-mask",
+  "backdrop": "backdrop.jpg",
+  "backdropRect": {
+    "x": -700,
+    "y": -700,
+    "w": 3500,
+    "h": 2954
+  },
   "screen": {
     "x": 190,
     "y": 165,
