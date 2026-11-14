@@ -1,6 +1,7 @@
 package app
 
 import (
+	"image"
 	"testing"
 
 	"github.com/rbscholtus/chippie/app/library"
@@ -81,6 +82,30 @@ func TestTintsHaveFullPalettes(t *testing.T) {
 			if c.A != 0xFF {
 				t.Errorf("%s: colour %d is transparent", ti.name, i)
 			}
+		}
+	}
+}
+
+func TestRemoteFitsItsArea(t *testing.T) {
+	t.Parallel()
+
+	for _, area := range []image.Rectangle{
+		image.Rect(48, 1100, 1122, 3200), // portrait phone
+		image.Rect(1800, 40, 2500, 1000), // landscape column
+		image.Rect(0, 0, 400, 400),
+	} {
+		var r remote
+		r.layout(area)
+
+		all := r.keys[0x1].Union(r.keys[0xF])
+		frame := all.Inset(-all.Dx() / remoteFrame)
+
+		if !frame.In(area) {
+			t.Errorf("%v: frame %v sticks out", area, frame)
+		}
+
+		if got := r.keyAt(r.keys[0xA].Min.Add(image.Pt(2, 2))); got != 1<<0xA {
+			t.Errorf("%v: keyAt on key A = %016b", area, got)
 		}
 	}
 }

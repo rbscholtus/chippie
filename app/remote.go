@@ -29,7 +29,12 @@ var (
 	remoteHint    = color.RGBA{R: 0x4E, G: 0x42, B: 0x30, A: 0xFF} //nolint:gochecknoglobals // read-only colour
 )
 
-const remoteRound = 0.18 // of a key: corner radius
+// Remote proportions.
+const (
+	remoteRound = 0.18 // of a key: corner radius
+	remoteFrame = 20   // the frame is 1/remoteFrame of the keys' width
+	remoteFill  = 0.9  // of the area, for the keys (the frame needs < 1/(1+2/remoteFrame))
+)
 
 // remote tracks which keypad keys are held.
 type remote struct {
@@ -62,7 +67,9 @@ func (r *remote) layout(area image.Rectangle) {
 
 	r.img = ebiten.NewImage(area.Dx(), area.Dy())
 
-	size := min(area.Dx(), area.Dy()) / 4
+	// The keys take remoteFill of the area, leaving room for the frame
+	// drawn around them (remoteFrame of their width on each side).
+	size := int(float64(min(area.Dx(), area.Dy())) * remoteFill / 4)
 	gap := int(float64(size) * remoteGap)
 	x0 := area.Min.X + (area.Dx()-4*size)/2
 	y0 := area.Min.Y + (area.Dy()-4*size)/2
@@ -145,7 +152,7 @@ func (r *remote) paint(img *ebiten.Image, face *text.GoTextFace, hint uint16) {
 	}
 
 	all := r.keys[0x1].Union(r.keys[0xF])
-	pad := all.Dx() / 20
+	pad := all.Dx() / remoteFrame
 	fill(all.Inset(-pad), remoteBody, float32(pad*2))
 
 	op := &text.DrawOptions{}
