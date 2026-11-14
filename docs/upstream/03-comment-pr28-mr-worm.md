@@ -9,7 +9,7 @@
 ## Review checklist
 
 - [x] Played in Chippie with exactly this PR's entry, 2026-11-15: works.
-- [ ] Text below approved.
+- [x] Text below approved.
 
 ## The comment
 
