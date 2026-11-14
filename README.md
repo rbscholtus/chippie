@@ -1060,6 +1060,26 @@ To be settled while building, not before:
 
 **Ideas for the end of the project:**
 
+- **Follow up on the upstream submissions** (README §18,
+  [docs/upstream/](docs/upstream/README.md)). Answer the maintainers'
+  questions on chip-8-database #29–#32 and chip8-test-suite #38. When
+  chip-8-database merges a PR, the weekly refresh lists its overlay entries
+  as done: delete them from `catalogue/overlay.json`. If the test suite's
+  pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
+- **Upstream proposals, deferred until the maintainers react** (M8 items
+  4–6): a standard "where to download" field in chip-8-database, with
+  Chippie's `sources.json` as an example; asking where its ~230 unsourced
+  ROM hashes came from; a 64×64 "Hires CHIP-8" platform, which kripod's 8
+  hires ROMs need.
+- **chip8Archive's platform fields:** for 5–6 of its 7 conflicts with
+  chip-8-database the archive's platform is too basic (`docs/coverage.md`).
+  An issue there, after play-testing Chipcross and Piper.
+- **XO-CHIP scrolling reference pictures** for the test suite, which has
+  none (Chippie generates its own).
+- **One entry per program in the library.** Programs with several ROMs
+  (e.g. Guess the Number) are listed once per ROM, which adds near-identical
+  rows. List the database's first ROM only, and offer the others in Settings.
+
 - **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
   entry has a `keys` hint (27 of the 204 downloadable ones), also map the
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
