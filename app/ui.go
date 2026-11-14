@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"strconv"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -39,6 +40,8 @@ const (
 	detailsShare   = 0.7 // descriptions are often long
 	monoSize       = 14  // Go Mono is wider than Go Regular
 	traceLines     = 8
+	chipPad        = 10 // inside a filter chip, left and right
+	chipGap        = 8  // between filter chips
 )
 
 // ui draws the overlays (drawer, settings, messages, the debug line) and
@@ -60,6 +63,7 @@ type layout struct {
 	window      image.Rectangle
 	panel       image.Rectangle // the drawer's or settings panel's background
 	search      image.Rectangle // the drawer's search field
+	filters     image.Rectangle // the platform filter chips, under the search field
 	list        image.Rectangle // the scrolling rows
 	content     image.Rectangle // below the search line, full width (settings)
 	details     image.Rectangle // the selected ROM, on wide screens; else empty
@@ -117,9 +121,9 @@ func computeLayout(window, below image.Rectangle, scale, lineH float64, touch bo
 
 	inner := panel.Inset(pad)
 	search := image.Rect(inner.Min.X, inner.Min.Y, inner.Max.X, inner.Min.Y+int(rowH))
-	list := image.Rect(inner.Min.X, search.Max.Y+pad/2, inner.Max.X, inner.Max.Y)
-
-	content := list
+	content := image.Rect(inner.Min.X, search.Max.Y+pad/2, inner.Max.X, inner.Max.Y) // settings rows
+	filters := image.Rect(inner.Min.X, search.Max.Y+pad/2, inner.Max.X, search.Max.Y+pad/2+int(rowH))
+	list := image.Rect(inner.Min.X, filters.Max.Y, inner.Max.X, inner.Max.Y) // rows have their own spacing
 
 	var details image.Rectangle
 
@@ -138,6 +142,7 @@ func computeLayout(window, below image.Rectangle, scale, lineH float64, touch bo
 		below:       below,
 		panel:       panel,
 		search:      search,
+		filters:     filters,
 		list:        list,
 		content:     content,
 		details:     details,
@@ -305,6 +310,7 @@ func (u *ui) drawPicker(dst *ebiten.Image, g *Game) {
 	l := u.layout
 	u.fillPanel(dst)
 	g.search.draw(dst)
+	u.drawFilters(dst, g.picker)
 
 	// Draw the rows into the list area only, so partly visible rows are
 	// clipped at its edges.
@@ -594,4 +600,87 @@ func (u *ui) textFace(dst *ebiten.Image, s string, x, y float64, c color.Color, 
 	op.GeoM.Translate(x, y)
 	op.ColorScale.ScaleWithColor(c)
 	text.Draw(dst, s, face, op)
+}
+
+// filterChip is one platform filter: its family, label and place.
+type filterChip struct {
+	family library.Family
+	label  string
+	rect   image.Rectangle
+}
+
+// filterChips lays out the platform filters left to right in the filters
+// row, each as wide as its label ("XO-CHIP 81") plus padding. Drawing and
+// tapping use the same layout.
+func (u *ui) filterChips(p *picker) []filterChip {
+	row := u.layout.filters
+	// With counts ("XO-CHIP 81") if they fit, else the names, else the
+	// short names (SCHIP).
+	var chips []filterChip
+
+	for _, style := range []chipStyle{chipCounts, chipNames, chipShort} {
+		if chips = u.layOutChips(p, row, style); len(chips) == len(library.Filters) {
+			break
+		}
+	}
+
+	return chips
+}
+
+// chipStyle is how much a filter chip's label says.
+type chipStyle uint8
+
+const (
+	chipCounts chipStyle = iota // "XO-CHIP 81"
+	chipNames                   // "XO-CHIP"
+	chipShort                   // "SCHIP"
+)
+
+// layOutChips places the chips from the left in a style, leaving out any
+// that don't fit.
+func (u *ui) layOutChips(p *picker, row image.Rectangle, style chipStyle) []filterChip {
+	pad := int(chipPad * u.scale)
+	gap := int(chipGap * u.scale)
+	x := row.Min.X
+	out := make([]filterChip, 0, len(library.Filters))
+
+	for _, f := range library.Filters {
+		label := f.Name()
+
+		switch style {
+		case chipCounts:
+			label += " " + strconv.Itoa(p.counts[f])
+		case chipShort:
+			label = f.ShortName()
+		case chipNames:
+		}
+
+		w, _ := text.Measure(label, u.face, 0)
+		r := image.Rect(x, row.Min.Y, x+int(w)+2*pad, row.Max.Y)
+
+		if r.Max.X > row.Max.X {
+			break
+		}
+
+		out = append(out, filterChip{family: f, label: label, rect: r})
+		x = r.Max.X + gap
+	}
+
+	return out
+}
+
+// drawFilters draws the platform filter chips; the selected one is lit.
+func (u *ui) drawFilters(dst *ebiten.Image, p *picker) {
+	for _, c := range u.filterChips(p) {
+		bg, ink := selectedColour, mutedColour
+		if c.family == p.family {
+			bg, ink = accentColour, panelColour
+		}
+
+		r := c.rect
+		vector.FillRect(dst, float32(r.Min.X), float32(r.Min.Y), float32(r.Dx()), float32(r.Dy()), bg, false)
+
+		w, h := text.Measure(c.label, u.face, 0)
+		u.text(dst, c.label, float64(r.Min.X)+(float64(r.Dx())-w)/2, float64(r.Min.Y)+(float64(r.Dy())-h)/2, ink)
+	}
 }

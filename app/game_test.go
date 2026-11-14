@@ -15,6 +15,7 @@ import (
 func entry(sha1, title string, p chip8.Platform) library.Entry {
 	e := library.LocalEntry(nil, sha1, title)
 	e.Platform = p
+	e.Family = library.FamilyOf(p)
 
 	if !p.Implemented() {
 		e.Group = library.ComingSoon
@@ -378,5 +379,82 @@ func TestPictureInRotated(t *testing.T) {
 		if r := float64(p.Dx()) / float64(p.Dy()); math.Abs(r-want) > 0.02 {
 			t.Errorf("rotation %d: aspect %.3f, want %.1f", tc.rot, r, want)
 		}
+	}
+}
+
+func TestPickerFamilyFilter(t *testing.T) {
+	t.Parallel()
+
+	p := newPicker([]library.Entry{
+		entry("a", "Alpha", chip8.ModernChip8),
+		entry("b", "Bravo", chip8.SuperChip),
+		entry("c", "Charlie", chip8.XOChip),
+		entry("d", "Delta", chip8.XOChip),
+	}, false)
+
+	if p.counts[library.XOChipFamily] != 2 || p.counts[library.AllFamilies] != 4 {
+		t.Errorf("counts = %v", p.counts)
+	}
+
+	p.setFamily(library.XOChipFamily)
+
+	if len(p.entries) != 2 || p.entries[0].Title != "Charlie" {
+		t.Errorf("XO-CHIP filter: %v", p.entries)
+	}
+
+	p.setQuery("delta")
+
+	if len(p.entries) != 1 || p.counts[library.XOChipFamily] != 1 || p.counts[library.AllFamilies] != 1 {
+		t.Errorf("filter and search: %v, counts %v", p.entries, p.counts)
+	}
+
+	// The channel dial follows the filtered list.
+	p.setQuery("")
+
+	if e, _, ok := p.neighbour("c", 1); !ok || e.Title != "Delta" {
+		t.Errorf("neighbour within XO-CHIP = %q", e.Title)
+	}
+}
+
+func TestFilterChipsLayout(t *testing.T) {
+	t.Parallel()
+
+	u, err := newUI()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	window := image.Rect(0, 0, 1024, 640)
+	u.resize(window, image.Rect(0, 600, 1024, 640), 1)
+
+	p := newPicker([]library.Entry{entry("a", "Alpha", chip8.XOChip)}, false)
+	chips := u.filterChips(p)
+
+	if len(chips) != len(library.Filters) {
+		t.Fatalf("%d chips, want %d", len(chips), len(library.Filters))
+	}
+
+	for i, c := range chips {
+		if !c.rect.In(u.layout.filters) || (i > 0 && c.rect.Min.X <= chips[i-1].rect.Max.X) {
+			t.Errorf("chip %q at %v outside the row %v or overlapping", c.label, c.rect, u.layout.filters)
+		}
+	}
+
+	l := u.layout
+	if chips[3].label != "XO-CHIP 1" || !l.filters.In(l.panel) || l.list.Min.Y < l.filters.Max.Y {
+		t.Errorf("label %q; filters %v, list %v", chips[3].label, l.filters, l.list)
+	}
+
+	// On a phone in portrait the chips drop their counts rather than be cut.
+	u.touch = true
+	u.resize(image.Rect(0, 0, 1170, 2532), image.Rect(0, 900, 1170, 1100), 3)
+
+	p.counts = map[library.Family]int{
+		library.AllFamilies: 302, library.Chip8Family: 170,
+		library.SuperChipFamily: 60, library.XOChipFamily: 81,
+	}
+
+	if chips = u.filterChips(p); len(chips) != len(library.Filters) {
+		t.Errorf("phone: %d chips, want %d", len(chips), len(library.Filters))
 	}
 }

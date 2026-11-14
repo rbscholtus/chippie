@@ -150,6 +150,7 @@ func New(d Deps) (*Game, error) {
 	g.renderer.Update(g.machine.Display())
 	g.loadVolume()
 	g.ui.touch = platform.TouchScreen() // the remote shows from the start on phones
+	g.loadLibraryFamily()
 
 	if d.CachedROMs != nil {
 		go func() {

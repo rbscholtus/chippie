@@ -15,7 +15,11 @@ export type AppLayout = {
   settings: Box;
   controls: Record<string, [number, number]>;
   remote?: Record<string, [number, number]>;
-  status: { state: number; title: string; channel: number; volume: number; tint: number; speed: number; skin: string };
+  filters: Record<string, [number, number]>; // filter chip ("" = All) → centre
+  status: {
+    state: number; title: string; channel: number; volume: number; tint: number; speed: number; skin: string;
+    filter: string; listed: number;
+  };
 };
 
 // The app's states (app/game.go).
@@ -116,11 +120,12 @@ export async function click(page: Page, x: number, y: number) {
 }
 
 // Touch layout of the drawer in CSS pixels (app/ui.go computeLayout): the
-// search field (one 44 px row) sits below a debug line and two paddings,
-// and the list starts half a padding below it. Row 0 is "Load a ROM from
-// this device", row 1 the PLAY heading, row 2 the first ROM.
+// search field (one 44 px row) sits below a debug line and two paddings;
+// half a padding below it, the row of platform filters (one row), then the
+// list. Row 0 is "Load a ROM from this device", row 1 the PLAY heading,
+// row 2 the first ROM.
 export const pickerSearchY = 24 + 16 + 16 + 22;
-export const pickerListTop = 24 + 16 + 16 + 44 + 8;
+export const pickerListTop = 24 + 16 + 16 + 44 + 8 + 44;
 export const touchRowHeight = 44;
 export function rowCentre(row: number, scrolled = 0) {
   return pickerListTop + row * touchRowHeight + touchRowHeight / 2 - scrolled;
@@ -144,8 +149,9 @@ export async function offline(page: Page, serve: Record<string, string> = {}) {
 }
 
 // Desktop (mouse) layout of the drawer in CSS pixels at 1×: a debug-line
-// gap and padding above the search field (24 px), then the list.
-export const desktopListTop = 24 + 16 + 16 + 24 + 8;
+// gap and padding above the search field (24 px), the filters row, then the
+// list.
+export const desktopListTop = 24 + 16 + 16 + 24 + 8 + 24;
 export const desktopRowHeight = 24;
 export function desktopRow(row: number) {
   return desktopListTop + row * desktopRowHeight + desktopRowHeight / 2;

@@ -43,6 +43,7 @@ type Entry struct {
 	Offline     bool           // plays without a download: bundled, beside the app, or cached
 	Keys        map[string]int // the database's keys hint, e.g. "up": 5; often empty
 	Rotation    int            // degrees clockwise the picture is turned (screenRotation)
+	Family      Family         // the platform's family, for the filter
 
 	search string // lower-case text the search matches against
 }
@@ -117,7 +118,9 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 		e.Group = ComingSoon
 	}
 
-	e.search = strings.ToLower(e.Title + " " + strings.Join(e.Authors, " ") + " " + e.Release + " " + p.Name())
+	e.Family = FamilyOf(p)
+	e.search = strings.ToLower(e.Title + " " + strings.Join(e.Authors, " ") + " " + e.Release + " " +
+		p.Name() + " " + e.Family.searchWords() + " " + platformWords(p))
 
 	return e
 }
@@ -132,7 +135,7 @@ func LocalEntry(c *catalogue.Catalogue, sha1, fileName string) Entry {
 		}
 	}
 
-	e := Entry{SHA1: sha1, Title: fileName, Platform: chip8.ModernChip8, Offline: true}
+	e := Entry{SHA1: sha1, Title: fileName, Platform: chip8.ModernChip8, Offline: true, Family: Chip8Family}
 	e.search = strings.ToLower(fileName)
 
 	return e

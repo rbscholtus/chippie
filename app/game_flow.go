@@ -416,6 +416,12 @@ func (g *Game) tapPicker(at image.Point) {
 	switch {
 	case at.In(l.search):
 		g.search.focus()
+	case at.In(l.filters):
+		for _, c := range g.ui.filterChips(g.picker) {
+			if at.In(c.rect) {
+				g.setLibraryFamily(c.family)
+			}
+		}
 	case at.In(l.list):
 		g.search.blur()
 
@@ -434,6 +440,23 @@ func (g *Game) tapPicker(at image.Point) {
 		}
 	case at.Y >= l.panel.Max.Y && g.hasROM:
 		g.closePicker() // tapped the status line: back to the ROM
+	}
+}
+
+// libraryFamilyKey is where the library's platform filter is saved.
+const libraryFamilyKey = "libraryFilter"
+
+// setLibraryFamily filters the library to one platform family and saves
+// the choice.
+func (g *Game) setLibraryFamily(f library.Family) {
+	g.picker.setFamily(f)
+	g.Prefs.Set(libraryFamilyKey, f.Key())
+}
+
+// loadLibraryFamily restores the saved platform filter.
+func (g *Game) loadLibraryFamily() {
+	if key, ok := g.Prefs.Get(libraryFamilyKey); ok {
+		g.picker.setFamily(library.FamilyFromKey(key))
 	}
 }
 
@@ -666,6 +689,7 @@ type pageLayout struct {
 	Controls map[string][2]int `json:"controls"`
 	Status   pageStatus        `json:"status"`
 	Remote   map[string][2]int `json:"remote,omitempty"` // hex key → centre
+	Filters  map[string][2]int `json:"filters"`          // filter chip ("" = All) → centre
 }
 
 // pageStatus is what the TV is doing, for the browser tests. It is
@@ -676,8 +700,10 @@ type pageStatus struct {
 	Channel int     `json:"channel"`
 	Volume  float64 `json:"volume"`
 	Tint    int     `json:"tint"`
-	Speed   int     `json:"speed"` // instructions per frame
-	Skin    string  `json:"skin"`  // the TV skin's folder
+	Speed   int     `json:"speed"`  // instructions per frame
+	Skin    string  `json:"skin"`   // the TV skin's folder
+	Filter  string  `json:"filter"` // the library's platform filter ("" for All)
+	Listed  int     `json:"listed"` // games in the library's list now
 }
 
 // status is the current pageStatus.
@@ -692,6 +718,7 @@ func (g *Game) status() pageStatus {
 	return pageStatus{
 		State: int(g.state), Title: title, Channel: c.channel, Volume: c.volume, Tint: c.tint,
 		Speed: g.machine.Profile().TicksPerFrame, Skin: g.tv.dir,
+		Filter: g.picker.family.Key(), Listed: len(g.picker.entries),
 	}
 }
 
@@ -705,7 +732,13 @@ func (g *Game) publishLayout() {
 		Cabinet: box(l.cabinet), Tube: box(l.tube), Picture: box(g.renderer.Picture()),
 		Library: box(g.ui.layout.statusLeft), Settings: box(g.ui.layout.statusRight),
 		Controls: map[string][2]int{},
+		Filters:  map[string][2]int{},
 		Status:   g.status(),
+	}
+
+	for _, c := range g.ui.filterChips(g.picker) {
+		m := c.rect.Min.Add(c.rect.Max).Div(2)
+		pl.Filters[c.family.Key()] = [2]int{m.X, m.Y}
 	}
 
 	g.published = pl.Status
