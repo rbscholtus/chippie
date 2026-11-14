@@ -549,8 +549,15 @@ light grey studio background that fills the page.
 **The library drawer** (`app/library` model, drawn by `app`):
 
 - Covers the window. A search field (title, author, year, platform; every
-  word must match), "Load a ROM from this device", then the ROMs in two
-  groups: PLAY and COMING SOON (platforms still to come), each A–Z.
+  word must match; short words like `xo`, `schip`, `chip8` and `chip48`
+  find a platform), "Load a ROM from this device", then the ROMs in two groups:
+  PLAY and COMING SOON (platforms still to come), each A–Z.
+- **Platform filter:** a row of chips under the search field (All · CHIP-8 ·
+  SUPER-CHIP · XO-CHIP, with how many games each has for the current
+  search) narrows the list; it combines with the search and is saved on the
+  device. Where space is tight the counts go, then SUPER-CHIP becomes SCHIP.
+  The channel dial steps through the filtered list, so it then stays within
+  one platform.
 - On wide screens a details pane beside the list: description, authors,
   year, platform, and whether it plays offline or downloads.
 - **Picking a game closes the drawer**, shows "tuning in" static while it
