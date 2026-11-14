@@ -56,7 +56,7 @@ Full-size differences, in the test rig's diff colours:
 - [x] No existing issue about it (searched "scrolling" and "pixel").
 - [x] Re-verified pixel by pixel, with screenshots (above).
 - [x] Confirmed in Cadmium (`STRICT-SCHIP-1.1`) by the owner.
-- [ ] Text below approved.
+- [x] Text below approved.
 
 ## The issue
 
@@ -99,6 +99,5 @@ Full-size differences, in the test rig's diff colours:
 >
 > It doesn't change the outcome of the test (the arrows are still in their
 > boxes), but anyone comparing their output with the pictures pixel by
-> pixel will see a difference there. Unless I'm misreading the code, the
-> pictures could be regenerated, or these four pixels lit. I'm happy to
-> send corrected versions of the two pictures if that helps.
+> pixel will see a difference there. The
+> pictures could be regenerated, or these four pixels lit.
