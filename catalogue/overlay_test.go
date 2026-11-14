@@ -171,3 +171,24 @@ func TestScreenRotation(t *testing.T) {
 		t.Errorf("rotation not changed: %d", rom.ScreenRotation)
 	}
 }
+
+func TestOverlayChangesProgramFields(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+	o := mustOverlay(t, `{"change": [{"upstream": "pending", "sha1": "`+glitchGhost+`",
+		"authors": ["A", "B"], "release": "2015"}]}`)
+
+	status, err := db.ApplyOverlay(o)
+	if err != nil || status[0].Done || !strings.Contains(status[0].What, "authors, release") {
+		t.Fatalf("change: %v %+v", err, status)
+	}
+
+	if rom, _ := db.ROM(glitchGhost); rom.Program.Release != "2015" || len(rom.Program.Authors) != 2 {
+		t.Errorf("program not changed: %+v", rom.Program)
+	}
+
+	if status, _ = db.ApplyOverlay(o); !status[0].Done {
+		t.Error("applied twice: not reported done")
+	}
+}

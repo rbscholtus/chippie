@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2026-11-14T19:26:40Z",
+  "generated": "2026-11-14T21:02:53Z",
   "sources": {
     "3dvipermaze": {
       "name": "3D Viper Maze (Timendus)",
@@ -317,6 +317,12 @@
         "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/morsecode/morse_demo.ch8"
       }
     ],
+    "29a41ab4d0aa3bc0d6a9d2fa71d533fe463344b3": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rush%20Hour%20%5BHap%2C%202006%5D%20%28alt%29.ch8"
+      }
+    ],
     "2c761f70a44e521ee848834cfdd2bd1646157d29": [
       {
         "source": "chip8archive",
@@ -579,6 +585,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/wonkypong.ch8"
+      }
+    ],
+    "5260f8931e0e9f41e555b382a14a88368e3ed886": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Guess%20%5BDavid%20Winter%5D%20%28alt%29.ch8"
       }
     ],
     "528404afc02cacef8481827cfc66b9569a5d97e2": [
@@ -1407,6 +1419,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/rockto.ch8"
       }
     ],
+    "b7b46ad49871e54302496c95c41be842e4a4abdf": [
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/randomnumber/random_number_test.ch8"
+      }
+    ],
     "b9272ae1acdaaa79ab649f6b48b72088ca2b1d74": [
       {
         "source": "kripod",
@@ -1417,6 +1435,12 @@
       {
         "source": "timendus",
         "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/2-ibm-logo.ch8"
+      }
+    ],
+    "ba603bde1d8596c575e81096fff3cea40173d7e3": [
+      {
+        "source": "mattmikolay",
+        "url": "https://raw.githubusercontent.com/mattmikolay/chip-8/fb6f4463537e79d9e64068559176c818e561062e/delaytimer/delay_timer_test.ch8"
       }
     ],
     "bb1e786cb921f51d0540cca9a216c0b72bceb443": [

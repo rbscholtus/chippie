@@ -1,22 +1,22 @@
 # ROM coverage
 
-Generated 2026-11-14T19:26:40Z by `cmd/catalogue-gen`.
+Generated 2026-11-14T21:02:53Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
 | Source | Unique ROMs | In database | Missing |
 |---|---|---|---|
 | chip8Archive | 104 | 104 | 0 |
-| kripod/chip8-roms | 106 | 96 | 10 |
+| kripod/chip8-roms | 106 | 98 | 8 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
-| Matthew Mikolay's CHIP-8 programs | 6 | 4 | 2 |
+| Matthew Mikolay's CHIP-8 programs | 6 | 6 | 0 |
 | 3D Viper Maze (Timendus) | 1 | 1 | 0 |
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
 | Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 68 | 0 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **298** | **12** |
+| **All combined** | **310** | **302** | **8** |
 
-Downloadable ROMs in the manifest: 298 of 573 in the database and Chippie's overlay.
+Downloadable ROMs in the manifest: 302 of 577 in the database and Chippie's overlay.
 
 ## Chippie's overlay (pending upstream)
 
@@ -26,6 +26,7 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - change Computer Simulator: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - change Infini Br8kr: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - change Octo Space Program: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Delay Timer Test: authors, release: not yet proposed upstream
 - add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
@@ -56,11 +57,13 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - add RPN Calculator: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - add XO-NYANCAT!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - add XO-TRACKER DEMO: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add ROMs to Guess the Number: not yet proposed upstream
+- add ROMs to Rush Hour: not yet proposed upstream
+- add ROMs to Delay Timer Test: not yet proposed upstream
+- add ROMs to Random Number Test: not yet proposed upstream
 
 ## Not in chip-8-database
 
-- kripod/chip8-roms: `games/Guess [David Winter] (alt).ch8`
-- kripod/chip8-roms: `games/Rush Hour [Hap, 2006] (alt).ch8`
 - kripod/chip8-roms: `hires/Astro Dodge Hires [Revival Studios, 2008].ch8`
 - kripod/chip8-roms: `hires/Hires Maze [David Winter, 199x].ch8`
 - kripod/chip8-roms: `hires/Hires Particle Demo [zeroZshadow, 2008].ch8`
@@ -69,8 +72,6 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - kripod/chip8-roms: `hires/Hires Test [Tom Swan, 1979].ch8`
 - kripod/chip8-roms: `hires/Hires Worm V4 [RB-Revival Studios, 2007].ch8`
 - kripod/chip8-roms: `hires/Trip8 Hires Demo (2008) [Revival Studios].ch8`
-- Matthew Mikolay's CHIP-8 programs: `delaytimer/delay_timer_test.ch8`
-- Matthew Mikolay's CHIP-8 programs: `randomnumber/random_number_test.ch8`
 
 ## chip8Archive vs chip-8-database
 

@@ -42,11 +42,13 @@ type OverlayAdd struct {
 }
 
 // OverlayChange corrects fields of a ROM in the database (or, for Title,
-// its program). Only the fields given change.
+// Authors and Release, its program). Only the fields given change.
 type OverlayChange struct {
 	Upstream        string                     `json:"upstream"`
 	SHA1            string                     `json:"sha1"`
 	Title           string                     `json:"title,omitempty"`
+	Authors         []string                   `json:"authors,omitempty"`
+	Release         string                     `json:"release,omitempty"`
 	Platforms       []string                   `json:"platforms,omitempty"`
 	QuirkyPlatforms map[string]map[string]bool `json:"quirkyPlatforms,omitempty"`
 	Tickrate        int                        `json:"tickrate,omitempty"`
@@ -212,6 +214,9 @@ func (db *DB) applyChange(c OverlayChange) (OverlayStatus, error) {
 	}
 
 	set("title", c.Title != "", c.Title == rom.Program.Title, func() { rom.Program.Title = c.Title })
+	set("authors", c.Authors != nil, reflect.DeepEqual(c.Authors, rom.Program.Authors),
+		func() { rom.Program.Authors = c.Authors })
+	set("release", c.Release != "", c.Release == rom.Program.Release, func() { rom.Program.Release = c.Release })
 	set("platforms", c.Platforms != nil, reflect.DeepEqual(c.Platforms, rom.Platforms),
 		func() { rom.Platforms = c.Platforms })
 	set("quirkyPlatforms", c.QuirkyPlatforms != nil, reflect.DeepEqual(c.QuirkyPlatforms, rom.QuirkyPlatforms),
