@@ -587,10 +587,11 @@ itself**, so they turn (or flip) with matching lighting and scale.
 (kept outside the repository in `assets/source/`) and
 `assets/tv/<skin>/recipe.json`, which holds the skin's name and the
 measurements in the master's pixels. **There can be several skins**, one
-folder each (the first is `classic`, "Walnut console"); Settings has a "TV"
-row to choose one, saved on the device. Every skin's `skin.json` is compiled
-in; its images are fetched from `tv/<skin>/`. A skin may have fewer controls:
-whatever it lacks still works by keyboard and Settings.
+folder each (`classic` "Walnut console", the default; `portable` "Portable";
+`slim` "Slim walnut"); Settings has a "TV" row to choose one, saved on the
+device. Every skin's `skin.json` is compiled in; its images are fetched from
+`tv/<skin>/`. A skin may have fewer controls: whatever it lacks still works by
+keyboard and Settings.
 
 - **Cabinet:** cropped to the TV, in three sizes (JPEG), plus a greyscale
   **mask** (PNG) that is black where the tube shows through. The app combines
@@ -693,6 +694,24 @@ plain light grey studio background, soft even lighting, no logo, no brand
 name, orthographic, symmetrical, high detail, photorealistic, 4:3 aspect
 ratio. Avoid: logos, text, numbers, brand names, people, reflections on the
 screen, perspective, tilt
+```
+
+**Cabinet: Slim walnut** (`slim` skin, made 2026-11-14 for the most picture:
+no handle, feet or control strip, controls in a narrow column at the side):
+
+```
+front-facing straight-on product photograph of a mid-1970s colour television
+set without legs, feet or handle, a slim walnut wood-grain case with rounded
+corners, the rounded-rectangle picture tube fills the whole front from top
+to bottom with only a very thin bezel above and below it, the screen is
+completely black and switched off with no reflection, a narrow vertical
+control column on the right side of the screen with one rotary channel
+selector dial without numbers, two small knobs and a small rocker power
+switch stacked from top to bottom, plain light grey studio background, soft
+even lighting, no logo, no brand name, orthographic, symmetrical, high
+detail, photorealistic, 4:3 aspect ratio. Avoid: logos, text, numbers, brand
+names, people, handle, legs, feet, stand, control strip below the screen,
+reflections on the screen, perspective, tilt
 ```
 
 **Knobs and buttons** (one per generation, square; not used: the controls are

@@ -64,6 +64,17 @@ its own code, not these images.
   `assets/tv/portable/recipe.json`, as above; the crop leaves out the sparkle
   mark. Its channel knob has no numbers, so none are drawn.
 
+### Slim walnut (`assets/tv/slim/`)
+
+- **Generator:** Google Gemini image generation (the Gemini app), November
+  2026, from the slim prompt in README §12.3. Master:
+  `Gemini_Generated_Image_56jp856jp856jp85.png` (2400×1792), kept outside the
+  repository in `assets/source/`.
+- **Made by `cmd/skin-gen`** from that master and
+  `assets/tv/slim/recipe.json`, as above; the crop leaves out the sparkle
+  mark. Its channel dial's tiny printed numbers were garbled, so they are
+  erased and redrawn in Go Medium.
+
 ## Timendus CHIP-8 test suite (shipped separately, not compiled in)
 
 The test ROMs from [Timendus/chip8-test-suite](https://github.com/Timendus/chip8-test-suite)
