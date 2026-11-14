@@ -542,7 +542,8 @@ light grey studio background that fills the page.
 - **CRT shader** (from the prototype): curvature, scanlines, shadow mask,
   bloom, phosphor afterglow, power-on/off collapse, tint. A "clean" setting
   gives pixel-exact output. Afterglow also fixes CHIP-8's sprite flicker, so
-  it's functional, not just decoration.
+  it's functional, not just decoration. Every effect, its numbers and its
+  known limits: [docs/crt-shader.md](docs/crt-shader.md).
 - **"Tuning" static:** a noise shader shown while a ROM downloads.
 
 **The library drawer** (`app/library` model, drawn by `app`):
