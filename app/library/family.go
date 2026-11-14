@@ -108,6 +108,16 @@ func (f Family) searchWords() string {
 	}
 }
 
+// platformWords are extra search words for one platform, where its name
+// has a dash people leave out: "chip48" finds CHIP-48 games.
+func platformWords(p chip8.Platform) string {
+	if p == chip8.Chip48 {
+		return "chip48"
+	}
+
+	return ""
+}
+
 // InFamily returns the entries of family f; AllFamilies returns all.
 func InFamily(es []Entry, f Family) []Entry {
 	if f == AllFamilies {

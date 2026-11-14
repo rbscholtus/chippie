@@ -120,7 +120,7 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 
 	e.Family = FamilyOf(p)
 	e.search = strings.ToLower(e.Title + " " + strings.Join(e.Authors, " ") + " " + e.Release + " " +
-		p.Name() + " " + e.Family.searchWords())
+		p.Name() + " " + e.Family.searchWords() + " " + platformWords(p))
 
 	return e
 }

@@ -549,8 +549,8 @@ light grey studio background that fills the page.
 **The library drawer** (`app/library` model, drawn by `app`):
 
 - Covers the window. A search field (title, author, year, platform; every
-  word must match; short words like `xo`, `schip` and `chip8` find a
-  platform), "Load a ROM from this device", then the ROMs in two groups:
+  word must match; short words like `xo`, `schip`, `chip8` and `chip48`
+  find a platform), "Load a ROM from this device", then the ROMs in two groups:
   PLAY and COMING SOON (platforms still to come), each A–Z.
 - **Platform filter:** a row of chips under the search field (All · CHIP-8 ·
   SUPER-CHIP · XO-CHIP, with how many games each has for the current

@@ -51,6 +51,16 @@ func TestFamilySearchAndFilter(t *testing.T) {
 		}
 	}
 
+	if found := Filter(all, "chip48"); len(found) == 0 {
+		t.Error(`"chip48" finds nothing`)
+	} else {
+		for _, e := range found {
+			if e.Platform != chip8.Chip48 {
+				t.Errorf(`"chip48" found %q (%s)`, e.Title, e.Platform.Name())
+			}
+		}
+	}
+
 	counts := FamilyCounts(all)
 	if counts[AllFamilies] != len(all) ||
 		counts[Chip8Family]+counts[SuperChipFamily]+counts[XOChipFamily]+counts[OtherFamily] != len(all) {
