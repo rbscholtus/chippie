@@ -23,6 +23,18 @@
    (58, 32) and (69, 32) in hi-res. All other pixels match (2046 and 8190).
 4. **Which one is right:** the test's own code (below) draws each of those
    pixels exactly once, so they must be on.
+5. **Cadmium agrees with Chippie** (checked by the owner, 2026-11-15):
+   [Cadmium](https://github.com/gulrak/cadmium) v2.0.0-8cd178c in its
+   `STRICT-SCHIP-1.1` mode, the HP48 interpreter that SUPER-CHIP legacy
+   targets, shows both corners lit
+   ([screenshot beside Chippie](04-scrolling/cadmium-vs-chippie-schip11-legacy.png),
+   [close-up of the corners](04-scrolling/cadmium-corners.png)). The suite's
+   README names Cadmium as one of its validation tools, and its author,
+   Gulrak, checked the suite on real HP48s. That run is the legacy lo-res
+   variant; the borders are drawn by the same routine after the scrolling in
+   both variants, so they must look the same in each.
+
+![Cadmium's two corners](04-scrolling/cadmium-corners.png)
 
 Close-ups, the suite's picture on the left and Chippie on the right, the
 four pixels boxed in red:
@@ -43,6 +55,7 @@ Full-size differences, in the test rig's diff colours:
   hashes), so the gaps are still there.
 - [x] No existing issue about it (searched "scrolling" and "pixel").
 - [x] Re-verified pixel by pixel, with screenshots (above).
+- [x] Confirmed in Cadmium (`STRICT-SCHIP-1.1`) by the owner.
 - [ ] Text below approved.
 
 ## The issue
@@ -75,6 +88,14 @@ Full-size differences, in the test rig's diff colours:
 > ![lo-res close-up](https://raw.githubusercontent.com/rbscholtus/chippie/33b43c16dd688d2954daf736e604f988b770288b/docs/upstream/04-scrolling/lores-closeup.png)
 >
 > ![hi-res close-up](https://raw.githubusercontent.com/rbscholtus/chippie/33b43c16dd688d2954daf736e604f988b770288b/docs/upstream/04-scrolling/hires-closeup.png)
+>
+> Cadmium agrees: in its `STRICT-SCHIP-1.1` mode (v2.0.0-8cd178c, legacy
+> lo-res), both corners are lit as well. Close-up of its two corners:
+>
+> ![Cadmium's corners](https://raw.githubusercontent.com/rbscholtus/chippie/008402acada727965496c3461b867d5f1130373c/docs/upstream/04-scrolling/cadmium-corners.png)
+>
+> (That's the legacy variant; the borders are drawn by the same routine
+> after the scrolling, so they look the same in the modern one.)
 >
 > It doesn't change the outcome of the test (the arrows are still in their
 > boxes), but anyone comparing their output with the pictures pixel by
