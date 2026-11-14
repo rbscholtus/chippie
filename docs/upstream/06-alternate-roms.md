@@ -3,7 +3,7 @@
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from branch `add-alternate-roms` of the owner's fork, based on `master`.
   It adds no programs, so it's independent of #30 and #31.
-- **Status:** draft, waiting for review.
+- **Status:** submitted 2026-11-15: [chip-8-database#32](https://github.com/chip-8/chip-8-database/pull/32).
 - **Overlay entries:** the four "add ROMs to" entries and the Delay Timer
   Test "change" in `catalogue/overlay.json`.
 
@@ -39,11 +39,9 @@ name for it says "Matthew Mikolay, 2010", as for Random Number Test (#49).
   (kripod `c723a9e`, mattmikolay `fb6f446`).
 - [x] All four run headless on `originalChip8` and `modernChip8`
   (2026-11-15).
-- [ ] Played in Chippie by the owner: the library lists them as "Guess the
-  Number (Guess [David Winter] (alt))", "Rush Hour (Rush Hour [Hap, 2006]
-  (alt))", "Delay Timer Test (delay_timer_test)" and "Random Number Test
-  (random_number_test)".
-- [ ] Text below approved.
+- [x] Played in Chippie by the owner, 2026-11-15: all four work, and play
+  like the database's existing versions (only the keys hint differs).
+- [x] Text below approved (the owner, 2026-11-15: "Yes we can do a PR").
 
 ## The PR
 

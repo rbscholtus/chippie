@@ -26,7 +26,7 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - change Computer Simulator: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - change Infini Br8kr: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - change Octo Space Program: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
-- change Delay Timer Test: authors, release: not yet proposed upstream
+- change Delay Timer Test: authors, release: waiting for https://github.com/chip-8/chip-8-database/pull/32
 - add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
@@ -57,10 +57,10 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - add RPN Calculator: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - add XO-NYANCAT!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - add XO-TRACKER DEMO: waiting for https://github.com/chip-8/chip-8-database/pull/31
-- add ROMs to Guess the Number: not yet proposed upstream
-- add ROMs to Rush Hour: not yet proposed upstream
-- add ROMs to Delay Timer Test: not yet proposed upstream
-- add ROMs to Random Number Test: not yet proposed upstream
+- add ROMs to Guess the Number: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Rush Hour: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Delay Timer Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Random Number Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
 
 ## Not in chip-8-database
 

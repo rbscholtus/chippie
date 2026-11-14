@@ -1106,7 +1106,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/32",
       "to": "137cb8397456f53fcab216124458238bc18c0965",
       "program": {
         "roms": {
@@ -1125,7 +1125,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/32",
       "to": "4639f86beb0a203ae512b85d3b56d813b2dea7b4",
       "program": {
         "roms": {
@@ -1147,7 +1147,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/32",
       "to": "082c71b67e36e033c2e615ad89ba4ed5d55a56d0",
       "program": {
         "roms": {
@@ -1163,7 +1163,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/32",
       "to": "f1e036fb93b482b1ddfcb2bc1a4de43c8cf51def",
       "program": {
         "roms": {
@@ -1201,7 +1201,7 @@
       "screenRotation": 270
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/32",
       "sha1": "082c71b67e36e033c2e615ad89ba4ed5d55a56d0",
       "authors": [
         "Matthew Mikolay"

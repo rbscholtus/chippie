@@ -1011,6 +1011,8 @@ overlay: everything upstream.
   entry works in Chippie.
 - chip-8-database [#31](https://github.com/chip-8/chip-8-database/pull/31): adds 26 Octojam games from itch.io, and the
   `screenRotation` three existing Octojam entries lack (builds on #30).
+- chip-8-database [#32](https://github.com/chip-8/chip-8-database/pull/32): four alternate ROMs of existing programs
+  (Guess, Rush Hour, Mikolay's two tests), and Delay Timer Test's author.
 - chip8-test-suite [#38](https://github.com/Timendus/chip8-test-suite/issues/38): four border pixels shown off in the
   scrolling test's reference pictures (Chippie's `golden-import` corrects
   them); confirmed in Cadmium.
