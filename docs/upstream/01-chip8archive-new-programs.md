@@ -20,7 +20,7 @@
   the script marks the platforms for manual checking, adds no `keys`, and
   gives Dino Run an empty gamejam `origin`. These entries set the
   play-tested platforms, add the keys and leave the empty origin out.
-- [ ] Text below approved.
+- [x] Text below approved.
 
 ## The PR
 
