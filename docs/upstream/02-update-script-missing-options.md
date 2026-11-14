@@ -13,7 +13,7 @@
 ## Review checklist
 
 - [x] Bug reproduced and fix tested (above).
-- [ ] Text below approved.
+- [x] Text below approved.
 
 ## The issue
 
