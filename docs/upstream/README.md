@@ -12,7 +12,7 @@ account and its link recorded here, in the draft, in `catalogue/overlay.json`
 | 02 | [Update script fails without `options`](02-update-script-missing-options.md) | chip-8-database | issue | [#29](https://github.com/chip-8/chip-8-database/issues/29), open |
 | 03 | [Support Mr Worm (#28)](03-comment-pr28-mr-worm.md) | chip-8-database#28 | comment | [posted](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988) |
 | 04 | [Two pixels in the scrolling pictures](04-test-suite-scrolling-pictures.md) | Timendus/chip8-test-suite | issue | [#38](https://github.com/Timendus/chip8-test-suite/issues/38), open |
-| 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | draft: waiting for rotation |
+| 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), open |
 
 Still to draft (plan items): a "where to download" field, where the unsourced hashes came
 from, a 64×64 platform, the remaining missing ROMs (kripod, Mikolay). (The 7 metadata

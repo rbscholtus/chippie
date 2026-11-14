@@ -23,39 +23,39 @@ Downloadable ROMs in the manifest: 298 of 573 in the database and Chippie's over
 Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
 
 - change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
-- change Computer Simulator: screenRotation: not yet proposed upstream
-- change Infini Br8kr: screenRotation: not yet proposed upstream
-- change Octo Space Program: screenRotation: not yet proposed upstream
+- change Computer Simulator: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Infini Br8kr: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Octo Space Program: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add ROMs to Mr Worm: waiting for https://github.com/chip-8/chip-8-database/pull/28
-- add Bad Apple!!: not yet proposed upstream
-- add Bad Apple: not yet proposed upstream
-- add Beware of Sn8k!: not yet proposed upstream
-- add BIM Logo Animation: not yet proposed upstream
-- add Blobo: not yet proposed upstream
-- add C8SALT logo: not yet proposed upstream
-- add Chipception OS: not yet proposed upstream
-- add Collision Course: not yet proposed upstream
-- add Destroy The Line: not yet proposed upstream
-- add Dodge Catch Shoot: not yet proposed upstream
-- add Duel Of The F8s: Special Edition: not yet proposed upstream
-- add Enter the mine: not yet proposed upstream
-- add F-Chip8 Racing: not yet proposed upstream
-- add Falling Ghosts: not yet proposed upstream
-- add Fencing: not yet proposed upstream
-- add H8 2: Carry Flag: not yet proposed upstream
-- add Halloween-Blaster: not yet proposed upstream
-- add Invisible Man: not yet proposed upstream
-- add Kanji Calculator (WIP): not yet proposed upstream
-- add Man Hang: not yet proposed upstream
-- add Octogon Trail: not yet proposed upstream
-- add Octris: not yet proposed upstream
-- add Termlib demo: not yet proposed upstream
-- add RPN Calculator: not yet proposed upstream
-- add XO-NYANCAT!!: not yet proposed upstream
-- add XO-TRACKER DEMO: not yet proposed upstream
+- add Bad Apple!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Bad Apple: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Beware of Sn8k!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add BIM Logo Animation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Blobo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add C8SALT logo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Chipception OS: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Collision Course: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Destroy The Line: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Dodge Catch Shoot: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Duel Of The F8s: Special Edition: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Enter the mine: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add F-Chip8 Racing: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Falling Ghosts: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Fencing: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add H8 2: Carry Flag: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Halloween-Blaster: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Invisible Man: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Kanji Calculator (WIP): waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Man Hang: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Octogon Trail: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Octris: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Termlib demo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add RPN Calculator: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add XO-NYANCAT!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add XO-TRACKER DEMO: waiting for https://github.com/chip-8/chip-8-database/pull/31
 
 ## Not in chip-8-database
 

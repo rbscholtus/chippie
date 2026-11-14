@@ -1009,6 +1009,8 @@ overlay: everything upstream.
 - chip-8-database [#30](https://github.com/chip-8/chip-8-database/pull/30): adds Dino Run, Mato8 and Tick.
 - chip-8-database [#28](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988): a comment confirming someone else's Mr Worm
   entry works in Chippie.
+- chip-8-database [#31](https://github.com/chip-8/chip-8-database/pull/31): adds 26 Octojam games from itch.io, and the
+  `screenRotation` three existing Octojam entries lack (builds on #30).
 - chip8-test-suite [#38](https://github.com/Timendus/chip8-test-suite/issues/38): four border pixels shown off in the
   scrolling test's reference pictures (Chippie's `golden-import` corrects
   them); confirmed in Cadmium.
