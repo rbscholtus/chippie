@@ -1,7 +1,7 @@
 # Draft 04: two pixels in the scrolling test's reference pictures
 
 - **Where:** issue on [Timendus/chip8-test-suite](https://github.com/Timendus/chip8-test-suite).
-- **Status:** draft, waiting for review.
+- **Status:** submitted 2026-11-15: [Timendus/chip8-test-suite#38](https://github.com/Timendus/chip8-test-suite/issues/38).
 - **Background:** Chippie's golden frames come from the suite's pictures
   (`cmd/golden-import`), which corrects exactly these four pixels
   (`loresBorderFixes`, `hiresBorderFixes`); see the M5 commit `743e18d`.

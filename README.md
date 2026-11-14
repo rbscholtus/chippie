@@ -1006,6 +1006,9 @@ overlay: everything upstream.
 - chip-8-database [#30](https://github.com/chip-8/chip-8-database/pull/30): adds Dino Run, Mato8 and Tick.
 - chip-8-database [#28](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988): a comment confirming someone else's Mr Worm
   entry works in Chippie.
+- chip8-test-suite [#38](https://github.com/Timendus/chip8-test-suite/issues/38): four border pixels shown off in the
+  scrolling test's reference pictures (Chippie's `golden-import` corrects
+  them); confirmed in Cadmium.
 
 1. **Missing ROMs:** PRs to chip-8-database adding metadata for the ROMs it
    lacks, after confirming their platforms by running them in Chippie.
