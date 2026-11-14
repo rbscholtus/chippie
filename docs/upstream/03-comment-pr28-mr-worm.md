@@ -2,7 +2,7 @@
 
 - **Where:** comment on [chip-8/chip-8-database#28](https://github.com/chip-8/chip-8-database/pull/28)
   ("fix mrworm compatibility and title", by Etevoldo).
-- **Status:** draft, waiting for review.
+- **Status:** posted 2026-11-15: [comment on #28](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988).
 - **Overlay entries:** the Mr Worm "add" and the "Mr" → "Mr Worm" title
   change in `catalogue/overlay.json` copy this PR exactly.
 

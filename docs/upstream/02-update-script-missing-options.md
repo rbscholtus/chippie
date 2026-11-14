@@ -1,7 +1,7 @@
 # Draft 02: `npm run update` stops on an archive entry without options
 
 - **Where:** issue on [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database).
-- **Status:** draft, waiting for review.
+- **Status:** submitted 2026-11-15: [chip-8-database#29](https://github.com/chip-8/chip-8-database/issues/29).
 - **Tested 2026-11-15** on `4b2a2a3` with the CHIP-8 Archive at `761e3ff`,
   offline: the real script, with stand-ins for its two npm dependencies
   (Prettier and css-color-names, which play no part in the bug) and

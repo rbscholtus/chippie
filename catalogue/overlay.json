@@ -1,7 +1,7 @@
 {
   "add": [
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/30",
       "program": {
         "title": "Dino Run",
         "authors": ["Andrezinrc"],
@@ -13,7 +13,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/30",
       "program": {
         "title": "Mato8",
         "authors": ["nortti"],
@@ -25,7 +25,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/30",
       "program": {
         "title": "Tick",
         "authors": ["StanislavDidus"],

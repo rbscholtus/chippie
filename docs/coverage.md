@@ -23,9 +23,9 @@ Downloadable ROMs in the manifest: 272 of 547 in the database and Chippie's over
 Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
 
 - change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
-- add Dino Run: not yet proposed upstream
-- add Mato8: not yet proposed upstream
-- add Tick: not yet proposed upstream
+- add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
+- add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
+- add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add ROMs to Mr Worm: waiting for https://github.com/chip-8/chip-8-database/pull/28
 
 ## Not in chip-8-database

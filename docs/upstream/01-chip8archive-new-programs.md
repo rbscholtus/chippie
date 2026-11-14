@@ -2,7 +2,7 @@
 
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from branch `add-chip8archive-2026` of the owner's fork.
-- **Status:** draft, waiting for review.
+- **Status:** submitted 2026-11-15: [chip-8-database#30](https://github.com/chip-8/chip-8-database/pull/30).
 - **Overlay entries:** the three "add" entries in `catalogue/overlay.json`;
   once this is merged, the weekly refresh reports them done.
 

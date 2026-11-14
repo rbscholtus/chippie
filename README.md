@@ -999,6 +999,14 @@ Whatever upstream already has, an entry skips; the weekly refresh summary and
 `docs/coverage.md` list those entries for deletion. The goal is an empty
 overlay: everything upstream.
 
+**Submitted** (drafts and status in [docs/upstream/](docs/upstream/README.md)):
+
+- chip-8-database [#29](https://github.com/chip-8/chip-8-database/issues/29): the chip8Archive update script fails on
+  entries without `options` (with a tested one-line fix).
+- chip-8-database [#30](https://github.com/chip-8/chip-8-database/pull/30): adds Dino Run, Mato8 and Tick.
+- chip-8-database [#28](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988): a comment confirming someone else's Mr Worm
+  entry works in Chippie.
+
 1. **Missing ROMs:** PRs to chip-8-database adding metadata for the ROMs it
    lacks, after confirming their platforms by running them in Chippie.
 2. **Download sources:** an issue proposing a standard "where to download"
