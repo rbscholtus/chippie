@@ -70,10 +70,13 @@ a product goal.
 | Engine | Ebitengine v2.10+ (game loop, rendering, input, audio, text input) |
 | UI widgets | Our own, drawn with Ebitengine: one touch model (drag to scroll, tap on release, 44 px rows) for the library, settings, knobs and remote. ebitenui was used in the prototype; dropped in M4 (smaller WASM, touch scrolling) |
 | Target | Browser (`GOOS=js GOARCH=wasm`). Native desktop builds for development. |
-| TV look | A mid-1970s TV from AI-generated artwork (Gemini or similar), plus a CRT shader in Kage |
-| Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), used unmodified |
+| TV look | Mid-1970s TVs from AI-generated artwork (Gemini), plus a CRT shader in Kage. Three skins to choose from (Walnut console, Portable, Slim walnut); the controls are cut from each cabinet image itself. |
+| Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), plus Chippie's overlay (`catalogue/overlay.json`) of changes proposed upstream but not yet merged, each linked to its PR. The goal is an empty overlay; no long-lived fork. |
 | ROM files | Downloaded from their original source at runtime. Only the 18 ROMs that can't be fetched from a browser are hosted by us. |
 | Profiles | Platform defaults, then the database's per-ROM overrides, then user settings |
+| SUPER-CHIP | Modern behaviour by default (what the database's quirks describe); the HP48's legacy behaviour is a per-ROM setting (`LegacySuperChip`) |
+| Art pipeline | Generated masters stay outside the repository (`assets/source/`); `cmd/skin-gen` turns them into the committed `assets/tv/<skin>/` files |
+| Upstream | Findings go to chip-8-database and the test suite as issues and PRs from the owner's fork, each drafted in `docs/upstream/` and approved by the owner before it's posted |
 | Tests | Golden framebuffers made from the test suite's own reference pictures |
 | Memory | Few allocations in the per-frame path, without awkward code; optimise when profiles show the need. No `sync.Pool` for now. |
 
