@@ -77,7 +77,10 @@ type ROM struct {
 	Colors          *Colors
 	Keys            map[string]int // e.g. "up": 5
 	TouchInputMode  string
-	Program         *Program
+	// ScreenRotation is how far the picture is turned clockwise, in degrees
+	// (0, 90, 180 or 270), for games made for a sideways screen.
+	ScreenRotation int
+	Program        *Program
 }
 
 // Colors are a ROM's preferred colours, as CSS colour strings.
@@ -107,6 +110,7 @@ type (
 		Colors          *Colors                    `json:"colors"`
 		Keys            map[string]int             `json:"keys"`
 		TouchInputMode  string                     `json:"touchInputMode"`
+		ScreenRotation  int                        `json:"screenRotation"`
 	}
 	rawProgram struct {
 		Title       string            `json:"title"`
@@ -156,13 +160,13 @@ func Parse(f Files) (*DB, error) {
 		}
 	}
 
-	if err := validate(db, quirks, hashes); err != nil {
-		return nil, err
-	}
-
 	db.quirks = make(map[string]bool, len(quirks))
 	for _, q := range quirks {
 		db.quirks[q.ID] = true
+	}
+
+	if err := validate(db, quirks, hashes); err != nil {
+		return nil, err
 	}
 
 	return db, nil
@@ -196,16 +200,8 @@ func validate(db *DB, quirks []rawQuirk, hashes map[string]int) error {
 	}
 
 	for _, rom := range db.roms {
-		for _, p := range rom.Platforms {
-			if db.Platforms[p] == nil {
-				return fmt.Errorf("%w: ROM %s: unknown platform %q", ErrInvalid, rom.SHA1, p)
-			}
-		}
-
-		for p := range rom.QuirkyPlatforms {
-			if db.Platforms[p] == nil {
-				return fmt.Errorf("%w: ROM %s: quirks for unknown platform %q", ErrInvalid, rom.SHA1, p)
-			}
+		if err := db.checkROM(rom); err != nil {
+			return err
 		}
 	}
 
@@ -222,6 +218,9 @@ func validate(db *DB, quirks []rawQuirk, hashes map[string]int) error {
 
 	return nil
 }
+
+// validRotation reports whether r is a screenRotation the schema allows.
+func validRotation(r int) bool { return r == 0 || r == 90 || r == 180 || r == 270 }
 
 // ROM returns the ROM with the given SHA-1 (hex, any case).
 func (db *DB) ROM(sha1 string) (*ROM, bool) {

@@ -104,7 +104,7 @@ func computeTV(sk *skin.Skin, window image.Rectangle, scale, lineH float64, remo
 
 	l := tvLayout{k: k, cabinet: image.Rect(int(x), int(y), int(x+cw), int(y+ch))}
 	l.tube = l.rect(sk.Screen)
-	l.picture = pictureIn(l.tube)
+	l.picture = pictureIn(l.tube, 0)
 	l.below = image.Rect(window.Min.X, l.cabinet.Max.Y, area.Max.X, l.cabinet.Max.Y+int(statusH))
 
 	switch {
@@ -125,14 +125,19 @@ func (l tvLayout) rect(r skin.Rect) image.Rectangle {
 	return image.Rect(int(math.Round(x0)), int(math.Round(y0)), int(math.Round(x1)), int(math.Round(y1)))
 }
 
-// pictureIn is the largest 2:1 picture filling pictureShare of the tube,
-// centred in it.
-func pictureIn(tube image.Rectangle) image.Rectangle {
+// pictureIn is the largest picture filling pictureShare of the tube,
+// centred in it: 2:1, or 1:2 for a game turned 90 or 270 degrees.
+func pictureIn(tube image.Rectangle, rotation int) image.Rectangle {
+	shape := float64(pictureShape)
+	if rotation == 90 || rotation == 270 {
+		shape = 1 / shape
+	}
+
 	pw := float64(tube.Dx()) * pictureShare
-	ph := pw / pictureShape
+	ph := pw / shape
 
 	if limit := float64(tube.Dy()) * pictureShare; ph > limit {
-		ph, pw = limit, limit*pictureShape
+		ph, pw = limit, limit*shape
 	}
 
 	x := float64(tube.Min.X) + (float64(tube.Dx())-pw)/2

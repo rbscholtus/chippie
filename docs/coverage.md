@@ -23,6 +23,9 @@ Downloadable ROMs in the manifest: 298 of 573 in the database and Chippie's over
 Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
 
 - change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
+- change Computer Simulator: screenRotation: not yet proposed upstream
+- change Infini Br8kr: screenRotation: not yet proposed upstream
+- change Octo Space Program: screenRotation: not yet proposed upstream
 - add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
@@ -41,7 +44,7 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - add Enter the mine: not yet proposed upstream
 - add F-Chip8 Racing: not yet proposed upstream
 - add Falling Ghosts: not yet proposed upstream
-- add Octojam 10 Entry - Fencing: not yet proposed upstream
+- add Fencing: not yet proposed upstream
 - add H8 2: Carry Flag: not yet proposed upstream
 - add Halloween-Blaster: not yet proposed upstream
 - add Invisible Man: not yet proposed upstream

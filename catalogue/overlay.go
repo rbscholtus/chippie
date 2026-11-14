@@ -50,6 +50,7 @@ type OverlayChange struct {
 	Platforms       []string                   `json:"platforms,omitempty"`
 	QuirkyPlatforms map[string]map[string]bool `json:"quirkyPlatforms,omitempty"`
 	Tickrate        int                        `json:"tickrate,omitempty"`
+	ScreenRotation  int                        `json:"screenRotation,omitempty"` // 0: not changed
 }
 
 // OverlayStatus is what one entry did.
@@ -216,6 +217,8 @@ func (db *DB) applyChange(c OverlayChange) (OverlayStatus, error) {
 	set("quirkyPlatforms", c.QuirkyPlatforms != nil, reflect.DeepEqual(c.QuirkyPlatforms, rom.QuirkyPlatforms),
 		func() { rom.QuirkyPlatforms = c.QuirkyPlatforms })
 	set("tickrate", c.Tickrate > 0, c.Tickrate == rom.Tickrate, func() { rom.Tickrate = c.Tickrate })
+	set("screenRotation", c.ScreenRotation != 0, c.ScreenRotation == rom.ScreenRotation,
+		func() { rom.ScreenRotation = c.ScreenRotation })
 
 	st := OverlayStatus{
 		Upstream: c.Upstream, What: "change " + rom.Program.Title, Done: len(fields) == 0,
@@ -228,22 +231,27 @@ func (db *DB) applyChange(c OverlayChange) (OverlayStatus, error) {
 	return st, db.checkROM(rom)
 }
 
-// checkROM checks a ROM's platforms and quirks against the database.
+// checkROM checks a ROM's platforms, quirks and rotation against the
+// database (for its own ROMs and the overlay's).
 func (db *DB) checkROM(rom *ROM) error {
+	if !validRotation(rom.ScreenRotation) {
+		return fmt.Errorf("%w: ROM %s: screenRotation %d", ErrInvalid, rom.SHA1, rom.ScreenRotation)
+	}
+
 	for _, p := range rom.Platforms {
 		if db.Platforms[p] == nil {
-			return fmt.Errorf("%w: overlay: ROM %s: unknown platform %q", ErrInvalid, rom.SHA1, p)
+			return fmt.Errorf("%w: ROM %s: unknown platform %q", ErrInvalid, rom.SHA1, p)
 		}
 	}
 
 	for p, qs := range rom.QuirkyPlatforms {
 		if db.Platforms[p] == nil {
-			return fmt.Errorf("%w: overlay: ROM %s: quirks for unknown platform %q", ErrInvalid, rom.SHA1, p)
+			return fmt.Errorf("%w: ROM %s: quirks for unknown platform %q", ErrInvalid, rom.SHA1, p)
 		}
 
 		for q := range qs {
 			if !db.quirks[q] {
-				return fmt.Errorf("%w: overlay: ROM %s: unknown quirk %q", ErrInvalid, rom.SHA1, q)
+				return fmt.Errorf("%w: ROM %s: unknown quirk %q", ErrInvalid, rom.SHA1, q)
 			}
 		}
 	}
@@ -256,7 +264,7 @@ func newROM(hash string, rr rawROM, prog *Program) *ROM {
 	return &ROM{
 		SHA1: strings.ToLower(hash), File: rr.File, Platforms: rr.Platforms,
 		QuirkyPlatforms: rr.QuirkyPlatforms, Tickrate: rr.Tickrate, Colors: rr.Colors,
-		Keys: rr.Keys, TouchInputMode: rr.TouchInputMode, Program: prog,
+		Keys: rr.Keys, TouchInputMode: rr.TouchInputMode, ScreenRotation: rr.ScreenRotation, Program: prog,
 	}
 }
 

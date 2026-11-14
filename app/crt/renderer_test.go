@@ -2,7 +2,10 @@ package crt
 
 import (
 	"image"
+	"math"
 	"testing"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // TestShadersCompile compiles both Kage shaders. Compilation happens on the
@@ -84,5 +87,40 @@ func TestPictureFallsBackToScreen(t *testing.T) {
 
 	if r.Picture() != tube {
 		t.Errorf("picture outside the tube: Picture() = %v, want the screen", r.Picture())
+	}
+}
+
+// TestPlaceFrame checks where the frame's corners land in the picture for
+// each rotation (clockwise).
+func TestPlaceFrame(t *testing.T) {
+	t.Parallel()
+
+	const w, h = 64, 32
+
+	pic := image.Rect(10, 20, 110, 220)
+	tl, tr := image.Pt(pic.Min.X, pic.Min.Y), image.Pt(pic.Max.X, pic.Min.Y)
+	bl, br := image.Pt(pic.Min.X, pic.Max.Y), image.Pt(pic.Max.X, pic.Max.Y)
+
+	for _, tc := range []struct {
+		rot                       int
+		frameTL, frameTR, frameBL image.Point // where the frame's corners go
+	}{
+		{0, tl, tr, bl},
+		{90, tr, br, tl},
+		{180, br, bl, tr},
+		{270, bl, tl, br},
+	} {
+		var m ebiten.GeoM
+		PlaceFrame(&m, w, h, pic, tc.rot)
+
+		for _, c := range []struct {
+			x, y float64
+			want image.Point
+		}{{0, 0, tc.frameTL}, {w, 0, tc.frameTR}, {0, h, tc.frameBL}} {
+			x, y := m.Apply(c.x, c.y)
+			if math.Abs(x-float64(c.want.X)) > 1e-9 || math.Abs(y-float64(c.want.Y)) > 1e-9 {
+				t.Errorf("rotation %d: frame (%v, %v) → (%.1f, %.1f), want %v", tc.rot, c.x, c.y, x, y, c.want)
+			}
+		}
 	}
 }

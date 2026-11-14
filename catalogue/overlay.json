@@ -1111,6 +1111,21 @@
       "upstream": "https://github.com/chip-8/chip-8-database/pull/28",
       "sha1": "6f8e85158be98f30bf3cd5df60d7a7ad71c5f3e1",
       "title": "Mr Worm"
+    },
+    {
+      "upstream": "pending",
+      "sha1": "46b281516a3e9d1526bea224b79cc18ddd71833d",
+      "screenRotation": 90
+    },
+    {
+      "upstream": "pending",
+      "sha1": "2cda3b309234e693e5ab6179767a8f019dfd5c6e",
+      "screenRotation": 90
+    },
+    {
+      "upstream": "pending",
+      "sha1": "838706ee2d7001e6e909360f9a02f48d81d3a0d6",
+      "screenRotation": 270
     }
   ]
 }

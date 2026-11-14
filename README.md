@@ -568,7 +568,10 @@ light grey studio background that fills the page.
 - **Portrait (phones):** the TV at the top, scaled to the width. The on-screen
   remote (hex keypad) below it. Drawers cover the remote.
 - **The picture** is a 2:1 rectangle across the middle of the tube; the rest of
-  the tube shows the game's background colour, as a TV would.
+  the tube shows the game's background colour, as a TV would. Games made for
+  a sideways screen (the database's `screenRotation`, e.g. Sub-Terr8nia, 270°)
+  are turned clockwise by that much and get a tall 1:2 picture; the on-screen
+  display, keys and remote stay upright.
 - **Crisp on high-density screens:** `Layout` returns the real pixel size
   (`outside size × ebiten.Monitor().DeviceScaleFactor()`). All UI sizes and
   fonts are multiplied by the same factor. The prototype used logical pixels,

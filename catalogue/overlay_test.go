@@ -112,6 +112,8 @@ func TestOverlayRejects(t *testing.T) {
 		"add to unknown": `{"add": [{"upstream": "pending", "to": "` + otherHash + `",
 			"program": {"roms": {"` + newHash + `": {}}}}]}`,
 		"change unknown": `{"change": [{"upstream": "pending", "sha1": "` + otherHash + `", "tickrate": 5}]}`,
+		"bad rotation": `{"add": [{"upstream": "pending", "program": {"title": "X",
+			"roms": {"` + newHash + `": {"screenRotation": 45}}}}]}`,
 	} {
 		if _, err := db.ApplyOverlay(mustOverlay(t, s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
@@ -146,5 +148,26 @@ func TestEmbeddedOverlay(t *testing.T) {
 		if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; !p.Implemented() {
 			t.Errorf("%s: platform %s isn't playable", rom.Program.Title, p)
 		}
+	}
+}
+
+func TestScreenRotation(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+
+	// Sub-Terr8nia, from chip-8-database itself.
+	if rom, ok := db.ROM("64536d549c986e9edf25de9fa89db60d2ade85c0"); !ok || rom.ScreenRotation != 270 {
+		t.Errorf("Sub-Terr8nia: %+v, want screenRotation 270", rom)
+	}
+
+	status, err := db.ApplyOverlay(mustOverlay(t, `{"change": [{"upstream": "pending",
+		"sha1": "`+glitchGhost+`", "screenRotation": 90}]}`))
+	if err != nil || status[0].Done {
+		t.Fatalf("change: %v %+v", err, status)
+	}
+
+	if rom, _ := db.ROM(glitchGhost); rom.ScreenRotation != 90 {
+		t.Errorf("rotation not changed: %d", rom.ScreenRotation)
 	}
 }
