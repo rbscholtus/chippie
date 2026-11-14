@@ -1,6 +1,6 @@
 # ROM coverage
 
-Generated 2026-11-14T16:27:32Z by `cmd/catalogue-gen`.
+Generated 2026-11-14T19:26:40Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
@@ -12,11 +12,11 @@ chip-8-database: 484 programs, 543 ROMs.
 | Matthew Mikolay's CHIP-8 programs | 6 | 4 | 2 |
 | 3D Viper Maze (Timendus) | 1 | 1 | 0 |
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
-| Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 42 | 26 |
+| Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 68 | 0 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **272** | **38** |
+| **All combined** | **310** | **298** | **12** |
 
-Downloadable ROMs in the manifest: 272 of 547 in the database and Chippie's overlay.
+Downloadable ROMs in the manifest: 298 of 573 in the database and Chippie's overlay.
 
 ## Chippie's overlay (pending upstream)
 
@@ -27,6 +27,32 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
 - add ROMs to Mr Worm: waiting for https://github.com/chip-8/chip-8-database/pull/28
+- add Bad Apple!!: not yet proposed upstream
+- add Bad Apple: not yet proposed upstream
+- add Beware of Sn8k!: not yet proposed upstream
+- add BIM Logo Animation: not yet proposed upstream
+- add Blobo: not yet proposed upstream
+- add C8SALT logo: not yet proposed upstream
+- add Chipception OS: not yet proposed upstream
+- add Collision Course: not yet proposed upstream
+- add Destroy The Line: not yet proposed upstream
+- add Dodge Catch Shoot: not yet proposed upstream
+- add Duel Of The F8s: Special Edition: not yet proposed upstream
+- add Enter the mine: not yet proposed upstream
+- add F-Chip8 Racing: not yet proposed upstream
+- add Falling Ghosts: not yet proposed upstream
+- add Octojam 10 Entry - Fencing: not yet proposed upstream
+- add H8 2: Carry Flag: not yet proposed upstream
+- add Halloween-Blaster: not yet proposed upstream
+- add Invisible Man: not yet proposed upstream
+- add Kanji Calculator (WIP): not yet proposed upstream
+- add Man Hang: not yet proposed upstream
+- add Octogon Trail: not yet proposed upstream
+- add Octris: not yet proposed upstream
+- add Termlib demo: not yet proposed upstream
+- add RPN Calculator: not yet proposed upstream
+- add XO-NYANCAT!!: not yet proposed upstream
+- add XO-TRACKER DEMO: not yet proposed upstream
 
 ## Not in chip-8-database
 
@@ -42,32 +68,6 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - kripod/chip8-roms: `hires/Trip8 Hires Demo (2008) [Revival Studios].ch8`
 - Matthew Mikolay's CHIP-8 programs: `delaytimer/delay_timer_test.ch8`
 - Matthew Mikolay's CHIP-8 programs: `randomnumber/random_number_test.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bad-apple-koorogi.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bad-apple-timendus.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/beware-of-sn8k.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bim-logo-animation.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/blobo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/c8salt-logo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/chipception-os.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/collision-course.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/destroy-the-line.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/dodge-catch-shoot.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/duel-of-the-f8s-special-edition.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/enter-the-mine.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/f-chip8-racing.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/falling-ghosts.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/fencing.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/h8-2-carry-flag.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/halloween-blaster.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/invisible-man.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/kanji-calculator.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/man-hang.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/octogon-trail.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/octris.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/termlib-demo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/upn-calculator.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/xo-nyancat.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/xo-tracker-demo.ch8`
 
 ## chip8Archive vs chip-8-database
 

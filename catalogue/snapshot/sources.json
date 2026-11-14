@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2026-11-14T16:27:32Z",
+  "generated": "2026-11-14T19:26:40Z",
   "sources": {
     "3dvipermaze": {
       "name": "3D Viper Maze (Timendus)",
@@ -65,6 +65,12 @@
         "url": "roms/hosted/PIPER"
       }
     ],
+    "02af3bc8632511dac957d7d4430f35c510ccf3f2": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/destroy-the-line.ch8"
+      }
+    ],
     "032408f1f1d8e6058ecf0f23f421783c87701b39": [
       {
         "source": "kripod",
@@ -111,6 +117,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Zero%20Demo%20%5BzeroZshadow%2C%202007%5D.ch8"
+      }
+    ],
+    "0c9b5a4a3cd8466a6283b9210fae298412b7148d": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/kanji-calculator.ch8"
       }
     ],
     "0cd895dc3d489d0e40656218900a04310e95f560": [
@@ -285,6 +297,12 @@
       {
         "source": "octojam-itch",
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/chip-8-snake-zyogram.ch8"
+      }
+    ],
+    "287e4e704448d963ed6187f9f4f5876d92754cc0": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/collision-course.ch8"
       }
     ],
     "28ac3467fbb4544a3e3a1ec3cd27d9e819ac7323": [
@@ -527,6 +545,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/octojam3title.ch8"
       }
     ],
+    "4969623607f6a519e1eb09e4527267727991a61c": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/man-hang.ch8"
+      }
+    ],
     "49c7234a1733db355560a13c57b26f055533c233": [
       {
         "source": "kripod",
@@ -555,6 +579,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/wonkypong.ch8"
+      }
+    ],
+    "528404afc02cacef8481827cfc66b9569a5d97e2": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/blobo.ch8"
       }
     ],
     "531c44e8204d8ab8c078bad36e34067baddfccdb": [
@@ -629,6 +659,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Cave.ch8"
       }
     ],
+    "5d9a7db1299ea3bacdc4abe7f9ee985b08179575": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/invisible-man.ch8"
+      }
+    ],
     "5e70f91ca08e9b9e9de61670492e3db2d7f7d57a": [
       {
         "source": "kripod",
@@ -665,6 +701,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/DVN8.ch8"
       }
     ],
+    "6281eb5dbde6ac33dec3e74b957e38adb6c4f5ae": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/dodge-catch-shoot.ch8"
+      }
+    ],
     "62e204572ac05be3748a746ac7831d6844f43003": [
       {
         "source": "3dvipermaze",
@@ -685,6 +727,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/sub8.ch8"
+      }
+    ],
+    "654053fabf6d022838a038e3fd63e2004034620e": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/c8salt-logo.ch8"
       }
     ],
     "659cb966e976fcbcae76f6a8a07c65be4d18aae8": [
@@ -735,10 +783,22 @@
         "url": "roms/hosted/DRAGON2"
       }
     ],
+    "6d073d659c5bfe625498f1cb45b9a3684463d721": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/octris.ch8"
+      }
+    ],
     "6d4514ae3a43c307763648b0bdd485fb77bcf20d": [
       {
         "source": "chippie",
         "url": "roms/hosted/MINES"
+      }
+    ],
+    "6d6759a9ecff04d0923569e5d62bad1b2530951f": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/enter-the-mine.ch8"
       }
     ],
     "6d677bb44500a5ee4754b3a75516cfd9e73947fc": [
@@ -963,16 +1023,34 @@
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/only-the-good-die-neil-young.ch8"
       }
     ],
+    "8b1cd5ed305922234ce5d0a847ba64b5ed0fb99d": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/upn-calculator.ch8"
+      }
+    ],
     "8b2fc2e08830b8a9e604d11c9b319e2cc0a581b3": [
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/t8nks.ch8"
       }
     ],
+    "8b67dadaa32bdfc86835135fc5f2bfe12214c15a": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/beware-of-sn8k.ch8"
+      }
+    ],
     "8b70080adbac44513ec60005734a816372b845ec": [
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Maze%20%28alt%29%20%5BDavid%20Winter%2C%20199x%5D.ch8"
+      }
+    ],
+    "8deef9510369ac9581ab03b44cfdec95bbdbc4c2": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/duel-of-the-f8s-special-edition.ch8"
       }
     ],
     "8e5f19d8ae9f3346779613359610967a5ed95fa8": [
@@ -1039,6 +1117,12 @@
       {
         "source": "octojam-itch",
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/tapeworm.ch8"
+      }
+    ],
+    "9d2035ba3ea24d33c405829c2722fce8fe7e5842": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/termlib-demo.ch8"
       }
     ],
     "9d834860f455aec7e95fb886984497e5be501610": [
@@ -1125,6 +1209,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Squash%20%5BDavid%20Winter%5D.ch8"
       }
     ],
+    "a5dfee1ea75ec9c9ff7d92e009588bd359b3479a": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/octogon-trail.ch8"
+      }
+    ],
     "a60611339661e3ab2d8af024ad1da5880a6f8665": [
       {
         "source": "kripod",
@@ -1173,6 +1263,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Flight.ch8"
       }
     ],
+    "aae22735122c1e15df1dde4ef19e7b4968d88f6f": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/xo-nyancat.ch8"
+      }
+    ],
     "ab36ced6e34affacd57b2874ede3f95b669a424c": [
       {
         "source": "chip8archive",
@@ -1189,6 +1285,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/squad.ch8"
+      }
+    ],
+    "ac3bd99bee9547f8916e86cf4ab882924fdd6bad": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/xo-tracker-demo.ch8"
       }
     ],
     "ac621d9fcada302ba6965768229ef130630bc525": [
@@ -1219,6 +1321,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Filter.ch8"
+      }
+    ],
+    "ae8622969efbf66054111d1bf54b348f9d77da1b": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/halloween-blaster.ch8"
       }
     ],
     "afd9fee7565c54970b6bd7758aa8aa7843dd2e86": [
@@ -1267,6 +1375,12 @@
       {
         "source": "timendus",
         "url": "https://raw.githubusercontent.com/Timendus/chip8-test-suite/cb24d5595384a80b49ddedae13bec4042b16d41d/bin/3-corax+.ch8"
+      }
+    ],
+    "b2fc2fb35533625d55e9401eda3b243321d51e58": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/h8-2-carry-flag.ch8"
       }
     ],
     "b3fed4ed1eb0ed693c9731dbe53b29a76236c781": [
@@ -1347,10 +1461,28 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/UFO%20%5BLutz%20V%2C%201992%5D.ch8"
       }
     ],
+    "be412b33d82be1d4b89247f9e88525b616ec4669": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/bad-apple-timendus.ch8"
+      }
+    ],
     "c606d52970b86edcca4e87e9f6fae4b1ccbbbb0f": [
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/chickenScratch.ch8"
+      }
+    ],
+    "c9117dd291d81c309994fe43e54cc34a0d9f9047": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/bad-apple-koorogi.ch8"
+      }
+    ],
+    "cbdd143ffabd419999cea7be8e6d54dcbec1b931": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/fencing.ch8"
       }
     ],
     "ccec955da264cd92fdbb18c4971419497513ae42": [
@@ -1525,6 +1657,12 @@
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/binding.ch8"
       }
     ],
+    "e755da9ce583a235194213c8897d1a85f5d0fae9": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/chipception-os.ch8"
+      }
+    ],
     "e85ade7412e8affc4a8590fc0c928f1f00c5eb6b": [
       {
         "source": "octojam-itch",
@@ -1553,6 +1691,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Space%20Intercept%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "edac5665df9bc6c6a4217318f51b622611402606": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/falling-ghosts.ch8"
       }
     ],
     "ee7fb407da5f17ea7be9d16ce8a7ff38028ca924": [
@@ -1619,10 +1763,22 @@
         "url": "roms/hosted/WORM3"
       }
     ],
+    "f81e5d41007b896a9d906c1360de2d7577b87415": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/f-chip8-racing.ch8"
+      }
+    ],
     "f9d0bdf4a80d5570a9af9fd13769e528dff411df": [
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/ordinaryidlegarden.ch8"
+      }
+    ],
+    "f9f29b7d19dedfc33689b2972fac4f37c8a1ac3f": [
+      {
+        "source": "octojam-itch",
+        "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/bim-logo-animation.ch8"
       }
     ],
     "fa7c04f68d78e0faf6d136a3babe3943fc2e02f1": [
