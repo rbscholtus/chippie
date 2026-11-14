@@ -725,7 +725,9 @@ switch, seen straight on".
   phrase in every prompt.
 - **Record the generator, model and prompt** for every image in
   `assets/LICENSES.md`. Check that generator's terms before publishing; the
-  terms decide whether and how the images can be used.
+  terms decide whether and how the images can be used. For Gemini this is
+  done: the images are believed to be in the public domain, and Google
+  allows personal and commercial use (`assets/LICENSES.md`, "TV artwork").
 
 ## 13. Input and audio
 

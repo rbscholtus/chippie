@@ -21,6 +21,25 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 
 ## TV artwork (`assets/tv/<skin>/`, shipped separately, not compiled in)
 
+**Licence: none needed; believed to be in the public domain.** The TV
+artwork was AI-generated using Google Gemini and is free to use and
+distribute. Because AI-generated images without substantial human
+authorship lack copyright under US law (and in many other jurisdictions),
+these images are believed to be in the public domain and are distributed
+here without copyright restrictions. Chippie's BSD 3-Clause licence covers
+its own code, not these images.
+
+- **Google's terms** (as reviewed in November 2026): Google does not claim
+  ownership of content generated with Gemini, and allows its use for
+  personal and commercial purposes, subject to Google's Prohibited Use
+  Policy. Using the images in this BSD 3-Clause project is consistent with
+  that.
+- **What was done to them** (`cmd/skin-gen`): cropping, scaling, masking,
+  blurring (the backdrop), cutting the controls out, and on the walnut
+  console erasing and redrawing the channel numbers. The crops leave out
+  Gemini's visible sparkle mark; Google's invisible SynthID watermark
+  remains in the pixels.
+
 ### Walnut console (`assets/tv/classic/`)
 
 - **Generator:** Google Gemini image generation (the Gemini app), November
@@ -32,9 +51,6 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
   faded into the background, and three sizes; the tube mask; and the control
   sprites cut out of the same image. The channel dial's printed numbers were
   garbled, so they are erased and redrawn in Go Medium (below).
-- **Terms:** use follows Google's terms for Gemini-generated images. **To
-  do before the art goes live:** confirm those terms allow this use and the
-  removal of the visible mark (an invisible SynthID watermark remains).
 - The separately generated knob, dial and switch images in `assets/source/`
   are not used.
 
@@ -47,7 +63,6 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 - **Made by `cmd/skin-gen`** from that master and
   `assets/tv/portable/recipe.json`, as above; the crop leaves out the sparkle
   mark. Its channel knob has no numbers, so none are drawn.
-- **Terms:** the same to-do as above.
 
 ## Timendus CHIP-8 test suite (shipped separately, not compiled in)
 
