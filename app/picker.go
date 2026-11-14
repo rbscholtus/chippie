@@ -31,7 +31,9 @@ type picker struct {
 	rows     []pickerRow
 	selected int // index into entries
 	query    string
-	canLoad  bool // offer "Load a ROM from this device"
+	family   library.Family         // the platform filter; AllFamilies: none
+	counts   map[library.Family]int // entries per family for the query, for the filter's labels
+	canLoad  bool                   // offer "Load a ROM from this device"
 
 	// Scrolling, in pixels: offset is how far the list is scrolled; viewH
 	// is the visible height and rowH the height of one row.
@@ -76,8 +78,22 @@ func (p *picker) setQuery(q string) {
 	p.selected, p.offset = 0, 0
 }
 
+// setFamily filters the list to one platform family (AllFamilies: none)
+// and goes back to its top.
+func (p *picker) setFamily(f library.Family) {
+	if f == p.family {
+		return
+	}
+
+	p.family = f
+	p.refilter()
+	p.selected, p.offset = 0, 0
+}
+
 func (p *picker) refilter() {
-	p.entries = library.Filter(p.all, p.query)
+	matching := library.Filter(p.all, p.query)
+	p.counts = library.FamilyCounts(matching)
+	p.entries = library.InFamily(matching, p.family)
 	p.rows = buildRows(p.entries, p.canLoad)
 	p.selected = min(p.selected, max(len(p.entries)-1, 0))
 	p.scroll(0)
