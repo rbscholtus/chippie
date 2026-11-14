@@ -40,7 +40,7 @@
 - [x] **Octojam 6:** nothing to add. Of its 11 entries, 10 are already in
   the database (6 from itch.io, 4 via the CHIP-8 Archive), and Dump Trump's
   page has no playable version.
-- [ ] Text below approved.
+- [x] Text below approved.
 
 ## The programs
 
