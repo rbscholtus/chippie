@@ -1,0 +1,61 @@
+{
+  "add": [
+    {
+      "upstream": "pending",
+      "program": {
+        "title": "Dino Run",
+        "authors": ["Andrezinrc"],
+        "release": "2026-05-25",
+        "description": "An endless runner game for Chip-8. Key 5 jumps.",
+        "roms": {
+          "1a7a2138161b06e083722f978f8cbaaa1ad5344d": { "file": "dinorun.ch8", "platforms": ["modernChip8"], "keys": { "a": 5 } }
+        }
+      }
+    },
+    {
+      "upstream": "pending",
+      "program": {
+        "title": "Mato8",
+        "authors": ["nortti"],
+        "release": "2023-01-14",
+        "description": "Snake game (matopeli in Finnish). Made for the GAMES MADE QVIICK??? jam.",
+        "roms": {
+          "673f98c66168190aa5b1e5dda5d0d80da7826dd1": { "file": "mato8.ch8", "platforms": ["modernChip8"] }
+        }
+      }
+    },
+    {
+      "upstream": "pending",
+      "program": {
+        "title": "Tick",
+        "authors": ["StanislavDidus"],
+        "release": "2026-08-11",
+        "description": "Rhythm one button game for Chip-8. Tap key A in time with the beat.",
+        "roms": {
+          "3d81c0462c722c2d8a79f6e1b571e9aa21d36b1f": { "file": "tick.ch8", "platforms": ["modernChip8"], "keys": { "a": 10 } }
+        }
+      }
+    },
+    {
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/28",
+      "to": "6f8e85158be98f30bf3cd5df60d7a7ad71c5f3e1",
+      "program": {
+        "roms": {
+          "08cff17fa88aaecb11dd439e2f9780f77831de02": {
+            "file": "mrworm.ch8",
+            "tickrate": 20,
+            "platforms": [],
+            "quirkyPlatforms": { "superchip": { "shift": false, "memoryLeaveIUnchanged": false } }
+          }
+        }
+      }
+    }
+  ],
+  "change": [
+    {
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/28",
+      "sha1": "6f8e85158be98f30bf3cd5df60d7a7ad71c5f3e1",
+      "title": "Mr Worm"
+    }
+  ]
+}

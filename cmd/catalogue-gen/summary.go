@@ -17,8 +17,9 @@ type counts struct {
 
 // snapshotState is what the summary compares: the numbers and the pins.
 type snapshotState struct {
-	counts counts
-	pins   map[string]string
+	counts      counts
+	pins        map[string]string
+	overlayDone []string // overlay entries upstream now has: delete them
 }
 
 // readState reads the snapshot in dir as it is before a refresh. ok is
@@ -116,6 +117,14 @@ func summary(before snapshotState, hadBefore bool, after snapshotState) string {
 		}
 
 		fmt.Fprintf(&b, "| %s | %s | %s |\n", r, old, now)
+	}
+
+	if len(after.overlayDone) > 0 {
+		b.WriteString("\n**Upstream now has these overlay entries; delete them from `catalogue/overlay.json`:**\n\n")
+
+		for _, d := range after.overlayDone {
+			fmt.Fprintf(&b, "- %s\n", d)
+		}
 	}
 
 	return b.String()

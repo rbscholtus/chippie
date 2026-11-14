@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2026-11-13T18:17:16Z",
+  "generated": "2026-11-14T16:27:32Z",
   "sources": {
     "3dvipermaze": {
       "name": "3D Viper Maze (Timendus)",
@@ -93,6 +93,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Delay%20Timer%20Test%20%5BMatthew%20Mikolay%2C%202010%5D.ch8"
+      }
+    ],
+    "08cff17fa88aaecb11dd439e2f9780f77831de02": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/mrworm.ch8"
       }
     ],
     "09ce01c54ddddda42ca5cd171f1ffcfd47355d12": [
@@ -219,6 +225,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Breakout%20%5BCarmelo%20Cortez%2C%201979%5D.ch8"
+      }
+    ],
+    "1a7a2138161b06e083722f978f8cbaaa1ad5344d": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/dinorun.ch8"
       }
     ],
     "1b6dcf8c02ea0b89a4f04ce28e7c39a5e7a513d6": [
@@ -405,6 +417,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Rocket%20%5BJoseph%20Weisbecker%2C%201978%5D.ch8"
+      }
+    ],
+    "3d81c0462c722c2d8a79f6e1b571e9aa21d36b1f": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/tick.ch8"
       }
     ],
     "3dade9be601637ca2d96aeafaa086b93a0b83352": [
@@ -691,6 +709,12 @@
       {
         "source": "octojam-itch",
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/rpncalc.ch8"
+      }
+    ],
+    "673f98c66168190aa5b1e5dda5d0d80da7826dd1": [
+      {
+        "source": "chip8archive",
+        "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/mato8.ch8"
       }
     ],
     "67996195539c0ddcd98533a01dffeec6a53a6da1": [

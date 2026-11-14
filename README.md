@@ -988,10 +988,19 @@ the file itself.
 
 ## 18. Upstream contributions
 
-Once the emulator works (after milestone M4):
+Planned in detail in [docs/plans/M6-M8.md](docs/plans/M6-M8.md) (M8).
 
-1. **Missing ROMs:** a PR to chip-8-database adding metadata for the 14
-   missing ROMs, after confirming their platforms by running them in Chippie.
+**The overlay:** Chippie doesn't wait for upstream. `catalogue/overlay.json`
+holds its pending additions and corrections to chip-8-database, in the
+database's own format, each linked to the upstream PR that proposes it (or
+"pending"). `catalogue` applies it on top of the snapshot and the runtime
+refresh; `catalogue-gen` applies it too, so its ROMs get download locations.
+Whatever upstream already has, an entry skips; the weekly refresh summary and
+`docs/coverage.md` list those entries for deletion. The goal is an empty
+overlay: everything upstream.
+
+1. **Missing ROMs:** PRs to chip-8-database adding metadata for the ROMs it
+   lacks, after confirming their platforms by running them in Chippie.
 2. **Download sources:** an issue proposing a standard "where to download"
    field in the database. Today only 12 programs have a `urls` field. If it is
    accepted, our `sources.json` becomes a thin layer over the shared database

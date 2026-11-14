@@ -46,6 +46,7 @@ type DB struct {
 	Platforms map[string]*Platform // by platforms.json id
 	Programs  []*Program
 	roms      map[string]*ROM // by lower-case SHA-1
+	quirks    map[string]bool // quirks.json ids
 }
 
 // Platform is one entry of platforms.json.
@@ -149,11 +150,7 @@ func Parse(f Files) (*DB, error) {
 		db.Programs[i] = prog
 
 		for hash, rr := range rp.ROMs {
-			rom := &ROM{
-				SHA1: strings.ToLower(hash), File: rr.File, Platforms: rr.Platforms,
-				QuirkyPlatforms: rr.QuirkyPlatforms, Tickrate: rr.Tickrate, Colors: rr.Colors,
-				Keys: rr.Keys, TouchInputMode: rr.TouchInputMode, Program: prog,
-			}
+			rom := newROM(hash, rr, prog)
 			prog.ROMs = append(prog.ROMs, rom)
 			db.roms[rom.SHA1] = rom
 		}
@@ -161,6 +158,11 @@ func Parse(f Files) (*DB, error) {
 
 	if err := validate(db, quirks, hashes); err != nil {
 		return nil, err
+	}
+
+	db.quirks = make(map[string]bool, len(quirks))
+	for _, q := range quirks {
+		db.quirks[q.ID] = true
 	}
 
 	return db, nil

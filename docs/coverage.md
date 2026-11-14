@@ -1,12 +1,12 @@
 # ROM coverage
 
-Generated 2026-11-13T18:17:16Z by `cmd/catalogue-gen`.
+Generated 2026-11-14T16:27:32Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
 | Source | Unique ROMs | In database | Missing |
 |---|---|---|---|
-| chip8Archive | 104 | 100 | 4 |
+| chip8Archive | 104 | 104 | 0 |
 | kripod/chip8-roms | 106 | 96 | 10 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
 | Matthew Mikolay's CHIP-8 programs | 6 | 4 | 2 |
@@ -14,16 +14,22 @@ chip-8-database: 484 programs, 543 ROMs.
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
 | Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 42 | 26 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **268** | **42** |
+| **All combined** | **310** | **272** | **38** |
 
-Downloadable ROMs in the manifest: 268 of 543 in the database.
+Downloadable ROMs in the manifest: 272 of 547 in the database and Chippie's overlay.
+
+## Chippie's overlay (pending upstream)
+
+Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
+
+- change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
+- add Dino Run: not yet proposed upstream
+- add Mato8: not yet proposed upstream
+- add Tick: not yet proposed upstream
+- add ROMs to Mr Worm: waiting for https://github.com/chip-8/chip-8-database/pull/28
 
 ## Not in chip-8-database
 
-- chip8Archive: `roms/dinorun.ch8`
-- chip8Archive: `roms/mato8.ch8`
-- chip8Archive: `roms/mrworm.ch8`
-- chip8Archive: `roms/tick.ch8`
 - kripod/chip8-roms: `games/Guess [David Winter] (alt).ch8`
 - kripod/chip8-roms: `games/Rush Hour [Hap, 2006] (alt).ch8`
 - kripod/chip8-roms: `hires/Astro Dodge Hires [Revival Studios, 2008].ch8`
