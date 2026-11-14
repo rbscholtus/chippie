@@ -54,7 +54,8 @@ Click or tap a knob to turn it one step, drag it, or use the mouse wheel.
 | Volume knob | Volume; all the way down mutes | `-` / `=` |
 | Tint knob | The game's own colours, white, amber, green or Octo colours, saved per game | T |
 | "< ROM list" | The game library | Esc |
-| "Settings >" | Platform, speed, quirks, TV skin, instruction trace | F2 |
+| "Settings >" | Platform, speed, quirks, TV skin, instruction trace | F2 or Tab |
+| Stats | Shows the actual updates and frames per second, the scale and the window size at the top of the page | F1 |
 
 ### The keypad
 
@@ -69,21 +70,31 @@ A S D F         7 8 9 E
 Z X C V         A 0 B F
 ```
 
-Games don't say which keys they use, so you may need to try a few. Where
-chip-8-database knows a game's keys, the on-screen remote highlights them.
+Under the TV, Chippie shows which keys the running game uses. Where
+chip-8-database knows a game's controls, it lists them (and the on-screen
+remote highlights them). Otherwise Chippie watches the game: every key it
+checks is added to a "Keys it reads" line, so after a few seconds of play
+you can see its controls. A game that waits for any key says so.
 
 ### The library
 
-- **Search** by title, author, year or platform. Every word must match;
-  `xo`, `schip`, `chip8` and `chip48` find a platform.
+- **Search** by title, author, year or platform. Every word must match, and
+  part of a word is enough. Platform words include `chip8`, `chip-8`,
+  `modern`, `vip`, `cosmac`, `chip48`, `chip-48`, `schip`, `superchip`,
+  `super-chip`, `xo`, `xochip` and `xo-chip`.
 - **Filter** by platform with the chips under the search field.
 - Games for platforms Chippie can't run yet are listed under **Coming soon**.
 - **Load your own ROM** with "Load a ROM from this device", or drag a file
   onto the page.
+- **Kept up to date:** each time it starts, Chippie fetches the latest
+  chip-8-database in the background, so game details and recommended
+  settings stay current. A weekly job refreshes the built-in copy of the
+  database and looks for new download locations; new games appear once
+  that update is merged.
 
 ### Settings
 
-Settings (F2) apply to the game that's running and are saved for it:
+Settings (F2 or Tab) apply to the game that's running and are saved for it:
 platform, speed, each quirk, and **Reset to recommended** to go back to the
 database's values. Settings also has the TV skin and the instruction trace.
 
@@ -145,7 +156,8 @@ The full list, with open questions, is in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Building from source
 
-You need Go 1.27. For the browser tests, also Node.js.
+You need Go 1.27 and Python 3 (the browser build script and the local web
+server use it). For the browser tests, also Node.js.
 
 ```sh
 git clone --recurse-submodules https://github.com/rbscholtus/chippie
