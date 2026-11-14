@@ -8,7 +8,7 @@
         "release": "2026-05-25",
         "description": "An endless runner game for Chip-8.",
         "roms": {
-          "1a7a2138161b06e083722f978f8cbaaa1ad5344d": { "file": "dinorun.ch8", "platforms": ["modernChip8"], "keys": { "a": 5 } }
+          "1a7a2138161b06e083722f978f8cbaaa1ad5344d": { "file": "dinorun.ch8", "platforms": ["originalChip8", "modernChip8"], "keys": { "a": 5 } }
         }
       }
     },

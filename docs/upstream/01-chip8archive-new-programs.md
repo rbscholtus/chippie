@@ -11,11 +11,10 @@
 - [x] Each ROM's SHA-1 matches chip8Archive's file at commit `761e3ff`.
 - [x] Played in Chippie with these settings, 2026-11-15: Dino Run, Mato8 and
   Tick all work.
-- [ ] **Dino Run's platform:** chip8Archive's settings for it (display wait
-  and logic quirks on, the rest off) are the original COSMAC VIP's, so the
-  author may have meant `originalChip8`. It plays fine as `modernChip8`. Try
-  it as "CHIP-8 (COSMAC VIP)" in Chippie's Settings: if it also works, list
-  both, `["originalChip8", "modernChip8"]`.
+- [x] **Dino Run's platforms:** chip8Archive's settings for it (display
+  wait and logic quirks on, the rest off) are the original COSMAC VIP's. It
+  plays correctly as both `originalChip8` and `modernChip8` (2026-11-15), so
+  both are listed, the author's first.
 - [ ] Text below approved.
 
 ## The PR
@@ -55,7 +54,7 @@ Appended at the end of `database/programs.json`:
     "roms": {
       "1a7a2138161b06e083722f978f8cbaaa1ad5344d": {
         "file": "dinorun.ch8",
-        "platforms": ["modernChip8"],
+        "platforms": ["originalChip8", "modernChip8"],
         "tickrate": 15,
         "touchInputMode": "none",
         "fontStyle": "octo",
