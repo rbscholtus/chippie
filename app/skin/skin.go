@@ -1,5 +1,5 @@
 // Package skin describes the TV artwork: where the cabinet's picture tube
-// and controls are, in the cabinet image's own pixels (README §12.1). It
+// and controls are, in the cabinet image's own pixels (DESIGN §12.1). It
 // parses and checks skin.json and does the geometry (which control is under
 // a point, how a turn maps to steps). It holds no Ebitengine state, so
 // cmd/skin-gen can write skin.json with the same types and the maths can be

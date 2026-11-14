@@ -17,7 +17,7 @@ test("tap the search field, type, tap a result, and it runs", async ({ page }) =
   await page.waitForTimeout(500);
   await touchTap(page, 195, pickerSearchY); // focus: the phone keyboard opens
   // Headless Chromium drops the first keys typed into the input method's
-  // field (README §15.3; real phones don't): start with spaces, which the
+  // field (DESIGN §15.3; real phones don't): start with spaces, which the
   // search ignores.
   await page.keyboard.type("  ibm logo", { delay: 150 });
   await page.waitForTimeout(500);

@@ -126,7 +126,7 @@ func (db *DB) OverridesFor(sha1 string, p chip8.Profile) Overrides {
 	return o
 }
 
-// Resolve works out the profile for a ROM (README §7):
+// Resolve works out the profile for a ROM (DESIGN §7):
 //
 //  1. platform defaults from platforms.json;
 //  2. the ROM's entry in programs.json: its platform, quirkyPlatforms and

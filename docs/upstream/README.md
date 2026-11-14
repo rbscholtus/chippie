@@ -3,8 +3,8 @@
 Everything Chippie proposes to other projects, drafted here first
 ([docs/plans/M6-M8.md](../plans/M6-M8.md), M8). Nothing is posted until the
 owner approves the draft; then it's submitted with `gh` under the owner's
-account and its link recorded here, in the draft, in `catalogue/overlay.json`
-(for database changes) and in README §18.
+account and its link recorded in the draft, in `catalogue/overlay.json`
+(for database changes) and in the table below.
 
 | # | Draft | Where | Kind | Status |
 |---|---|---|---|---|
@@ -21,3 +21,19 @@ the unsourced hashes came from, and a 64×64 platform (for kripod's 8 hires
 ROMs). (The 7 metadata conflicts were dropped: see the plan.)
 
 Submitted from the owner's fork, [rbscholtus/chip-8-database](https://github.com/rbscholtus/chip-8-database), one branch per PR.
+
+Chippie doesn't wait for upstream: pending database changes live in
+`catalogue/overlay.json` until they're merged ([DESIGN §10](../DESIGN.md#10-metadata)).
+
+## Longer term
+
+1. **Missing ROMs:** PRs to chip-8-database adding metadata for the ROMs it
+   lacks, after confirming their platforms by running them in Chippie.
+2. **Download sources:** an issue proposing a standard "where to download"
+   field in the database. Today only 12 programs have a `urls` field. If it is
+   accepted, Chippie's `sources.json` becomes a thin layer over the shared
+   database and other emulators benefit too.
+3. **Hires CHIP-8 platform:** possibly propose a 64×64 "Hires CHIP-8" platform
+   entry, needed by most of the 8 kripod hires ROMs.
+4. **Conflicts:** report metadata disagreements between chip8Archive and
+   chip-8-database found by `catalogue-gen`.

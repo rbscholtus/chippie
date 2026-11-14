@@ -18,7 +18,7 @@ import (
 
 // This file holds what the TV's controls do: the channel dial, the speed
 // (UHF fine-tuning), volume and tint knobs and the power switch, by click,
-// drag, wheel and keyboard (README §11).
+// drag, wheel and keyboard (DESIGN §11).
 
 // Control ids in skin.json.
 const (

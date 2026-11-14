@@ -10,7 +10,7 @@ used are in `pins.json`.
 | `platforms.json`, `quirks.json`, `programs.json`, `sha1-hashes.json` | [chip-8-database](https://github.com/chip-8/chip-8-database) `database/` | MIT (below); program descriptions belong to their authors |
 | `chip8archive-programs.json` | [chip8Archive](https://github.com/JohnEarnest/chip8Archive) `programs.json` | CC0 1.0 |
 | `chip8archive-hashes.json` | generated: chip8Archive program id → ROM SHA-1 | — |
-| `sources.json` | generated: where each ROM can be downloaded (README §9.3) | — |
+| `sources.json` | generated: where each ROM can be downloaded (DESIGN §9.3) | — |
 
 ## chip-8-database licence
 

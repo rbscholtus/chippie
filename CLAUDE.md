@@ -3,9 +3,14 @@
 A CHIP-8 emulator written entirely in Go with Ebitengine (own widgets), compiled
 to WebAssembly, presented as a mid-1970s CRT TV.
 
-- **Design:** [README.md](README.md). Read the relevant section before
-  changing architecture, the sources manifest, `skin.json` or the tests.
-  §3 lists lessons from the prototype; don't repeat those mistakes.
+- **Design:** [docs/DESIGN.md](docs/DESIGN.md) (cited as "DESIGN §N"). Read the
+  relevant section before changing architecture, the sources manifest,
+  `skin.json` or the tests. §3 lists lessons from the prototype; don't repeat
+  those mistakes.
+- **README.md is for users:** what Chippie is, how to play, platforms,
+  sources, roadmap summary. Technical detail goes in DESIGN.md, milestones and
+  ideas in [docs/ROADMAP.md](docs/ROADMAP.md), upstream work in
+  [docs/upstream/](docs/upstream/README.md).
 - **Coding standards:** [CONTRIBUTING.md](CONTRIBUTING.md). Follow them
   strictly, especially the package rules and the Ebitengine rules. Keep
   per-frame allocations few, but don't make code awkward for it; optimise

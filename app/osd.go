@@ -14,7 +14,7 @@ import (
 )
 
 // The on-screen display: green text in the picture's top-left corner, as
-// period sets showed the channel (README §11). It is drawn into an image
+// period sets showed the channel (DESIGN §11). It is drawn into an image
 // the size of the tube, which the renderer puts through the CRT effect.
 const (
 	osdTicks      = 120  // two seconds

@@ -1,7 +1,7 @@
 // Package catalogue holds the game metadata: chip-8-database (platforms,
 // quirks, programs, ROM hashes), merged with chip8Archive's own metadata,
 // plus the sources manifest that says where each ROM can be downloaded. It
-// resolves the profile a ROM runs with (README §7).
+// resolves the profile a ROM runs with (DESIGN §7).
 //
 // An embedded snapshot makes it work offline; Refresh fetches a newer
 // database in the background.
