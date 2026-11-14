@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"fmt"
 	"image"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -65,6 +66,7 @@ type Renderer struct {
 	frameWidth  int
 	frameHeight int
 	power       float32
+	rotation    int // degrees clockwise: 0, 90, 180 or 270
 }
 
 // New compiles the shaders. Call it after Ebitengine is set up (from the
@@ -134,6 +136,29 @@ func (r *Renderer) SetPicture(rect image.Rectangle) {
 	r.dirty = true
 }
 
+// SetRotation turns the emulated picture clockwise by 0, 90, 180 or 270
+// degrees, for games made for a sideways screen. The picture rectangle
+// (SetPicture) should already have the turned shape.
+func (r *Renderer) SetRotation(deg int) {
+	r.rotation = deg
+	r.dirty = true
+}
+
+// PlaceFrame sets m to map a w×h frame into pic, turned clockwise by rot
+// degrees (a multiple of 90) and stretched to fill it.
+func PlaceFrame(m *ebiten.GeoM, w, h int, pic image.Rectangle, rot int) {
+	tw, th := float64(w), float64(h) // the frame's size once turned
+	if rot == 90 || rot == 270 {
+		tw, th = th, tw
+	}
+
+	m.Reset()
+	m.Translate(-float64(w)/2, -float64(h)/2)
+	m.Rotate(float64(rot) * math.Pi / 180)
+	m.Scale(float64(pic.Dx())/tw, float64(pic.Dy())/th)
+	m.Translate(float64(pic.Min.X)+float64(pic.Dx())/2, float64(pic.Min.Y)+float64(pic.Dy())/2)
+}
+
 // Picture returns where the emulated picture is drawn.
 func (r *Renderer) Picture() image.Rectangle {
 	if r.picture.Empty() || !r.picture.In(r.screen) {
@@ -198,15 +223,9 @@ func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 		return
 	}
 
-	pic := r.Picture()
-	sx := float64(pic.Dx()) / float64(r.frameWidth)
-	sy := float64(pic.Dy()) / float64(r.frameHeight)
-
 	if r.dirty {
 		r.up.Fill(r.palette[0]) // the whole tube shows the game's background
-		r.upOpts.GeoM.Reset()
-		r.upOpts.GeoM.Scale(sx, sy)
-		r.upOpts.GeoM.Translate(float64(pic.Min.X-r.screen.Min.X), float64(pic.Min.Y-r.screen.Min.Y))
+		PlaceFrame(&r.upOpts.GeoM, r.frameWidth, r.frameHeight, r.Picture().Sub(r.screen.Min), r.rotation)
 		r.up.DrawImage(r.fb, &r.upOpts)
 
 		if r.overlay != nil {
@@ -237,10 +256,7 @@ func (r *Renderer) drawClean(dst *ebiten.Image) {
 		tube.Fill(r.palette[0])
 	}
 
-	pic := r.Picture()
-	r.upOpts.GeoM.Reset()
-	r.upOpts.GeoM.Scale(float64(pic.Dx())/float64(r.frameWidth), float64(pic.Dy())/float64(r.frameHeight))
-	r.upOpts.GeoM.Translate(float64(pic.Min.X), float64(pic.Min.Y))
+	PlaceFrame(&r.upOpts.GeoM, r.frameWidth, r.frameHeight, r.Picture(), r.rotation)
 	dst.DrawImage(r.fb, &r.upOpts)
 
 	if r.overlay != nil {

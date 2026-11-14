@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { click, golden, gridText, offline, sampleScreen, waitForApp } from "./screen";
+import { appLayout, click, golden, gridText, offline, sampleScreen, waitForApp } from "./screen";
 
 // Software rendering in headless Chromium is slow, so the tests poll for
 // the expected picture instead of waiting a fixed time (README §15.3).
@@ -68,4 +68,18 @@ test("switching on opens the library", async ({ page }) => {
 
   // The drawer covers the picture, so it's no longer plain black.
   await expect.poll(async () => gridText(await sampleScreen(page)), { intervals: [500] }).toContain("?");
+});
+
+test("a game made for a sideways screen gets a tall picture", async ({ page }) => {
+  // Sub-Terr8nia: screenRotation 270 in chip-8-database.
+  await offline(page, { "/roms/sub8.ch8": "sub8.ch8" });
+  await page.goto("/?rom=64536d549c986e9edf25de9fa89db60d2ade85c0&shader=clean");
+  await waitForApp(page);
+
+  await expect
+    .poll(async () => {
+      const l = await appLayout(page);
+      return l.status.title === "Sub-Terr8nia" && l.picture[3] > l.picture[2];
+    }, { intervals: [500] })
+    .toBe(true);
 });

@@ -568,7 +568,10 @@ light grey studio background that fills the page.
 - **Portrait (phones):** the TV at the top, scaled to the width. The on-screen
   remote (hex keypad) below it. Drawers cover the remote.
 - **The picture** is a 2:1 rectangle across the middle of the tube; the rest of
-  the tube shows the game's background colour, as a TV would.
+  the tube shows the game's background colour, as a TV would. Games made for
+  a sideways screen (the database's `screenRotation`, e.g. Sub-Terr8nia, 270°)
+  are turned clockwise by that much and get a tall 1:2 picture; the on-screen
+  display, keys and remote stay upright.
 - **Crisp on high-density screens:** `Layout` returns the real pixel size
   (`outside size × ebiten.Monitor().DeviceScaleFactor()`). All UI sizes and
   fonts are multiplied by the same factor. The prototype used logical pixels,
@@ -988,10 +991,34 @@ the file itself.
 
 ## 18. Upstream contributions
 
-Once the emulator works (after milestone M4):
+Planned in detail in [docs/plans/M6-M8.md](docs/plans/M6-M8.md) (M8).
 
-1. **Missing ROMs:** a PR to chip-8-database adding metadata for the 14
-   missing ROMs, after confirming their platforms by running them in Chippie.
+**The overlay:** Chippie doesn't wait for upstream. `catalogue/overlay.json`
+holds its pending additions and corrections to chip-8-database, in the
+database's own format, each linked to the upstream PR that proposes it (or
+"pending"). `catalogue` applies it on top of the snapshot and the runtime
+refresh; `catalogue-gen` applies it too, so its ROMs get download locations.
+Whatever upstream already has, an entry skips; the weekly refresh summary and
+`docs/coverage.md` list those entries for deletion. The goal is an empty
+overlay: everything upstream.
+
+**Submitted** (drafts and status in [docs/upstream/](docs/upstream/README.md)):
+
+- chip-8-database [#29](https://github.com/chip-8/chip-8-database/issues/29): the chip8Archive update script fails on
+  entries without `options` (with a tested one-line fix).
+- chip-8-database [#30](https://github.com/chip-8/chip-8-database/pull/30): adds Dino Run, Mato8 and Tick.
+- chip-8-database [#28](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988): a comment confirming someone else's Mr Worm
+  entry works in Chippie.
+- chip-8-database [#31](https://github.com/chip-8/chip-8-database/pull/31): adds 26 Octojam games from itch.io, and the
+  `screenRotation` three existing Octojam entries lack (builds on #30).
+- chip-8-database [#32](https://github.com/chip-8/chip-8-database/pull/32): four alternate ROMs of existing programs
+  (Guess, Rush Hour, Mikolay's two tests), and Delay Timer Test's author.
+- chip8-test-suite [#38](https://github.com/Timendus/chip8-test-suite/issues/38): four border pixels shown off in the
+  scrolling test's reference pictures (Chippie's `golden-import` corrects
+  them); confirmed in Cadmium.
+
+1. **Missing ROMs:** PRs to chip-8-database adding metadata for the ROMs it
+   lacks, after confirming their platforms by running them in Chippie.
 2. **Download sources:** an issue proposing a standard "where to download"
    field in the database. Today only 12 programs have a `urls` field. If it is
    accepted, our `sources.json` becomes a thin layer over the shared database
@@ -1032,6 +1059,26 @@ To be settled while building, not before:
   A period face (OFL only) could still replace them.
 
 **Ideas for the end of the project:**
+
+- **Follow up on the upstream submissions** (README §18,
+  [docs/upstream/](docs/upstream/README.md)). Answer the maintainers'
+  questions on chip-8-database #29–#32 and chip8-test-suite #38. When
+  chip-8-database merges a PR, the weekly refresh lists its overlay entries
+  as done: delete them from `catalogue/overlay.json`. If the test suite's
+  pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
+- **Upstream proposals, deferred until the maintainers react** (M8 items
+  4–6): a standard "where to download" field in chip-8-database, with
+  Chippie's `sources.json` as an example; asking where its ~230 unsourced
+  ROM hashes came from; a 64×64 "Hires CHIP-8" platform, which kripod's 8
+  hires ROMs need.
+- **chip8Archive's platform fields:** for 5–6 of its 7 conflicts with
+  chip-8-database the archive's platform is too basic (`docs/coverage.md`).
+  An issue there, after play-testing Chipcross and Piper.
+- **XO-CHIP scrolling reference pictures** for the test suite, which has
+  none (Chippie generates its own).
+- **One entry per program in the library.** Programs with several ROMs
+  (e.g. Guess the Number) are listed once per ROM, which adds near-identical
+  rows. List the database's first ROM only, and offer the others in Settings.
 
 - **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
   entry has a `keys` hint (27 of the 204 downloadable ones), also map the

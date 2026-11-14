@@ -106,26 +106,22 @@ func run(ctx context.Context, o options) error {
 		return err
 	}
 
-	trees := make([]tree, 0, len(archives))
+	// The counts are upstream's; the overlay (Chippie's pending additions)
+	// is applied so its games get download locations too.
+	upstream := counts{programs: len(db.Programs), roms: db.ROMCount()}
 
-	for _, a := range archives {
-		files, err := fetchTree(ctx, a.repo, pins[a.repo], a.include)
-		if err != nil {
-			return fmt.Errorf("%s: %w", a.repo, err)
-		}
-
-		trees = append(trees, tree{archive: a, commit: pins[a.repo], files: files})
-		log.Printf("%s@%.7s: %d files", a.repo, pins[a.repo], len(files))
-	}
-
-	hosted, err := readHosted(o.hostedDir)
+	overlay, err := applyOverlay(db)
 	if err != nil {
 		return err
 	}
 
-	trees = append(trees, tree{archive: hostedArchive, files: hosted})
+	trees, err := fetchTrees(ctx, pins, o.hostedDir)
+	if err != nil {
+		return err
+	}
 
 	res := generate(db, trees, time.Now().UTC().Format(time.RFC3339))
+	res.upstream, res.overlay = upstream, overlay
 	keepTimestamp(filepath.Join(dir, "sources.json"), &res.sources)
 
 	conflicts, err := writeOutputs(dir, o.reportPath, db, trees[0].files[programsFile], res, pins)
@@ -133,19 +129,66 @@ func run(ctx context.Context, o options) error {
 		return err
 	}
 
-	after := snapshotState{
-		counts: counts{
-			programs: len(db.Programs), roms: db.ROMCount(),
-			downloadable: len(res.sources.ROMs), conflicts: conflicts,
-		},
-		pins: pins,
-	}
+	upstream.downloadable, upstream.conflicts = len(res.sources.ROMs), conflicts
+	after := snapshotState{counts: upstream, pins: pins, overlayDone: doneEntries(overlay)}
 
 	if err := os.WriteFile(o.summaryPath, []byte(summary(before, hadBefore, after)), 0o600); err != nil {
 		return fmt.Errorf("write summary: %w", err)
 	}
 
 	return nil
+}
+
+// fetchTrees downloads every archive at its pinned commit and reads the
+// hosted ROMs, in that order (chip8Archive first).
+func fetchTrees(ctx context.Context, pins map[string]string, hostedDir string) ([]tree, error) {
+	trees := make([]tree, 0, len(archives)+1)
+
+	for _, a := range archives {
+		files, err := fetchTree(ctx, a.repo, pins[a.repo], a.include)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", a.repo, err)
+		}
+
+		trees = append(trees, tree{archive: a, commit: pins[a.repo], files: files})
+		log.Printf("%s@%.7s: %d files", a.repo, pins[a.repo], len(files))
+	}
+
+	hosted, err := readHosted(hostedDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(trees, tree{archive: hostedArchive, files: hosted}), nil
+}
+
+// applyOverlay applies Chippie's overlay (catalogue/overlay.json) to the
+// freshly fetched database.
+func applyOverlay(db *catalogue.DB) ([]catalogue.OverlayStatus, error) {
+	o, err := catalogue.EmbeddedOverlay()
+	if err != nil {
+		return nil, err //nolint:wrapcheck // ErrInvalid says what's wrong
+	}
+
+	status, err := db.ApplyOverlay(o)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // as above
+	}
+
+	return status, nil
+}
+
+// doneEntries lists the overlay entries upstream has caught up with.
+func doneEntries(status []catalogue.OverlayStatus) []string {
+	var done []string
+
+	for _, s := range status {
+		if s.Done {
+			done = append(done, s.What+" ("+s.Upstream+")")
+		}
+	}
+
+	return done
 }
 
 // readHosted reads the files directly inside dir, by name.

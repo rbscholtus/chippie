@@ -141,8 +141,11 @@ type sourceStats struct {
 	missing []string // files whose hash isn't in the database
 }
 
-// result is everything generate produces.
+// result is everything generate produces (and, set by run, the upstream
+// counts and the overlay's status).
 type result struct {
+	upstream      counts
+	overlay       []catalogue.OverlayStatus
 	sources       catalogue.Sources
 	stats         []sourceStats
 	archiveHashes map[string]string // chip8Archive id → SHA-1
@@ -234,7 +237,7 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "# ROM coverage\n\nGenerated %s by `cmd/catalogue-gen`.\n\n", res.sources.Generated)
-	fmt.Fprintf(&b, "chip-8-database: %d programs, %d ROMs.\n\n", len(db.Programs), db.ROMCount())
+	fmt.Fprintf(&b, "chip-8-database: %d programs, %d ROMs.\n\n", res.upstream.programs, res.upstream.roms)
 	b.WriteString("| Source | Unique ROMs | In database | Missing |\n|---|---|---|---|\n")
 
 	for _, s := range res.stats {
@@ -243,8 +246,28 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 
 	fmt.Fprintf(&b, "| **All combined** | **%d** | **%d** | **%d** |\n",
 		res.allUnique, res.allInDB, res.allUnique-res.allInDB)
-	fmt.Fprintf(&b, "\nDownloadable ROMs in the manifest: %d of %d in the database.\n",
+	fmt.Fprintf(&b, "\nDownloadable ROMs in the manifest: %d of %d in the database and Chippie's overlay.\n",
 		len(res.sources.ROMs), db.ROMCount())
+
+	b.WriteString("\n## Chippie's overlay (pending upstream)\n\n")
+	b.WriteString("Additions and corrections in `catalogue/overlay.json`; \"done\" ones can be deleted.\n\n")
+
+	if len(res.overlay) == 0 {
+		b.WriteString("Empty.\n")
+	}
+
+	for _, s := range res.overlay {
+		state := "waiting for " + s.Upstream
+		if s.Upstream == "pending" {
+			state = "not yet proposed upstream"
+		}
+
+		if s.Done {
+			state = "**done: upstream has it** (" + s.Upstream + ")"
+		}
+
+		fmt.Fprintf(&b, "- %s: %s\n", s.What, state)
+	}
 
 	b.WriteString("\n## Not in chip-8-database\n\n")
 

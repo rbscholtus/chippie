@@ -7,13 +7,25 @@ import "fmt"
 type Catalogue struct {
 	DB        *DB
 	Sources   *Sources
-	Conflicts []Conflict // chip8Archive vs chip-8-database, for reports
+	Conflicts []Conflict      // chip8Archive vs chip-8-database, for reports
+	Overlay   []OverlayStatus // Chippie's pending additions (overlay.json)
 }
 
-// Load builds a catalogue from database files, chip8Archive's programs.json
-// and name → hash map, and a sources manifest.
+// Load builds a catalogue from database files with Chippie's overlay
+// applied, chip8Archive's programs.json and name → hash map, and a sources
+// manifest.
 func Load(f Files, archivePrograms, archiveHashes, sources []byte) (*Catalogue, error) {
 	db, err := Parse(f)
+	if err != nil {
+		return nil, err
+	}
+
+	overlay, err := EmbeddedOverlay()
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := db.ApplyOverlay(overlay)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +40,7 @@ func Load(f Files, archivePrograms, archiveHashes, sources []byte) (*Catalogue, 
 		return nil, err
 	}
 
-	return &Catalogue{DB: db, Sources: src, Conflicts: conflicts}, nil
+	return &Catalogue{DB: db, Sources: src, Conflicts: conflicts, Overlay: status}, nil
 }
 
 // LoadSnapshot builds the catalogue from the embedded snapshot.

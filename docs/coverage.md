@@ -1,31 +1,69 @@
 # ROM coverage
 
-Generated 2026-11-13T18:17:16Z by `cmd/catalogue-gen`.
+Generated 2026-11-14T21:02:53Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
 | Source | Unique ROMs | In database | Missing |
 |---|---|---|---|
-| chip8Archive | 104 | 100 | 4 |
-| kripod/chip8-roms | 106 | 96 | 10 |
+| chip8Archive | 104 | 104 | 0 |
+| kripod/chip8-roms | 106 | 98 | 8 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
-| Matthew Mikolay's CHIP-8 programs | 6 | 4 | 2 |
+| Matthew Mikolay's CHIP-8 programs | 6 | 6 | 0 |
 | 3D Viper Maze (Timendus) | 1 | 1 | 0 |
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
-| Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 42 | 26 |
+| Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 68 | 0 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **268** | **42** |
+| **All combined** | **310** | **302** | **8** |
 
-Downloadable ROMs in the manifest: 268 of 543 in the database.
+Downloadable ROMs in the manifest: 302 of 577 in the database and Chippie's overlay.
+
+## Chippie's overlay (pending upstream)
+
+Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
+
+- change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
+- change Computer Simulator: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Infini Br8kr: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Octo Space Program: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- change Delay Timer Test: authors, release: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add Dino Run: waiting for https://github.com/chip-8/chip-8-database/pull/30
+- add Mato8: waiting for https://github.com/chip-8/chip-8-database/pull/30
+- add Tick: waiting for https://github.com/chip-8/chip-8-database/pull/30
+- add ROMs to Mr Worm: waiting for https://github.com/chip-8/chip-8-database/pull/28
+- add Bad Apple!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Bad Apple: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Beware of Sn8k!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add BIM Logo Animation: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Blobo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add C8SALT logo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Chipception OS: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Collision Course: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Destroy The Line: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Dodge Catch Shoot: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Duel Of The F8s: Special Edition: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Enter the mine: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add F-Chip8 Racing: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Falling Ghosts: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Fencing: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add H8 2: Carry Flag: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Halloween-Blaster: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Invisible Man: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Kanji Calculator (WIP): waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Man Hang: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Octogon Trail: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Octris: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add Termlib demo: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add RPN Calculator: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add XO-NYANCAT!!: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add XO-TRACKER DEMO: waiting for https://github.com/chip-8/chip-8-database/pull/31
+- add ROMs to Guess the Number: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Rush Hour: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Delay Timer Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add ROMs to Random Number Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
 
 ## Not in chip-8-database
 
-- chip8Archive: `roms/dinorun.ch8`
-- chip8Archive: `roms/mato8.ch8`
-- chip8Archive: `roms/mrworm.ch8`
-- chip8Archive: `roms/tick.ch8`
-- kripod/chip8-roms: `games/Guess [David Winter] (alt).ch8`
-- kripod/chip8-roms: `games/Rush Hour [Hap, 2006] (alt).ch8`
 - kripod/chip8-roms: `hires/Astro Dodge Hires [Revival Studios, 2008].ch8`
 - kripod/chip8-roms: `hires/Hires Maze [David Winter, 199x].ch8`
 - kripod/chip8-roms: `hires/Hires Particle Demo [zeroZshadow, 2008].ch8`
@@ -34,34 +72,6 @@ Downloadable ROMs in the manifest: 268 of 543 in the database.
 - kripod/chip8-roms: `hires/Hires Test [Tom Swan, 1979].ch8`
 - kripod/chip8-roms: `hires/Hires Worm V4 [RB-Revival Studios, 2007].ch8`
 - kripod/chip8-roms: `hires/Trip8 Hires Demo (2008) [Revival Studios].ch8`
-- Matthew Mikolay's CHIP-8 programs: `delaytimer/delay_timer_test.ch8`
-- Matthew Mikolay's CHIP-8 programs: `randomnumber/random_number_test.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bad-apple-koorogi.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bad-apple-timendus.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/beware-of-sn8k.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/bim-logo-animation.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/blobo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/c8salt-logo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/chipception-os.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/collision-course.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/destroy-the-line.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/dodge-catch-shoot.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/duel-of-the-f8s-special-edition.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/enter-the-mine.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/f-chip8-racing.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/falling-ghosts.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/fencing.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/h8-2-carry-flag.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/halloween-blaster.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/invisible-man.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/kanji-calculator.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/man-hang.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/octogon-trail.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/octris.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/termlib-demo.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/upn-calculator.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/xo-nyancat.ch8`
-- Octojam games from itch.io (via maxisimonazzi/chip8-emulator): `roms/octojam/xo-tracker-demo.ch8`
 
 ## chip8Archive vs chip-8-database
 

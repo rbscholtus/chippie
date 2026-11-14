@@ -42,6 +42,7 @@ type Entry struct {
 	Group       Group
 	Offline     bool           // plays without a download: bundled, beside the app, or cached
 	Keys        map[string]int // the database's keys hint, e.g. "up": 5; often empty
+	Rotation    int            // degrees clockwise the picture is turned (screenRotation)
 
 	search string // lower-case text the search matches against
 }
@@ -110,6 +111,7 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 	e := Entry{
 		SHA1: rom.SHA1, Title: title, Authors: rom.Program.Authors, Release: rom.Program.Release,
 		Description: Reflow(rom.Program.Description), Platform: p, Offline: offline, Keys: rom.Keys,
+		Rotation: rom.ScreenRotation,
 	}
 	if !p.Implemented() {
 		e.Group = ComingSoon

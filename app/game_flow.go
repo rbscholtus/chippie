@@ -121,6 +121,8 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 
 	g.loadTint(e.SHA1)
 	g.renderer.SetPalette(g.paletteWithTint(e.SHA1))
+	g.renderer.SetRotation(e.Rotation)
+	g.renderer.SetPicture(pictureIn(g.tv.lay.tube, e.Rotation))
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
 	g.syncSpeedKnob()
@@ -642,7 +644,7 @@ func (g *Game) relayout() {
 
 	l := g.tv.lay
 	g.renderer.SetScreen(l.tube)
-	g.renderer.SetPicture(l.picture)
+	g.renderer.SetPicture(pictureIn(l.tube, g.current.Rotation))
 	g.osd.resize(l.tube)
 	g.remote.layout(l.remote)
 	g.ui.resize(window, l.below, g.scale)
@@ -700,7 +702,7 @@ func (g *Game) publishLayout() {
 	l := g.tv.lay
 	pl := pageLayout{
 		Scale: g.scale, Art: g.tv.art != nil,
-		Cabinet: box(l.cabinet), Tube: box(l.tube), Picture: box(l.picture),
+		Cabinet: box(l.cabinet), Tube: box(l.tube), Picture: box(g.renderer.Picture()),
 		Library: box(g.ui.layout.statusLeft), Settings: box(g.ui.layout.statusRight),
 		Controls: map[string][2]int{},
 		Status:   g.status(),

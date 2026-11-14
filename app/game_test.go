@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"image"
+	"math"
 	"strings"
 	"testing"
 
@@ -351,6 +352,31 @@ func TestComputeTV(t *testing.T) {
 		x, y := l.toCabinet(l.cabinet.Max)
 		if bx, by := l.fromCabinet(x, y); int(bx+0.5) != l.cabinet.Max.X || int(by+0.5) != l.cabinet.Max.Y {
 			t.Errorf("%s: toCabinet/fromCabinet don't round-trip", name)
+		}
+	}
+}
+
+func TestPictureInRotated(t *testing.T) {
+	t.Parallel()
+
+	tube := image.Rect(0, 0, 1300, 1000)
+
+	for _, tc := range []struct {
+		rot  int
+		tall bool
+	}{{0, false}, {90, true}, {180, false}, {270, true}} {
+		p := pictureIn(tube, tc.rot)
+		if !p.In(tube) || (p.Dy() > p.Dx()) != tc.tall {
+			t.Errorf("rotation %d: picture %v in tube %v", tc.rot, p, tube)
+		}
+
+		want := 2.0
+		if tc.tall {
+			want = 0.5
+		}
+
+		if r := float64(p.Dx()) / float64(p.Dy()); math.Abs(r-want) > 0.02 {
+			t.Errorf("rotation %d: aspect %.3f, want %.1f", tc.rot, r, want)
 		}
 	}
 }
