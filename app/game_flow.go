@@ -460,6 +460,13 @@ func (g *Game) openSettings() {
 	cur.Seed, own.Seed = 0, 0
 
 	g.settings = newSettings(cur, own, forPlatform, g.machine.Trace() != nil)
+
+	names := make([]string, len(g.skins))
+	for i, s := range g.skins {
+		names[i] = s.skin.Name
+	}
+
+	g.settings.setSkins(names, g.skin)
 	g.state = stateSettings
 	g.sound.SetBuzzer(false)
 	input.Release(g.machine)
@@ -547,6 +554,8 @@ func (g *Game) applySetting(eff settingEffect) {
 		}
 	case effectClose:
 		g.state = stateRunning
+	case effectSkin:
+		g.setSkin(s.skin)
 	case effectNone:
 	}
 }
@@ -583,7 +592,7 @@ func (g *Game) functionKeys() {
 // reloadSkin rereads skin.json, keeping the art and controls, so its
 // numbers can be tuned while looking at the outlines.
 func (g *Game) reloadSkin() {
-	data, err := g.SkinFile()
+	data, err := g.SkinFile(g.tv.dir)
 	if err == nil {
 		var sk *skin.Skin
 		if sk, err = skin.Parse(data); err == nil {
@@ -608,6 +617,18 @@ func (g *Game) switchOn() {
 	}
 
 	g.openPicker()
+}
+
+// setSkin switches the TV to skin i and saves the choice.
+func (g *Game) setSkin(i int) {
+	if i < 0 || i >= len(g.skins) || i == g.skin {
+		return
+	}
+
+	g.skin = i
+	g.tv.setSkin(g.skins[i].skin, g.skins[i].dir)
+	g.Prefs.Set(skinPrefKey, g.skins[i].dir)
+	g.relayout()
 }
 
 // relayout places the TV, the picture, the remote and the overlays for the
@@ -654,6 +675,7 @@ type pageStatus struct {
 	Volume  float64 `json:"volume"`
 	Tint    int     `json:"tint"`
 	Speed   int     `json:"speed"` // instructions per frame
+	Skin    string  `json:"skin"`  // the TV skin's folder
 }
 
 // status is the current pageStatus.
@@ -667,7 +689,7 @@ func (g *Game) status() pageStatus {
 
 	return pageStatus{
 		State: int(g.state), Title: title, Channel: c.channel, Volume: c.volume, Tint: c.tint,
-		Speed: g.machine.Profile().TicksPerFrame,
+		Speed: g.machine.Profile().TicksPerFrame, Skin: g.tv.dir,
 	}
 }
 

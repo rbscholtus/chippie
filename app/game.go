@@ -58,9 +58,9 @@ type Deps struct {
 	Refresh <-chan catalogue.RefreshResult
 	// Art, if set, reads the TV's images; without it only the picture shows.
 	Art ArtFetcher
-	// SkinFile, if set, rereads skin.json (natively, for F5 while
-	// calibrating).
-	SkinFile func() ([]byte, error)
+	// SkinFile, if set, rereads a skin's skin.json from its folder
+	// (natively, for F5 while calibrating).
+	SkinFile func(dir string) ([]byte, error)
 }
 
 // Game is the ebiten.Game.
@@ -79,6 +79,8 @@ type Game struct {
 	settings *settings
 	ui       *ui
 	tv       *tv
+	skins    []skinChoice
+	skin     int // index into skins
 	osd      *osd
 	remote   remote
 	grab     *grab // a control being turned
@@ -122,7 +124,7 @@ func New(d Deps) (*Game, error) {
 		return nil, err
 	}
 
-	t, o, err := newTVParts(d.Art, r)
+	t, skins, skinIdx, o, err := newTVParts(d, r)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +137,8 @@ func New(d Deps) (*Game, error) {
 		search:    newTextField("Search title, author, year or platform"),
 		ui:        u,
 		tv:        t,
+		skins:     skins,
+		skin:      skinIdx,
 		osd:       o,
 		debug:     d.Params.Debug,
 		calibrate: d.Params.Calibrate,
@@ -167,20 +171,68 @@ func New(d Deps) (*Game, error) {
 	return g, nil
 }
 
-// newTVParts builds the TV from the embedded skin, and its on-screen
-// display.
-func newTVParts(art ArtFetcher, r *crt.Renderer) (*tv, *osd, error) {
-	sk, err := skin.Parse(assets.Skin)
+// skinChoice is one TV skin the user can pick.
+type skinChoice struct {
+	dir  string // its folder, under tv/
+	skin *skin.Skin
+}
+
+// skinPrefKey is where the chosen skin's folder is saved.
+const skinPrefKey = "skin"
+
+// loadSkins parses every embedded skin, the default first.
+func loadSkins() ([]skinChoice, error) {
+	files, err := assets.Skins()
 	if err != nil {
-		return nil, nil, fmt.Errorf("TV skin: %w", err)
+		return nil, err //nolint:wrapcheck // says what failed
+	}
+
+	out := make([]skinChoice, 0, len(files))
+
+	for _, f := range files {
+		sk, err := skin.Parse(f.JSON)
+		if err != nil {
+			return nil, fmt.Errorf("TV skin %s: %w", f.Dir, err)
+		}
+
+		out = append(out, skinChoice{dir: f.Dir, skin: sk})
+	}
+
+	if len(out) == 0 {
+		return nil, fmt.Errorf("TV skins: %w", skin.ErrInvalid)
+	}
+
+	return out, nil
+}
+
+// savedSkin is the index of the skin saved in prefs, or the default's.
+func savedSkin(skins []skinChoice, prefs *platform.Prefs) int {
+	if dir, ok := prefs.Get(skinPrefKey); ok {
+		for i, s := range skins {
+			if s.dir == dir {
+				return i
+			}
+		}
+	}
+
+	return 0
+}
+
+// newTVParts builds the TV with the saved skin, and its on-screen display.
+func newTVParts(d Deps, r *crt.Renderer) (*tv, []skinChoice, int, *osd, error) {
+	skins, err := loadSkins()
+	if err != nil {
+		return nil, nil, 0, nil, err
 	}
 
 	o, err := newOSD(r)
 	if err != nil {
-		return nil, nil, fmt.Errorf("OSD font: %w", err)
+		return nil, nil, 0, nil, fmt.Errorf("OSD font: %w", err)
 	}
 
-	return newTV(sk, art), o, nil
+	i := savedSkin(skins, d.Prefs)
+
+	return newTV(skins[i].skin, skins[i].dir, d.Art), skins, i, o, nil
 }
 
 // Update runs one 60 Hz tick: input, background results, then at most one

@@ -5,7 +5,7 @@
 #   roms/test-suite/        the Timendus test ROMs (GPLv3), shipped as
 #                           separate files with their licence, never compiled in
 #   roms/hosted/            the ROMs only on Zophar or David Winter's page, with attribution
-#   tv/                     the TV artwork in three sizes (cmd/skin-gen), fetched at runtime
+#   tv/<skin>/              each TV skin's artwork (cmd/skin-gen), fetched at runtime
 #
 # Serve it with:  cd web/dist && python3 -m http.server 8080
 set -euo pipefail
@@ -47,6 +47,10 @@ These files are distributed unmodified, separately from Chippie.
 TXT
 
 cp web/hosted-roms/* "$out/roms/hosted/"
-cp assets/tv/*@[123]x.* assets/tv/backdrop.jpg "$out/tv/"
+for skin in assets/tv/*/; do
+  name=$(basename "$skin")
+  mkdir -p "$out/tv/$name"
+  cp "$skin"*@[123]x.* "$skin"backdrop.jpg "$out/tv/$name/"
+done
 
 echo "built $out: chippie-gz.wasm $((gz_size / 1024)) KB"

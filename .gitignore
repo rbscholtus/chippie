@@ -25,10 +25,8 @@ e2e/playwright/.cache/
 # ── Art: raw generator output (candidates, kept local) ───────────
 assets/source/
 
-# ── Generated art (built from the masters by scripts/build.sh) ───
-assets/**/*@1x.*
-assets/**/*@2x.*
-assets/**/*@3x.*
+# The art cmd/skin-gen makes (assets/tv/<skin>/) is committed: its masters
+# stay in assets/source/, outside the repository.
 
 # ── Scripts ──────────────────────────────────────────────────────
 __pycache__/

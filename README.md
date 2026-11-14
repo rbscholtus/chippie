@@ -175,7 +175,7 @@ chippie/
 │   ├── chippie/                # main: ebiten.RunGame (browser + desktop)
 │   ├── catalogue-gen/          # CI: hash archives → sources.json + coverage report
 │   ├── golden-import/          # test-suite pictures → golden frames
-│   └── skin-gen/               # TV master art + recipe → assets/tv/ (§12.1)
+│   └── skin-gen/               # TV master art + recipe → assets/tv/<skin>/ (§12.1)
 ├── chip8/                      # emulator core: stdlib only, no clock, no I/O
 │   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go
 │   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
@@ -205,11 +205,11 @@ chippie/
 │   ├── library/                # the library's entries
 │   └── sound/                  # buzzer and XO-CHIP audio, volume
 ├── assets/
-│   ├── assets.go               # go:embed of the bundled ROMs and skin.json
+│   ├── assets.go               # go:embed of the bundled ROMs and every skin.json
 │   ├── roms/                   # bundled CC0 games + bundled.json (M3)
 │   ├── source/                 # generated master images (git-ignored)
-│   ├── tv/                     # made by cmd/skin-gen (see §12)
-│   │   ├── recipe.json             # measurements in the master (hand-edited)
+│   ├── tv/<skin>/              # one folder per TV skin, made by cmd/skin-gen (see §12)
+│   │   ├── recipe.json             # name and measurements in the master (hand-edited)
 │   │   ├── skin.json               # where everything is, at @3x (generated)
 │   │   ├── cabinet@{1,2,3}x.jpg  cabinet-mask@{1,2,3}x.png  backdrop.jpg
 │   │   └── channel  speed  volume  tint  power @{1,2,3}x.png
@@ -585,7 +585,12 @@ itself**, so they turn (or flip) with matching lighting and scale.
 
 **`cmd/skin-gen`** makes everything the app loads from the generated master
 (kept outside the repository in `assets/source/`) and
-`assets/tv/recipe.json`, which holds the measurements in the master's pixels:
+`assets/tv/<skin>/recipe.json`, which holds the skin's name and the
+measurements in the master's pixels. **There can be several skins**, one
+folder each (the first is `classic`, "Walnut console"); Settings has a "TV"
+row to choose one, saved on the device. Every skin's `skin.json` is compiled
+in; its images are fetched from `tv/<skin>/`. A skin may have fewer controls:
+whatever it lacks still works by keyboard and Settings.
 
 - **Cabinet:** cropped to the TV, in three sizes (JPEG), plus a greyscale
   **mask** (PNG) that is black where the tube shows through. The app combines
@@ -645,7 +650,7 @@ large and scaled **down**:
 - **Formats:** cabinet and backdrop as JPEG, the tube mask and controls as
   PNG.
 - **Loading:** fetched with `platform.Fetch` from `tv/` next to the page
-  (natively read from `assets/tv/`) after the WASM starts, in a goroutine, so
+  (natively read from `assets/tv/<skin>/`) after the WASM starts, in a goroutine, so
   the art doesn't add to the WASM download. The CRT picture works before the
   cabinet arrives; the cabinet then fades in.
 - **Sizes:** cabinet 51/189/443 KB at @1x/@2x/@3x, backdrop 9 KB, the channel
@@ -924,7 +929,7 @@ cd web/dist && python3 -m http.server 8080
 - Inline `$(go env GOROOT)/lib/wasm/wasm_exec.js` into the loader page.
 - Copy the Timendus test ROMs (GPLv3), with their licence, into
   `roms/test-suite/`, unmodified and separate from the WASM.
-- Copy the hosted ROMs, and the TV art (`assets/tv/`: `@1x/@2x/@3x` and the
+- Copy the hosted ROMs, and each skin's TV art (`assets/tv/<skin>/`: `@1x/@2x/@3x` and the
   backdrop) into `tv/`.
 
 **GitHub Actions:**

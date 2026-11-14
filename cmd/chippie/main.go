@@ -87,10 +87,10 @@ func main() {
 	romCache := platform.NewCache(platform.StoreROMs)
 	store := romstore.New(cat.Sources.URLs, romCache, params.Base).WithLocal(builtin.LoadHash)
 
-	var skinFile func() ([]byte, error)
+	var skinFile func(dir string) ([]byte, error)
 	if params.Base == "" {
-		skinFile = func() ([]byte, error) {
-			data, err := os.ReadFile(filepath.Join(tvArtDir, "skin.json"))
+		skinFile = func(dir string) ([]byte, error) {
+			data, err := os.ReadFile(filepath.Join(tvArtDir, dir, "skin.json"))
 			if err != nil {
 				return nil, fmt.Errorf("reload skin: %w", err)
 			}

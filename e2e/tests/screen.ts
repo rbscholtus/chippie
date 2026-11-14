@@ -15,7 +15,7 @@ export type AppLayout = {
   settings: Box;
   controls: Record<string, [number, number]>;
   remote?: Record<string, [number, number]>;
-  status: { state: number; title: string; channel: number; volume: number; tint: number; speed: number };
+  status: { state: number; title: string; channel: number; volume: number; tint: number; speed: number; skin: string };
 };
 
 // The app's states (app/game.go).

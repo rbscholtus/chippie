@@ -19,13 +19,15 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 | `redOctober.ch8` | Red October V | Kesha | `e14350d3b19443e5ad2848172bef9719a8680b01` |
 | `anEveningToDieFor.ch8` | An Evening to Die For | John Earnest | `afd9fee7565c54970b6bd7758aa8aa7843dd2e86` |
 
-## TV artwork (`assets/tv/`, shipped separately, not compiled in)
+## TV artwork (`assets/tv/<skin>/`, shipped separately, not compiled in)
+
+### Walnut console (`assets/tv/classic/`)
 
 - **Generator:** Google Gemini image generation (the Gemini app), November
   2026, from the cabinet prompt in README §12.3. Master:
   `Gemini_Generated_Image_ixja8tixja8tixja.png` (2400×1792), kept outside the
   repository in `assets/source/`.
-- **Made by `cmd/skin-gen`** from that master and `assets/tv/recipe.json`: the
+- **Made by `cmd/skin-gen`** from that master and `assets/tv/classic/recipe.json`: the
   cabinet cropped (which leaves out Gemini's visible sparkle mark), its edges
   faded into the background, and three sizes; the tube mask; and the control
   sprites cut out of the same image. The channel dial's printed numbers were
@@ -63,7 +65,7 @@ authors' `.DOC` notes, into `roms/hosted/` next to the app.
 
 - **Go fonts** (`golang.org/x/image/font/gofont`), BSD 3-Clause, by the Go
   Authors and Bigelow & Holmes. Used for the picker and messages, and Go
-  Medium for the channel dial's numbers (drawn into `assets/tv/channel@*.png`).
+  Medium for the channel dial's numbers (drawn into `assets/tv/classic/channel@*.png`).
 
 ## Game metadata (`catalogue/snapshot/`, compiled in)
 

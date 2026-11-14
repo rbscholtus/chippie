@@ -95,6 +95,7 @@ func (c Control) Centre() (float64, float64) {
 
 // Skin is a parsed skin.json.
 type Skin struct {
+	Name   string  `json:"name"`   // shown in Settings, e.g. "Walnut console"
 	Width  float64 `json:"width"`  // cabinet image size at @3x
 	Height float64 `json:"height"` //
 	// Background fills the page around the cabinet: "#rrggbb", the colour
@@ -137,6 +138,8 @@ func (s *Skin) Validate() error {
 	switch {
 	case s.Width <= 0 || s.Height <= 0:
 		return fmt.Errorf("%w: cabinet size %gx%g", ErrInvalid, s.Width, s.Height)
+	case s.Name == "":
+		return fmt.Errorf("%w: no name", ErrInvalid)
 	case s.Cabinet == "" || s.Mask == "":
 		return fmt.Errorf("%w: cabinet or mask image missing", ErrInvalid)
 	case !validColour(s.Background):

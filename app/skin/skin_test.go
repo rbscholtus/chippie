@@ -9,7 +9,7 @@ import (
 
 func testSkin() Skin {
 	return Skin{
-		Width: 1000, Height: 800, Background: "#d0cecf", Cabinet: "cabinet", Mask: "cabinet-mask",
+		Name: "Test set", Width: 1000, Height: 800, Background: "#d0cecf", Cabinet: "cabinet", Mask: "cabinet-mask",
 		Screen: Rect{X: 50, Y: 50, W: 600, H: 500},
 		Controls: []Control{
 			{ID: "channel", Kind: Dial, Image: "channel", CX: 800, CY: 150, R: 80, Steps: 13},

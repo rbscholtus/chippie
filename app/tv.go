@@ -151,6 +151,7 @@ type tvArt struct {
 
 // artResult is a decoded set of images, from the loading goroutine.
 type artResult struct {
+	dir      string // the skin they are for
 	scale    int
 	cabinet  image.Image
 	backdrop image.Image
@@ -158,18 +159,19 @@ type artResult struct {
 	err      error
 }
 
-// loadArt fetches and decodes the images at scale n in a goroutine. The
-// cabinet comes as a JPEG and a separate greyscale mask, combined here into
-// one image that is transparent where the tube shows through.
-func loadArt(fetch ArtFetcher, sk *skin.Skin, n int) <-chan artResult {
-	out := make(chan artResult, 1)
+// loadArt fetches and decodes a skin's images (from its folder dir) at
+// scale n in a goroutine. The cabinet comes as a JPEG and a separate
+// greyscale mask, combined here into one image that is transparent where
+// the tube shows through.
+func loadArt(fetch ArtFetcher, dir string, sk *skin.Skin, n int) <-chan artResult {
+	out := make(chan artResult, 1) // buffered: a result nobody wants doesn't block
 
 	go func() {
-		res := artResult{scale: n, sprites: map[string]image.Image{}}
+		res := artResult{dir: dir, scale: n, sprites: map[string]image.Image{}}
 		ctx := context.Background()
 
 		get := func(name string, decode func([]byte) (image.Image, error)) (image.Image, error) {
-			data, err := fetch(ctx, name)
+			data, err := fetch(ctx, dir+"/"+name)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %w", name, err)
 			}
@@ -242,6 +244,7 @@ func withMask(img, mask image.Image) *image.NRGBA {
 // tv is the TV set: its skin, layout, art and the controls' positions.
 type tv struct {
 	skin  *skin.Skin
+	dir   string     // the skin's folder: where its images are
 	fetch ArtFetcher // nil: no art (tests), just the picture
 	lay   tvLayout
 
@@ -254,8 +257,19 @@ type tv struct {
 	spriteOp ebiten.DrawImageOptions
 }
 
-func newTV(sk *skin.Skin, fetch ArtFetcher) *tv {
-	return &tv{skin: sk, fetch: fetch, controls: defaultControls()}
+func newTV(sk *skin.Skin, dir string, fetch ArtFetcher) *tv {
+	return &tv{skin: sk, dir: dir, fetch: fetch, controls: defaultControls()}
+}
+
+// setSkin switches to another skin. Its art loads at the next relayout;
+// a load still running for the old skin is ignored when it arrives.
+func (t *tv) setSkin(sk *skin.Skin, dir string) {
+	if t.art != nil {
+		t.art.dispose()
+	}
+
+	t.skin, t.dir = sk, dir
+	t.art, t.loading, t.fade, t.artErr = nil, nil, 0, nil
 }
 
 // relayout places the TV and starts loading art big enough for it.
@@ -267,7 +281,7 @@ func (t *tv) relayout(window image.Rectangle, scale, lineH float64, remote bool)
 		return
 	}
 
-	t.loading = loadArt(t.fetch, t.skin, n)
+	t.loading = loadArt(t.fetch, t.dir, t.skin, n)
 }
 
 // update collects loaded art and fades the cabinet in, reporting whether

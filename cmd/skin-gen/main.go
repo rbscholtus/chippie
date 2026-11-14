@@ -1,21 +1,23 @@
 // Command skin-gen turns the TV artwork into the files the app loads
 // (README §12). It reads the generated master image from assets/source/
-// (not committed: it's large) and the measurements in
-// assets/tv/recipe.json, and writes into assets/tv/:
+// (not committed: it's large) and, for each skin, the measurements in
+// assets/tv/<skin>/recipe.json, and writes into that folder:
 //
-//	cabinet@1x.jpg … @3x.jpg       the cabinet, cropped, edges faded into the background
+//	cabinet@1x.jpg … @3x.jpg       the cabinet, cropped, edges faded out in the mask
 //	cabinet-mask@1x.png … @3x.png  black where the picture tube shows through
+//	backdrop.jpg                   the blurred studio behind the cabinet
 //	<control>@1x.png … @3x.png     each control's sprite, cut from the cabinet
 //	skin.json                      where everything is, at @3x
 //
 // @3x is the cropped master's full size; @2x and @1x are two thirds and one
-// third of it. Run it again whenever the art or the recipe changes:
+// third of it. Run it again whenever the art or a recipe changes:
 //
-//	go run ./cmd/skin-gen
+//	go run ./cmd/skin-gen               # every skin
+//	go run ./cmd/skin-gen -skin classic # one
 //
 // To check the alignment, also write a preview with the controls turned:
 //
-//	go run ./cmd/skin-gen -preview /tmp/tv.png -angle 30
+//	go run ./cmd/skin-gen -skin classic -preview /tmp/tv.png -angle 30
 package main
 
 import (
@@ -47,6 +49,7 @@ var errRecipe = errors.New("skin-gen: bad recipe")
 
 // recipe is assets/tv/recipe.json, in the master image's pixels.
 type recipe struct {
+	Name       string     `json:"name"` // shown in Settings
 	Source     string     `json:"source"`
 	Crop       rectJSON   `json:"crop"`
 	PaintOut   []rectJSON `json:"paintOut"`
@@ -103,15 +106,57 @@ type controlRec struct {
 
 func main() {
 	src := flag.String("source", "assets/source", "directory of the master images")
-	dir := flag.String("dir", "assets/tv", "recipe in, outputs out")
-	preview := flag.String("preview", "", "also write a composed preview here, e.g. /tmp/tv.png")
+	tvDir := flag.String("tv", "assets/tv", "one folder per skin, each with its recipe.json")
+	only := flag.String("skin", "", "build only this skin (a folder name)")
+	preview := flag.String("preview", "", "also write a composed preview here, e.g. /tmp/tv.png (needs -skin)")
 	angle := flag.Float64("angle", 0, "turn the round controls this many degrees in the preview")
 
 	flag.Parse()
 
-	if err := run(*src, *dir, *preview, *angle); err != nil {
+	if *preview != "" && *only == "" {
+		log.Fatal("-preview needs -skin")
+	}
+
+	dirs, err := skinDirs(*tvDir, *only)
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	for _, dir := range dirs {
+		if err := run(*src, dir, *preview, *angle); err != nil {
+			log.Fatalf("%s: %v", dir, err)
+		}
+
+		log.Printf("built %s", dir)
+	}
+}
+
+// skinDirs lists the skin folders: every folder in tvDir with a
+// recipe.json, or just the one named only.
+func skinDirs(tvDir, only string) ([]string, error) {
+	entries, err := os.ReadDir(tvDir)
+	if err != nil {
+		return nil, fmt.Errorf("list skins: %w", err)
+	}
+
+	var dirs []string
+
+	for _, e := range entries {
+		dir := filepath.Join(tvDir, e.Name())
+		if !e.IsDir() || (only != "" && e.Name() != only) {
+			continue
+		}
+
+		if _, err := os.Stat(filepath.Join(dir, "recipe.json")); err == nil {
+			dirs = append(dirs, dir)
+		}
+	}
+
+	if len(dirs) == 0 {
+		return nil, fmt.Errorf("%w: no skin folder with a recipe.json in %s", errRecipe, tvDir)
+	}
+
+	return dirs, nil
 }
 
 // outputs are everything skin-gen writes, at @3x.
@@ -181,6 +226,7 @@ func build(rc *recipe, master *image.NRGBA) (outputs, error) {
 	out.backdrop = makeBackdrop(master, crop, pad, shrink, fill)
 
 	out.skin = skin.Skin{
+		Name:  rc.Name,
 		Width: float64(crop.Dx()), Height: float64(crop.Dy()),
 		Background: fmt.Sprintf("#%02x%02x%02x", fill.R, fill.G, fill.B),
 		Cabinet:    "cabinet", Mask: "cabinet-mask",

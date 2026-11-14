@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/rbscholtus/chippie/app/library"
-	"github.com/rbscholtus/chippie/app/skin"
-	"github.com/rbscholtus/chippie/assets"
 	"github.com/rbscholtus/chippie/chip8"
 )
 
@@ -299,10 +297,12 @@ func TestShouldRun(t *testing.T) {
 func testTV(t *testing.T, window image.Rectangle, scale float64, remote bool) tvLayout {
 	t.Helper()
 
-	sk, err := skin.Parse(assets.Skin)
+	skins, err := loadSkins()
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	sk := skins[0].skin
 
 	return computeTV(sk, window, scale, textSize*lineSpacing*scale, remote)
 }
