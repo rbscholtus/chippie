@@ -153,6 +153,41 @@ func TestResolvePrefersImplementedPlatform(t *testing.T) {
 	}
 }
 
+func TestResolveUsesQuirkyPlatformsWhenNoneListed(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+	db.roms["abc"] = &ROM{
+		SHA1: "abc", Program: &Program{},
+		QuirkyPlatforms: map[string]map[string]bool{"xochip": {"memoryLeaveIUnchanged": true}},
+	}
+
+	r := db.Resolve("abc", Overrides{})
+	if r.PlatformID != "xochip" || !r.Profile.Quirks.MemoryLeaveIUnchanged {
+		t.Errorf("platform %s, quirks %+v; want xochip with its quirk", r.PlatformID, r.Profile.Quirks)
+	}
+
+	// The real cases (Skyward, Horsey Jump, Super Octo Track XO): each
+	// resolves to a platform its quirkyPlatforms name.
+	found := 0
+
+	for sha1, rom := range db.roms {
+		if len(rom.Platforms) > 0 || len(rom.QuirkyPlatforms) == 0 {
+			continue
+		}
+
+		found++
+
+		if id := db.Resolve(sha1, Overrides{}).PlatformID; rom.QuirkyPlatforms[id] == nil {
+			t.Errorf("%s: platform %s, not one of its quirkyPlatforms", rom.Program.Title, id)
+		}
+	}
+
+	if found == 0 {
+		t.Error("the snapshot has no ROM without platforms; test the case some other way")
+	}
+}
+
 func TestOverridesForRoundTrip(t *testing.T) {
 	t.Parallel()
 
