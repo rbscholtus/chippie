@@ -1,0 +1,12 @@
+{
+  "name": "chippie-games",
+  "private": true,
+  "description": "Chippie's own CHIP-8 games, written in Octo. See README.md.",
+  "license": "CC0-1.0",
+  "scripts": {
+    "build": "../scripts/build-games.sh"
+  },
+  "devDependencies": {
+    "@chipcode/octo-assembler": "0.2.2"
+  }
+}

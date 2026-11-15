@@ -27,6 +27,15 @@ test("typing searches, Enter plays a bundled game", async ({ page }) => {
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 });
 
+test("Chippie's own game, Depot, is in the library and plays offline", async ({ page }) => {
+  await offline(page);
+  await openLibrary(page);
+  await search(page, "depot");
+  await page.keyboard.press("Enter");
+
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+});
+
 test("a coming-soon game can't be started", async ({ page }) => {
   await offline(page);
   await openLibrary(page);

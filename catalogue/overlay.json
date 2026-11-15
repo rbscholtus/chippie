@@ -1177,6 +1177,44 @@
           }
         }
       }
+    },
+    {
+      "upstream": "pending",
+      "program": {
+        "title": "Depot",
+        "authors": [
+          "Barend Scholtus",
+          "Claude"
+        ],
+        "release": "2026",
+        "description": "Cross the yard, ride the pallets over the chute and deliver each parcel to the lit hatch. Chippie's own game.",
+        "roms": {
+          "3f8506150fc6c6d0506e2fcf759648461b107330": {
+            "file": "depot.ch8",
+            "platforms": [
+              "xochip"
+            ],
+            "tickrate": 500,
+            "colors": {
+              "pixels": [
+                "#1b2330",
+                "#e8a33d",
+                "#f4f1e8",
+                "#ff6a2b"
+              ],
+              "buzzer": "#2a3442",
+              "silence": "#1b2330"
+            },
+            "keys": {
+              "up": 5,
+              "left": 7,
+              "down": 8,
+              "right": 9,
+              "a": 6
+            }
+          }
+        }
+      }
     }
   ],
   "change": [

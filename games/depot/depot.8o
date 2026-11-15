@@ -1,0 +1,414 @@
+###########################################################################
+#
+#  Depot: a lane-crossing game for XO-CHIP.
+#  Written for Chippie (https://github.com/rbscholtus/chippie), CC0 1.0.
+#
+#  Design: docs/plans/M9-game.md. Build: scripts/build-games.sh.
+#  Runs at 500 ticks per frame, 128x64, two planes.
+#
+#  Build order step 2 of 9: the playfield and a courier that hops around
+#  it, scoring the rows it reaches.
+#
+###########################################################################
+
+###########################################################################
+#  State block. It comes first, so Octo puts it right after the jump to
+#  main, at 0x202. The tests read it with Machine.Peek: keep the order and
+#  update games/depot/depot_test.go when it changes.
+###########################################################################
+
+: state
+: s-frame      0 0    # 0x202  game frames run, 16 bits, low byte first
+: s-mode       0      # 0x204  0 title, 1 playing
+: s-round      1      # 0x205
+: s-lives      3      # 0x206
+: s-score      0 0 0 0  # 0x207  four decimal digits, most significant first
+: s-x          60     # 0x20B  courier x
+: s-row        8      # 0x20C  courier row: 0 hatches .. 8 dock
+: s-lit        0      # 0x20D  lit hatch, 0-3
+: s-filled     0      # 0x20E  filled hatches, one bit each
+: s-best       8      # 0x20F  highest row (lowest number) reached this crossing
+
+# Scratch for score-add: the points as three decimal digits.
+: score-tmp    0 0 0
+
+###########################################################################
+#  Registers kept for the whole game. v0-v9 and vE are scratch; vF is the
+#  flag register.
+###########################################################################
+
+:alias cx      vA    # courier x (saved to s-x every frame)
+:alias crow    vB    # courier row (saved to s-row every frame)
+:alias held    vC    # direction held last frame: DIR-*
+:alias repeat  vD    # frames until a held key hops again
+
+###########################################################################
+#  Layout (design §1.1). Rows are 6 px; sprites are 5 px high.
+###########################################################################
+
+:const Y-HUD        0
+:const Y-HATCHES    6
+:const Y-WALK-TOP  29    # gap line above the walkway
+:const Y-WALK-BOT  35    # gap line below it
+:const Y-YARD-1    41    # gap line under yard 1
+:const Y-YARD-2    47    # gap line under yard 2
+:const Y-DOCK-TOP  53    # gap line above the dock
+:const Y-FLOOR     60
+
+:const X-COURIER-START 60
+:const X-COURIER-MAX  120   # the courier is 5 px wide; hops are 4 px
+:const ROW-TOP         1    # highest row the courier can hop to (for now)
+:const ROW-DOCK        8
+
+# Directions, from read-dir.
+:const DIR-NONE   0
+:const DIR-UP     1
+:const DIR-DOWN   2
+:const DIR-LEFT   3
+:const DIR-RIGHT  4
+
+# Keys (Octo's usual WASD + E layout).
+:const KEY-UP     5
+:const KEY-LEFT   7
+:const KEY-DOWN   8
+:const KEY-RIGHT  9
+:const KEY-START  6
+
+# Key repeat, in frames: the first repeat, then the rest.
+:const REPEAT-FIRST 12
+:const REPEAT-NEXT   6
+
+:const POINTS-ROW   10
+
+# HUD positions.
+:const X-SCORE      1
+:const X-LIVES     26
+:const X-ROUND     50
+:const X-TIME      92
+:const Y-TIME       1
+
+###########################################################################
+#  Main
+###########################################################################
+
+: main
+	hires
+	cx := X-COURIER-START
+	crow := ROW-DOCK
+	held := DIR-NONE
+	repeat := 0
+	v0 := 1
+	i := s-mode
+	save v0
+
+	draw-playfield
+	draw-hud
+	draw-courier
+	loop
+		wait-frame
+		handle-input
+		i := s-x
+		save cx - crow
+	again
+
+# wait-frame waits for the next 60 Hz frame and counts it. Uses v0, v1, vf.
+: wait-frame
+	loop
+		vf := delay
+		while vf != 0
+	again
+	vf := 1
+	delay := vf
+	i := s-frame
+	load v1
+	v0 += 1
+	if v0 == 0 then v1 += 1
+	i := s-frame
+	save v1
+;
+
+###########################################################################
+#  Input and movement
+###########################################################################
+
+# read-dir returns the direction pressed in v0 (up wins, then down, left,
+# right). Uses v1.
+: read-dir
+	v0 := DIR-NONE
+	v1 := KEY-RIGHT
+	if v1 key then v0 := DIR-RIGHT
+	v1 := KEY-LEFT
+	if v1 key then v0 := DIR-LEFT
+	v1 := KEY-DOWN
+	if v1 key then v0 := DIR-DOWN
+	v1 := KEY-UP
+	if v1 key then v0 := DIR-UP
+;
+
+# handle-input hops once when a direction is pressed, then again after
+# REPEAT-FIRST frames and every REPEAT-NEXT frames while it's held.
+: handle-input
+	read-dir
+	if v0 == DIR-NONE begin
+		held := DIR-NONE
+		return
+	end
+	if v0 != held begin
+		held := v0
+		repeat := REPEAT-FIRST
+		jump hop
+	end
+	repeat += -1
+	if repeat != 0 then return
+	repeat := REPEAT-NEXT
+	# fall through
+
+# hop moves the courier one step in direction v0, if it can go there.
+: hop
+	draw-courier    # erase
+	if v0 == DIR-UP begin
+		if crow != ROW-TOP then crow += -1
+	end
+	if v0 == DIR-DOWN begin
+		if crow != ROW-DOCK then crow += 1
+	end
+	if v0 == DIR-LEFT begin
+		if cx != 0 then cx += -4
+	end
+	if v0 == DIR-RIGHT begin
+		if cx != X-COURIER-MAX then cx += 4
+	end
+	draw-courier
+	# A row reached for the first time on this crossing scores.
+	i := s-best
+	load v0
+	if crow >= v0 then return
+	v0 := crow
+	i := s-best
+	save v0
+	vE := POINTS-ROW
+	jump score-add
+
+###########################################################################
+#  Score
+###########################################################################
+
+# score-add adds vE points (0-255) to the four-digit score, stopping at
+# 9999, and redraws it. Uses v0-v6.
+: score-add
+	draw-score      # erase
+	i := score-tmp
+	bcd vE
+	load v4 - v6    # hundreds, tens, ones
+	i := s-score
+	load v3         # thousands, hundreds, tens, ones
+	v3 += v6
+	if v3 > 9 begin
+		v3 += -10
+		v2 += 1
+	end
+	v2 += v5
+	if v2 > 9 begin
+		v2 += -10
+		v1 += 1
+	end
+	v1 += v4
+	if v1 > 9 begin
+		v1 += -10
+		v0 += 1
+	end
+	if v0 > 9 begin
+		v0 := 9
+		v1 := 9
+		v2 := 9
+		v3 := 9
+	end
+	i := s-score
+	save v3
+	jump draw-score
+
+# draw-score draws (or, drawn again, erases) the score. Uses v0-v5.
+: draw-score
+	plane 1
+	i := s-score
+	load v3
+	v4 := X-SCORE
+	v5 := Y-HUD
+	i := hex v0
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v1
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v2
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v3
+	sprite v4 v5 5
+;
+
+###########################################################################
+#  Drawing
+###########################################################################
+
+# fill-row draws the sprite at i across the screen at y = v1, every 8 px.
+# Uses v0.
+:macro fill-row HEIGHT {
+	v0 := 0
+	loop
+		sprite v0 v1 HEIGHT
+		v0 += 8
+		while v0 != 128
+	again
+}
+
+: draw-playfield
+	plane 1
+	clear
+
+	# The hatch wall: a hatch wherever x mod 32 is 8 (x = 8, 40, 72, 104).
+	v0 := 0
+	v1 := Y-HATCHES
+	loop
+		v2 := 31
+		v2 &= v0
+		if v2 == 8 begin
+			i := tile-hatch
+		else
+			i := tile-wall
+		end
+		sprite v0 v1 6
+		v0 += 8
+		while v0 != 128
+	again
+
+	i := tile-dots
+	v1 := Y-WALK-TOP
+	fill-row 1
+	v1 := Y-WALK-BOT
+	fill-row 1
+
+	i := tile-dashes
+	v1 := Y-YARD-1
+	fill-row 1
+	v1 := Y-YARD-2
+	fill-row 1
+
+	i := tile-dock-edge
+	v1 := Y-DOCK-TOP
+	fill-row 1
+
+	i := tile-floor
+	v1 := Y-FLOOR
+	fill-row 4
+;
+
+: draw-hud
+	draw-score
+
+	# Lives: one icon each.
+	i := s-lives
+	load v0
+	v4 := X-LIVES
+	i := icon-life
+	loop
+		while v0 != 0
+		sprite v4 v5 5
+		v4 += 6
+		v0 += -1
+	again
+
+	# Round: "R" and a digit.
+	v4 := X-ROUND
+	i := glyph-r
+	sprite v4 v5 5
+	v4 += 5
+	i := s-round
+	load v0
+	i := hex v0
+	sprite v4 v5 5
+
+	# Time bar: full, 32 px.
+	v4 := X-TIME
+	v5 := Y-TIME
+	i := tile-time
+	sprite v4 v5 3
+	v4 += 8
+	sprite v4 v5 3
+	v4 += 8
+	sprite v4 v5 3
+	v4 += 8
+	sprite v4 v5 3
+;
+
+# draw-courier draws (or, drawn again, erases) the courier at cx, crow:
+# y = 6 * row + 6. Uses v1, v2.
+: draw-courier
+	plane 2
+	v1 := crow
+	v1 += crow
+	v2 := v1
+	v1 += v2
+	v1 += v2
+	v1 += 6
+	i := sprite-courier
+	sprite cx v1 5
+	plane 1
+;
+
+###########################################################################
+#  Sprites
+###########################################################################
+
+: tile-wall
+	0b11111111
+	0b10001000
+	0b11111111
+	0b00100010
+	0b11111111
+	0b10001000
+
+: tile-hatch
+	0b11111111
+	0b10000001
+	0b10000001
+	0b10000001
+	0b10000001
+	0b11000011
+
+: tile-dots       0b10101010
+: tile-dashes     0b11110000
+: tile-dock-edge  0b11101110
+
+: tile-floor
+	0b10001000
+	0b00100010
+	0b10001000
+	0b00100010
+
+: tile-time
+	0b11111111
+	0b11111111
+	0b11111111
+
+: icon-life
+	0b00100000
+	0b01110000
+	0b11111000
+	0b01110000
+	0b00100000
+
+: glyph-r
+	0b11100000
+	0b10010000
+	0b11100000
+	0b10100000
+	0b10010000
+
+# The courier: 5x5, carrying a parcel on its head.
+: sprite-courier
+	0b01110000
+	0b00100000
+	0b11111000
+	0b00100000
+	0b01010000

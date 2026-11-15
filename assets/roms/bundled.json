@@ -64,5 +64,16 @@
     "platform": "xochip",
     "tickrate": 500,
     "description": "A murder mystery game in the vein of Clue."
+  },
+  {
+    "id": "depot",
+    "title": "Depot",
+    "authors": ["Barend Scholtus", "Claude"],
+    "release": "2026",
+    "file": "depot.ch8",
+    "sha1": "3f8506150fc6c6d0506e2fcf759648461b107330",
+    "platform": "xochip",
+    "tickrate": 500,
+    "description": "Cross the yard, ride the pallets over the chute and deliver each parcel to the lit hatch. Chippie's own game."
   }
 ]

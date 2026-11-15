@@ -74,6 +74,25 @@ jobs:
       - name: Short fuzz run
         run: go test ./chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
 
+  games:
+    name: Games are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: games/package-lock.json
+      - name: Assemble
+        run: ./scripts/build-games.sh
+      - name: Committed ROMs match their source
+        run: |
+          if ! git diff --exit-code -- assets/roms catalogue/overlay.json; then
+            echo "::error::a game's ROM or SHA-1 is stale: run scripts/build-games.sh and commit"
+            exit 1
+          fi
+
   build:
     name: Build
     runs-on: ubuntu-latest

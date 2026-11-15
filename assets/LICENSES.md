@@ -19,6 +19,14 @@ come from [chip-8-database](https://github.com/chip-8/chip-8-database).
 | `redOctober.ch8` | Red October V | Kesha | `e14350d3b19443e5ad2848172bef9719a8680b01` |
 | `anEveningToDieFor.ch8` | An Evening to Die For | John Earnest | `afd9fee7565c54970b6bd7758aa8aa7843dd2e86` |
 
+**Chippie's own games**, built from source in [`games/`](../games/) by
+`scripts/build-games.sh`, also under **CC0 1.0** (`games/LICENSE`). Their
+SHA-1 changes with every build; `assets/roms/bundled.json` has the current one.
+
+| File | Title | Author | Source |
+|---|---|---|---|
+| `depot.ch8` | Depot | Barend Scholtus, Claude | `games/depot/depot.8o` |
+
 ## TV artwork (`assets/tv/<skin>/`, shipped separately, not compiled in)
 
 **Licence: none needed; believed to be in the public domain.** The TV
