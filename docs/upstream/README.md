@@ -14,7 +14,7 @@ account and its link recorded in the draft, in `catalogue/overlay.json`
 | 04 | [Two pixels in the scrolling pictures](04-test-suite-scrolling-pictures.md) | Timendus/chip8-test-suite | issue | [#38](https://github.com/Timendus/chip8-test-suite/issues/38), open |
 | 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), open |
 | 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), open |
-| 07 | [A Hires CHIP-8 (64×64) platform](07-hires-platform.md) | chip-8-database | issue | draft |
+| 07 | [A Hires CHIP-8 (64×64) platform](07-hires-platform.md) | chip-8-database | issue | approved, not posted |
 | 08 | [Add the 8 Hires CHIP-8 programs](08-hires-roms.md) | chip-8-database | PR (after 07) | approved, not posted |
 
 **Deferred until the maintainers react to #29–#31 (owner's decision,

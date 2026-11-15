@@ -59,8 +59,8 @@ instruction at 0x200 is `1260`, it switches to 64×64 and jumps to 0x2C0.
      cases.
 3. **Catalogue.** `overlay.json` gets a `platforms` list, entries in
    `platforms.json`'s shape, each with an `upstream` link. The new entry:
-   id `hiresChip8`, no release date (none is known), resolutions 64×32
-   and 64×64, tick rate 15, VIP quirks. `ApplyOverlay` adds platforms first; an entry is done
+   id `hiresChip8`, no release date (none is known), resolution 64×64
+   only, tick rate 15, VIP quirks. `ApplyOverlay` adds platforms first; an entry is done
    once upstream has its id, reported like programs (`docs/coverage.md`,
    the refresh summary). Overlay platforms are checked like the database's,
    unknown quirk ids are rejected, and the platform must exist in `chip8`.

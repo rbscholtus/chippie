@@ -1,7 +1,7 @@
 # Draft 07: propose a Hires CHIP-8 (64×64) platform
 
 - **Where:** issue on [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database).
-- **Status:** draft, not posted. Deferred until the maintainers react to
+- **Status:** approved, not posted. Deferred until the maintainers react to
   #29–#32 (owner's decision, 2026-11-15).
 - **Overlay entry:** the `hiresChip8` entry under `platforms` in
   `catalogue/overlay.json`. Its ROMs follow in draft 08.
@@ -35,9 +35,12 @@ which is 64×128 and needs a modified interpreter.
   asks the maintainers for a date if they know one; the VIPER scans
   ([mattmikolay/viper](https://github.com/mattmikolay/viper)) are where to
   look.
-- [ ] **Resolutions.** The entry lists 64×32 and 64×64, as a ROM without
-  the `1260` start runs at 64×32. Upstream may prefer 64×64 only.
-- [ ] Text below approved.
+- [x] **Resolutions: 64×64 only** (owner's decision, 2026-11-15). A Hires
+  program switches to 64×64 with its first instruction and has no way back,
+  so it never shows anything at 64×32. That Chippie runs a ROM without the
+  `1260` start at 64×32 on this platform is an emulator fallback (it lets
+  the Timendus suite run on it), not a resolution of the platform.
+- [x] Text below approved (owner, 2026-11-15).
 
 ## The issue
 
@@ -77,7 +80,7 @@ which is 64×128 and needs a modified interpreter.
 >   "id": "hiresChip8",
 >   "name": "Cosmac VIP Hires CHIP-8",
 >   "description": "A 64x64 mode for CHIP-8 on the Cosmac VIP, using two pages of display memory. It runs on an unmodified VIP: each program starts with a jump (1260) over a short machine-code patch that switches the interpreter to 64x64, and the CHIP-8 program starts at 0x2C0. 0230 clears the 64x64 screen. Emulators can skip the patch: when the first instruction at 0x200 is 1260, switch to 64x64 and continue at 0x2C0. Not to be confused with Tom Swan's 64x128 HI-RES CHIP-8 (1980).",
->   "displayResolutions": ["64x32", "64x64"],
+>   "displayResolutions": ["64x64"],
 >   "defaultTickrate": 15,
 >   "quirks": {
 >     "shift": false,
