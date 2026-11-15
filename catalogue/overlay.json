@@ -1189,7 +1189,7 @@
         "release": "2026",
         "description": "Cross the yard, ride the pallets over the chute and deliver each parcel to the lit hatch. Chippie's own game.",
         "roms": {
-          "1fcabab1bcf278335da83c61ade0a9ff69b9c410": {
+          "8a62081d600888b53aac1aa257c1895b9ac0db21": {
             "file": "depot.ch8",
             "platforms": [
               "xochip"

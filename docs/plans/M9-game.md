@@ -78,7 +78,8 @@ an object leaving on the right comes back on the left for free.
 - **Chute lanes:** you must stand on a pallet, which carries you along.
   Standing on nothing, or being carried against the screen edge, costs a life.
 - **Hatches:** the hatch row is a wall. Hopping up into the **lit** hatch
-  delivers the parcel. Every other spot, including the unlit hatches and
+  delivers the parcel. (As built: the courier's middle must be over the
+  hatch's 8 px, so two hop positions reach each one.) Every other spot, including the unlit hatches and
   filled ones, blocks the hop.
 - **The twist:** only one hatch is lit at a time, picked at random from the
   empty ones after each delivery. You can't fill them left to right; you
@@ -205,6 +206,12 @@ pallet?" and is deterministic for the tests.
   object in four instructions; each frame updates every other lane record,
   and the table keeps the empty walkway last so both halves have three busy
   lanes; and the hit test is one range check per object.
+- **As built (step 5):** the heavy moments are spread over pauses, a
+  piece of work per frame: a delivery is a 40-frame pause (score, parcel,
+  round clear, speed-up, new light on frames of their own), the time bar
+  refills a pixel a frame during it and while dying, and the end of a game
+  clears the board over its last three frames. The worst frame is ~480 of
+  500, so step 6 must keep the play frame lean.
 - **Late frames:** a frame that overruns doesn't drop (the counter still
   goes up), it starts late, and the game reads input a frame late. So
   `wait-frame` counts the frames where the timer had already run out

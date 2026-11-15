@@ -30,16 +30,19 @@ const testSeed = 0xDE90
 
 // Addresses in the state block (depot.8o, "State block").
 const (
-	addrFrame = 0x202 // 16 bits, low byte first
-	addrMode  = 0x204
-	addrRound = 0x205
-	addrLives = 0x206
-	addrScore = 0x207 // four digits, most significant first
-	addrX     = 0x20B
-	addrRow   = 0x20C
-	addrGhost = 0x211 // not 0: nothing hits the courier
-	addrLate  = 0x212 // frames whose work ran over into the next
-	addrLanes = 0x216 // the lane table: laneSize bytes per row, from row 1
+	addrFrame  = 0x202 // 16 bits, low byte first
+	addrMode   = 0x204
+	addrRound  = 0x205
+	addrLives  = 0x206
+	addrScore  = 0x207 // four digits, most significant first
+	addrX      = 0x20B
+	addrRow    = 0x20C
+	addrLit    = 0x20D // the lit hatch, 0-3
+	addrFilled = 0x20E // filled hatches, one bit each
+	addrGhost  = 0x211 // not 0: nothing hits the courier
+	addrLate   = 0x212 // frames whose work ran over into the next
+	addrTime   = 0x213 // time-bar pixels left
+	addrLanes  = 0x218 // the lane table: laneSize bytes per row, from row 1
 )
 
 // Lane records (depot.8o, "Lanes"): y, flags, speed, acc, sprite, count,
@@ -74,9 +77,10 @@ func quietYard(more ...testrig.Poke) []testrig.Poke {
 
 // Modes (s-mode).
 const (
-	modePlay  = 1
-	modeDying = 2
-	modeOver  = 3
+	modePlay    = 1
+	modeDying   = 2
+	modeOver    = 3
+	modeDeliver = 4
 )
 
 // ghost makes the courier un-hittable, for tests about movement.
@@ -183,7 +187,7 @@ func courier(m *chip8.Machine) (int, int) {
 func TestPlayfield(t *testing.T) {
 	t.Parallel()
 
-	m := run(t, testrig.Script{Frames: 2})
+	m := run(t, testrig.Script{Frames: 3}) // start-up takes 3 frames
 	check(t, m, "playfield")
 
 	for _, s := range []struct {
@@ -326,6 +330,23 @@ func TestFrameBudgetWhileMoving(t *testing.T) {
 	budget(t, testrig.Script{Keys: keys}, warmUp, n)
 }
 
+// noneLate notes the game's late-frame count; the function it returns
+// checks no more frames ran late since (the frame budget, for paths the
+// budget tests don't take).
+func noneLate(t *testing.T, m *chip8.Machine) func() {
+	t.Helper()
+
+	before := m.Peek(addrLate)
+
+	return func() {
+		t.Helper()
+
+		if got := m.Peek(addrLate) - before; got != 0 {
+			t.Errorf("%d frames ran late", got)
+		}
+	}
+}
+
 // until runs the machine a frame at a time, keeping its keys, until done
 // reports true, for at most limit frames.
 func until(t *testing.T, m *chip8.Machine, limit int, done func() bool) {
@@ -386,11 +407,12 @@ func TestHitInTheYard(t *testing.T) {
 	}
 }
 
-// TestDockIsSafe waits a minute on the dock.
+// TestDockIsSafe waits 15 s on the dock: no traffic comes, and the time
+// bar (16 s) hasn't run out.
 func TestDockIsSafe(t *testing.T) {
 	t.Parallel()
 
-	m := run(t, testrig.Script{Frames: 3600})
+	m := run(t, testrig.Script{Frames: 900})
 	if got := m.Peek(addrLives); got != 3 {
 		t.Errorf("lives %d, want 3", got)
 	}
@@ -562,5 +584,253 @@ func TestCarriedOffTheEdge(t *testing.T) {
 
 	if got := m.Peek(addrLives); got != 2 {
 		t.Errorf("lives %d, want 2", got)
+	}
+}
+
+// Hatches (depot.8o, hatch-xs). The courier delivers from x = hatch x + 4,
+// which a hop from the start (x 60) can reach.
+var hatchX = [4]int{8, 40, 72, 104}
+
+// Time bar (depot.8o, "Time bar").
+const (
+	timeFull   = 32
+	tickFrames = 30
+)
+
+// walkTo hops the courier sideways to x, a multiple of 4 away.
+func walkTo(t *testing.T, m *chip8.Machine, x int) {
+	t.Helper()
+
+	for {
+		cx, _ := courier(m)
+
+		switch {
+		case cx < x:
+			press(t, m, keyRight)
+		case cx > x:
+			press(t, m, keyLeft)
+		default:
+			return
+		}
+	}
+}
+
+// crossTo walks a ghost courier from the dock to x and hops up to the
+// hatch wall, ending with the hop into it: it returns whether that hop
+// delivered, and the time left when it did.
+func crossTo(t *testing.T, m *chip8.Machine, x int) (bool, int) {
+	t.Helper()
+
+	walkTo(t, m, x)
+
+	for range startRow - topRow {
+		press(t, m, keyUp)
+	}
+
+	m.SetKey(keyUp, true)
+	m.RunFrame()
+
+	delivered, left := m.Peek(addrMode) == modeDeliver, int(m.Peek(addrTime))
+
+	m.SetKey(keyUp, false)
+	m.RunFrame()
+
+	return delivered, left
+}
+
+// deliver crosses a ghost courier to the lit hatch and waits for the next
+// one on the dock. It returns the hatch and the time left at delivery.
+func deliver(t *testing.T, m *chip8.Machine) (int, int) {
+	t.Helper()
+
+	lit := int(m.Peek(addrLit))
+
+	delivered, left := crossTo(t, m, hatchX[lit]+4)
+	if !delivered {
+		t.Fatalf("hop into lit hatch %d didn't deliver", lit)
+	}
+
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
+
+	return lit, left
+}
+
+// TestTimeBar checks a pixel goes every half second.
+func TestTimeBar(t *testing.T) {
+	t.Parallel()
+
+	before := run(t, testrig.Script{Frames: begin})
+	after := run(t, testrig.Script{Frames: begin + 10*tickFrames})
+
+	if got, want := after.Peek(addrTime), before.Peek(addrTime)-10; got != want {
+		t.Errorf("time bar %d px after 5 s, want %d", got, want)
+	}
+}
+
+// TestTimeOut waits on the dock until the time bar runs out.
+func TestTimeOut(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Frames: begin})
+	start := frames(m)
+
+	until(t, m, timeFull*tickFrames+tickFrames, func() bool { return m.Peek(addrMode) == modeDying })
+
+	if got, want := frames(m)-start, timeFull*tickFrames-begin; got < want {
+		t.Errorf("time ran out after %d frames, want at least %d", got, want)
+	}
+
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
+
+	if got := m.Peek(addrLives); got != 2 {
+		t.Errorf("lives %d, want 2", got)
+	}
+
+	if got := m.Peek(addrTime); got != timeFull {
+		t.Errorf("time bar %d px for the next courier, want it refilled to %d", got, timeFull)
+	}
+}
+
+// TestDelivery crosses to the lit hatch: it's filled, scored and a new one
+// lit (golden).
+func TestDelivery(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	lit, left := deliver(t, m)
+
+	if got, want := m.Peek(addrFilled), byte(1)<<lit; got != want {
+		t.Errorf("filled hatches %04b, want %04b", got, want)
+	}
+
+	if got := int(m.Peek(addrLit)); got == lit {
+		t.Errorf("hatch %d still lit after its delivery", got)
+	}
+
+	if want := 10*(startRow-topRow) + 50 + left; score(m) != want {
+		t.Errorf("score %d, want %d (rows, delivery, %d px of time)", score(m), want, left)
+	}
+
+	if x, row := courier(m); x != startX || row != startRow {
+		t.Errorf("courier at x %d, row %d; want the next one on the dock", x, row)
+	}
+
+	if got := m.Peek(addrTime); got != timeFull {
+		t.Errorf("time bar %d px, want it refilled to %d", got, timeFull)
+	}
+
+	check(t, m, "delivered")
+}
+
+// TestUnlitHatchBlocks hops up into a hatch that isn't lit.
+func TestUnlitHatchBlocks(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	other := (int(m.Peek(addrLit)) + 1) % 4
+
+	if delivered, _ := crossTo(t, m, hatchX[other]+4); delivered {
+		t.Fatalf("unlit hatch %d took a delivery", other)
+	}
+
+	if _, row := courier(m); row != topRow {
+		t.Errorf("courier in row %d, want stopped in row %d", row, topRow)
+	}
+}
+
+// TestRoundClear fills all four hatches: round 2 starts, faster.
+func TestRoundClear(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	speed := m.Peek(laneAddr(1, 2))
+	want := 200
+
+	defer noneLate(t, m)()
+
+	for range 4 {
+		_, left := deliver(t, m)
+		want += 10*(startRow-topRow) + 50 + left
+	}
+
+	if got := m.Peek(addrRound); got != 2 {
+		t.Errorf("round %d, want 2", got)
+	}
+
+	if got := m.Peek(addrFilled); got != 0 {
+		t.Errorf("filled hatches %04b in the new round, want none", got)
+	}
+
+	if got := score(m); got != want {
+		t.Errorf("score %d, want %d", got, want)
+	}
+
+	if got := m.Peek(laneAddr(1, 2)); got != speed+2 {
+		t.Errorf("chute 1 speed %d in round 2, want %d", got, speed+2)
+	}
+}
+
+// TestLitHatchMoves waits half the time bar in round 3: the light moves.
+func TestLitHatchMoves(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	m.Poke(addrRound, 3)
+
+	lit := m.Peek(addrLit)
+	until(t, m, timeFull*tickFrames, func() bool { return m.Peek(addrTime) == timeFull/2 })
+
+	if got := m.Peek(addrLit); got == lit {
+		t.Errorf("hatch %d still lit half way through round 3", got)
+	}
+}
+
+// TestNewGameClearsTheBoard delivers a parcel, loses every life, and checks
+// the new game's HUD and hatches look like a fresh start's: no parcels,
+// one light, score 0, three lives, round 1, a full time bar.
+func TestNewGameClearsTheBoard(t *testing.T) {
+	t.Parallel()
+
+	fresh := run(t, testrig.Script{Frames: 3}).Display()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	defer noneLate(t, m)()
+
+	deliver(t, m)
+	m.Poke(addrGhost, 0)
+
+	for range 3 {
+		until(t, m, 120, func() bool { return m.Peek(addrMode) == modePlay })
+		press(t, m, keyUp) // into yard 3, and wait for a forklift
+		until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+	}
+
+	until(t, m, 120, func() bool { return m.Peek(addrMode) == modeOver })
+	until(t, m, 200, func() bool { return m.Peek(addrMode) == modePlay })
+
+	const hatchRows = 12 // the HUD and the hatch wall
+
+	d := m.Display()
+	lit := hatchX[m.Peek(addrLit)]
+	light := 0
+
+	for y := range hatchRows {
+		for x := range d.Width() {
+			if got, want := d.Pixel(x, y)&1, fresh.Pixel(x, y)&1; got != want {
+				t.Fatalf("plane 1 at (%d, %d) is %d in the new game, %d at a fresh start", x, y, got, want)
+			}
+
+			if d.Pixel(x, y)&2 != 0 {
+				light++
+
+				if x <= lit || x >= lit+7 {
+					t.Errorf("plane 2 at (%d, %d), outside lit hatch at x %d", x, y, lit)
+				}
+			}
+		}
+	}
+
+	if light != 6*5 {
+		t.Errorf("%d px of light in the hatch wall, want one hatch's (30)", light)
 	}
 }

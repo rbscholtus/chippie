@@ -6,7 +6,7 @@ hit by a forklift, ride the pallets over the sorting chute, and deliver the
 parcel to the lit hatch at the top. Only one hatch is lit at a time, so plan
 your route. Fill all four to clear the round; every round is faster.
 
-**Status:** in development (step 4 of 9: the yard has traffic and the chute has pallets to ride; hits and falls cost lives, game over restarts; no hatches yet
+**Status:** in development (step 5 of 9: the whole game, with deliveries, the time bar and rounds; the title screen, best score and sound come next
 order: [docs/plans/M9-game.md](../../docs/plans/M9-game.md).
 
 ## Controls
