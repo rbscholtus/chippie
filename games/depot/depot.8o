@@ -6,8 +6,8 @@
 #  Design: docs/plans/M9-game.md. Build: scripts/build-games.sh.
 #  Runs at 500 ticks per frame, 128x64, two planes.
 #
-#  Build order step 2 of 9: the playfield and a courier that hops around
-#  it, scoring the rows it reaches.
+#  Build order step 3 of 9: the courier hops across the yard, where
+#  forklifts and trolleys cost lives; game over starts a new game.
 #
 ###########################################################################
 
@@ -19,7 +19,7 @@
 
 : state
 : s-frame      0 0    # 0x202  game frames run, 16 bits, low byte first
-: s-mode       0      # 0x204  0 title, 1 playing
+: s-mode       0      # 0x204  MODE-*
 : s-round      1      # 0x205
 : s-lives      3      # 0x206
 : s-score      0 0 0 0  # 0x207  four decimal digits, most significant first
@@ -28,6 +28,8 @@
 : s-lit        0      # 0x20D  lit hatch, 0-3
 : s-filled     0      # 0x20E  filled hatches, one bit each
 : s-best       8      # 0x20F  highest row (lowest number) reached this crossing
+: s-timer      0      # 0x210  frames left in MODE-DYING or MODE-OVER
+: s-ghost      0      # 0x211  not 0: nothing hits the courier (tests poke it)
 
 # Scratch for score-add: the points as three decimal digits.
 : score-tmp    0 0 0
@@ -43,9 +45,11 @@
 :alias repeat  vD    # frames until a held key hops again
 
 ###########################################################################
-#  Layout (design §1.1). Rows are 6 px; sprites are 5 px high.
+#  Constants
 ###########################################################################
 
+# Layout (design §1.1). Rows are 6 px; sprites are 5 px high. Row r's
+# sprites are drawn at y = 6r + 6.
 :const Y-HUD        0
 :const Y-HATCHES    6
 :const Y-WALK-TOP  29    # gap line above the walkway
@@ -59,6 +63,22 @@
 :const X-COURIER-MAX  120   # the courier is 5 px wide; hops are 4 px
 :const ROW-TOP         1    # highest row the courier can hop to (for now)
 :const ROW-DOCK        8
+
+# HUD positions.
+:const X-SCORE      1
+:const X-LIVES     26
+:const X-ROUND     50
+:const X-TIME      92
+:const Y-TIME       1
+
+# Modes (s-mode).
+:const MODE-TITLE   0
+:const MODE-PLAY    1
+:const MODE-DYING   2
+:const MODE-OVER    3
+
+:const DYING-FRAMES 48     # the courier blinks; a multiple of 8 leaves it shown
+:const OVER-FRAMES  120
 
 # Directions, from read-dir.
 :const DIR-NONE   0
@@ -80,12 +100,20 @@
 
 :const POINTS-ROW   10
 
-# HUD positions.
-:const X-SCORE      1
-:const X-LIVES     26
-:const X-ROUND     50
-:const X-TIME      92
-:const Y-TIME       1
+# Lanes (design §2.2): see the lane table at the end.
+:const LANE-SIZE     10
+:const LANES-END     70    # 7 lanes, rows 1-7
+:const LANE-LEFT      1    # flag: objects move left
+:const LANE-PLATFORM  2    # flag: objects are pallets to ride, not hazards
+:const SUBPIXELS     16    # speed is in 1/16 px per frame
+:const HIT-WIDTH     14    # objects are 16 px; 1 px of each end is forgiven
+:const COURIER-WIDTH  5
+
+# Lane sprites: offsets into lane-sprites, which the lane table's sprite
+# column holds.
+:const SPR-FORKLIFT-R  0
+:const SPR-FORKLIFT-L 32
+:const SPR-TROLLEY    64
 
 ###########################################################################
 #  Main
@@ -93,20 +121,16 @@
 
 : main
 	hires
-	cx := X-COURIER-START
-	crow := ROW-DOCK
 	held := DIR-NONE
 	repeat := 0
-	v0 := 1
-	i := s-mode
-	save v0
-
 	draw-playfield
 	draw-hud
-	draw-courier
+	draw-lanes
+	respawn
 	loop
 		wait-frame
-		handle-input
+		update-lanes
+		by-mode
 		i := s-x
 		save cx - crow
 	again
@@ -125,6 +149,108 @@
 	if v0 == 0 then v1 += 1
 	i := s-frame
 	save v1
+;
+
+# by-mode runs this frame's work for the current mode.
+: by-mode
+	i := s-mode
+	load v0
+	if v0 == MODE-PLAY then jump play-frame
+	if v0 == MODE-DYING then jump dying-frame
+	if v0 == MODE-OVER then jump over-frame
+;
+
+: play-frame
+	handle-input
+	jump check-hit
+
+###########################################################################
+#  Lives
+###########################################################################
+
+# lose-life starts the courier blinking: it's been hit, or fell.
+: lose-life
+	v0 := MODE-DYING
+	i := s-mode
+	save v0
+	v0 := DYING-FRAMES
+	i := s-timer
+	save v0
+;
+
+# dying-frame blinks the courier, then takes a life and either puts a new
+# courier on the dock or ends the game.
+: dying-frame
+	count-down
+	v1 := 3
+	v1 &= v0
+	if v1 == 0 then draw-courier    # every 4 frames: shown, hidden, ...
+	if v0 != 0 then return
+
+	draw-courier    # erase
+	draw-lives      # erase
+	i := s-lives
+	load v0
+	v0 += -1
+	i := s-lives
+	save v0
+	draw-lives      # uses v0: read the lives again
+	i := s-lives
+	load v0
+	if v0 != 0 then jump respawn
+
+	v0 := MODE-OVER
+	i := s-mode
+	save v0
+	v0 := OVER-FRAMES
+	i := s-timer
+	save v0
+;
+
+# over-frame waits, then starts a new game. The title and game-over
+# screens come in step 6.
+: over-frame
+	count-down
+	if v0 != 0 then return
+	jump new-game
+
+# count-down decrements s-timer and returns it in v0.
+: count-down
+	i := s-timer
+	load v0
+	v0 += -1
+	i := s-timer
+	save v0
+;
+
+# new-game resets the score and lives and starts playing.
+: new-game
+	draw-score      # erase
+	v0 := 0
+	v1 := 0
+	v2 := 0
+	v3 := 0
+	i := s-score
+	save v3
+	draw-score
+	v0 := 3
+	i := s-lives
+	save v0
+	draw-lives
+	# fall through
+
+# respawn puts the courier on the dock for a new crossing.
+: respawn
+	cx := X-COURIER-START
+	crow := ROW-DOCK
+	held := DIR-NONE
+	draw-courier
+	v0 := ROW-DOCK
+	i := s-best
+	save v0
+	v0 := MODE-PLAY
+	i := s-mode
+	save v0
 ;
 
 ###########################################################################
@@ -190,6 +316,170 @@
 	jump score-add
 
 ###########################################################################
+#  Lanes
+#
+#  Each lane is a 10-byte record in the lane table (see the end):
+#    y, flags, speed, acc, sprite, count, x0, x1, x2, x3
+#  speed is in 1/16 px per frame, acc collects the fractions, sprite is an
+#  offset into lane-sprites, and count objects (0-4) sit at x0.. .
+#  Objects are 16x16 sprites whose bottom 11 rows are empty, so a 16 px
+#  object takes one draw.
+###########################################################################
+
+# lane-offset returns the lane record offset for the courier's row in v9:
+# (row - 1) * 10. Uses v8.
+: lane-offset
+	v8 := crow
+	v8 += -1
+	v9 := v8
+	v9 += v9
+	v9 += v9
+	v9 += v8
+	v9 += v9
+;
+
+# draw-lanes draws every lane's objects (at the start of a game).
+: draw-lanes
+	plane 1
+	v9 := 0
+	loop
+		i := lanes
+		i += v9
+		load v5
+		if v5 != 0 begin
+			v6 := v9
+			v6 += 6
+			loop
+				i := lanes
+				i += v6
+				load v8 - v8
+				i := lane-sprites
+				i += v4
+				sprite v8 v0 0
+				v6 += 1
+				v5 += -1
+				while v5 != 0
+			again
+		end
+		v9 += LANE-SIZE
+		while v9 != LANES-END
+	again
+;
+
+# update-lanes moves every lane by its speed.
+: update-lanes
+	plane 1
+	v9 := 0
+	loop
+		update-lane
+		v9 += LANE-SIZE
+		while v9 != LANES-END
+	again
+;
+
+# update-lane adds the lane's speed to its sub-pixel count and moves it a
+# pixel for every whole pixel collected. Keeps v9; uses v0-v8, vE.
+: update-lane
+	i := lanes
+	i += v9
+	load v5         # y, flags, speed, acc, sprite, count
+	if v5 == 0 then return
+	v3 += v2
+	v7 := 0         # pixels to move
+	loop
+		while v3 >= SUBPIXELS
+		v3 += -16
+		v7 += 1
+	again
+	i := lanes
+	i += v9
+	save v5
+	loop
+		while v7 != 0
+		move-lane
+		v7 += -1
+	again
+;
+
+# move-lane moves the lane's objects 1 px, wrapping at the screen edge.
+# Expects v0 y, v1 flags, v4 sprite, v5 count, v9 lane offset; keeps
+# them and v7. Uses v2, v3, v6, v8.
+: move-lane
+	v6 := v9
+	v6 += 6         # offset of x0
+	v3 := v5
+	loop
+		i := lanes
+		i += v6
+		load v8 - v8
+		i := lane-sprites
+		i += v4
+		sprite v8 v0 0      # erase
+		v2 := LANE-LEFT
+		v2 &= v1
+		if v2 == 0 then v8 += 1
+		if v2 != 0 then v8 += -1
+		v2 := 127
+		v8 &= v2
+		sprite v8 v0 0      # draw
+		i := lanes
+		i += v6
+		save v8 - v8
+		v6 += 1
+		v3 += -1
+		while v3 != 0
+	again
+;
+
+# overlap sets vE to 1 if the object at x = X overlaps the courier, with
+# wrap-around. Expects v0 = 127. Uses v3, v4.
+:macro overlap X {
+	v3 := X
+	v3 += 1         # forgive the object's first pixel
+	v4 := cx
+	v4 -= v3
+	v4 &= v0
+	if v4 < HIT-WIDTH then vE := 1
+	v4 := v3
+	v4 -= cx
+	v4 &= v0
+	if v4 < COURIER-WIDTH then vE := 1
+}
+
+# check-hit costs a life if the courier touches a hazard, or stands in a
+# platform lane without a pallet under it.
+: check-hit
+	i := s-ghost
+	load v0
+	if v0 != 0 then return
+	if crow == ROW-DOCK then return
+	lane-offset
+	i := lanes
+	i += v9
+	load v9         # y, flags, speed, acc, sprite, count, x0-x3
+	if v5 == 0 then return
+	v0 := 127
+	vE := 0
+	overlap v6
+	if v5 != 1 begin
+		overlap v7
+	end
+	if v5 >= 3 begin
+		overlap v8
+	end
+	if v5 == 4 begin
+		overlap v9
+	end
+	v2 := LANE-PLATFORM
+	v2 &= v1
+	if v2 == 0 begin
+		if vE != 0 then jump lose-life
+		return
+	end
+	if vE == 0 then jump lose-life
+;
+
+###########################################################################
 #  Score
 ###########################################################################
 
@@ -245,6 +535,23 @@
 	v4 += 5
 	i := hex v3
 	sprite v4 v5 5
+;
+
+# draw-lives draws (or, drawn again, erases) one icon per life. Uses v0,
+# v4, v5.
+: draw-lives
+	plane 1
+	i := s-lives
+	load v0
+	v4 := X-LIVES
+	v5 := Y-HUD
+	i := icon-life
+	loop
+		while v0 != 0
+		sprite v4 v5 5
+		v4 += 6
+		v0 += -1
+	again
 ;
 
 ###########################################################################
@@ -305,21 +612,11 @@
 
 : draw-hud
 	draw-score
-
-	# Lives: one icon each.
-	i := s-lives
-	load v0
-	v4 := X-LIVES
-	i := icon-life
-	loop
-		while v0 != 0
-		sprite v4 v5 5
-		v4 += 6
-		v0 += -1
-	again
+	draw-lives
 
 	# Round: "R" and a digit.
 	v4 := X-ROUND
+	v5 := Y-HUD
 	i := glyph-r
 	sprite v4 v5 5
 	v4 += 5
@@ -357,8 +654,54 @@
 ;
 
 ###########################################################################
+#  The lane table: one record per row from 1 (chute 1) to 7 (yard 3).
+#  The chute lanes get their pallets in step 4. Named values need :byte:
+#  a bare name in Octo is a call to that address.
+#    y     flags         speed acc     sprite      count x0 x1 x2 x3
+###########################################################################
+
+: lanes
+	12 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 1
+	18 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 2
+	24 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 3
+	30 :byte 0              0  0 :byte 0               0   0  0  0  0   # walkway
+	36 :byte 0              6  0 :byte SPR-FORKLIFT-R  3   0 44 88  0   # yard 1
+	42 :byte LANE-LEFT      9  0 :byte SPR-TROLLEY     3  10 52 94  0   # yard 2
+	48 :byte 0             12  0 :byte SPR-FORKLIFT-R  2  20 84  0  0   # yard 3
+
+###########################################################################
 #  Sprites
 ###########################################################################
+
+# Lane objects: 16x16 sprites, 5 rows of art and 11 empty ones.
+:macro blank-rows {
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+}
+
+: lane-sprites
+	# Forklift facing right: cab and mast on the left, forks out front.
+	0b01111000 0b00000000
+	0b01001000 0b00100000
+	0b11111111 0b10100000
+	0b11111111 0b11111110
+	0b01100011 0b00000000
+	blank-rows
+
+	# Forklift facing left: the same, mirrored.
+	0b00000000 0b00011110
+	0b00000100 0b00010010
+	0b00000101 0b11111111
+	0b01111111 0b11111111
+	0b00000000 0b11000110
+	blank-rows
+
+	# Parcel trolleys: two cages, coupled.
+	0b01111110 0b01111110
+	0b01000010 0b01000010
+	0b11111111 0b11111111
+	0b01111110 0b01111110
+	0b00100100 0b00100100
+	blank-rows
 
 : tile-wall
 	0b11111111

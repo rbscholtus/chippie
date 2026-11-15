@@ -37,7 +37,18 @@ const (
 	addrScore = 0x207 // four digits, most significant first
 	addrX     = 0x20B
 	addrRow   = 0x20C
+	addrGhost = 0x211 // not 0: nothing hits the courier
 )
+
+// Modes (s-mode).
+const (
+	modePlay  = 1
+	modeDying = 2
+	modeOver  = 3
+)
+
+// ghost makes the courier un-hittable, for tests about movement.
+var ghost = []testrig.Poke{{Addr: addrGhost, Value: 1}}
 
 // Keys (depot.8o, "Keys").
 const (
@@ -148,7 +159,7 @@ func TestPlayfield(t *testing.T) {
 		addr uint16
 		want byte
 	}{
-		{"mode", addrMode, 1}, // playing; the title screen comes in step 6
+		{"mode", addrMode, modePlay}, // the title screen comes in step 6
 		{"round", addrRound, 1},
 		{"lives", addrLives, 3},
 		{"x", addrX, 60},
@@ -220,7 +231,7 @@ func TestMoves(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			m := run(t, testrig.Script{Keys: tc.keys, Frames: begin + 320})
+			m := run(t, testrig.Script{Pokes: ghost, Keys: tc.keys, Frames: begin + 320})
 
 			if x, row := courier(m); x != tc.x || row != tc.row {
 				t.Errorf("courier at x %d, row %d; want x %d, row %d", x, row, tc.x, tc.row)
@@ -239,6 +250,7 @@ func TestMovedScreen(t *testing.T) {
 	t.Parallel()
 
 	m := run(t, testrig.Script{
+		Pokes: ghost,
 		Keys: []testrig.KeyEvent{
 			hold(keyUp, 13), // two hops: rows 7 and 6
 			tap(keyRight, begin+20),
@@ -270,4 +282,106 @@ func TestFrameBudgetWhileMoving(t *testing.T) {
 	if got := end - start; got != n {
 		t.Errorf("game counted %d frames in %d: it dropped %d", got, n, n-got)
 	}
+}
+
+// until runs the machine a frame at a time, keeping its keys, until done
+// reports true, for at most limit frames.
+func until(t *testing.T, m *chip8.Machine, limit int, done func() bool) {
+	t.Helper()
+
+	for range limit {
+		if done() {
+			return
+		}
+
+		m.RunFrame()
+
+		if err := m.State().Err; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Fatalf("not done after %d frames", limit)
+}
+
+// TestHitInTheYard hops into yard 3 and waits for a forklift.
+func TestHitInTheYard(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Keys: []testrig.KeyEvent{tap(keyUp, begin)}, Frames: begin + 3})
+	if _, row := courier(m); row != startRow-1 {
+		t.Fatalf("courier in row %d, want %d", row, startRow-1)
+	}
+
+	until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
+
+	if got := m.Peek(addrLives); got != 2 {
+		t.Errorf("lives %d, want 2", got)
+	}
+
+	if x, row := courier(m); x != startX || row != startRow {
+		t.Errorf("courier at x %d, row %d after a hit; want back on the dock at x %d", x, row, startX)
+	}
+
+	if got := score(m); got != 10 {
+		t.Errorf("score %d, want the 10 from before the hit", got)
+	}
+}
+
+// TestDockIsSafe waits a minute on the dock.
+func TestDockIsSafe(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Frames: 3600})
+	if got := m.Peek(addrLives); got != 3 {
+		t.Errorf("lives %d, want 3", got)
+	}
+}
+
+// TestGameOver hops into yard 3 with every life and waits there, until
+// the lives run out; then a new game starts.
+func TestGameOver(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Frames: begin})
+
+	for lives := byte(3); lives > 0; lives-- {
+		until(t, m, 120, func() bool { return m.Peek(addrMode) == modePlay })
+		m.SetKey(keyUp, true)
+		m.RunFrame()
+		m.RunFrame()
+		m.SetKey(keyUp, false)
+
+		until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+
+		if got := m.Peek(addrLives); got != lives {
+			t.Fatalf("lives %d while dying, want %d", got, lives)
+		}
+	}
+
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modeOver })
+
+	if got := m.Peek(addrLives); got != 0 {
+		t.Errorf("lives %d at game over, want 0", got)
+	}
+
+	check(t, m, "game-over")
+
+	until(t, m, 200, func() bool { return m.Peek(addrMode) == modePlay })
+
+	if got := m.Peek(addrLives); got != 3 {
+		t.Errorf("lives %d in the new game, want 3", got)
+	}
+
+	if got := score(m); got != 0 {
+		t.Errorf("score %d in the new game, want 0", got)
+	}
+}
+
+// TestTraffic checks the lanes have moved after a second (golden).
+func TestTraffic(t *testing.T) {
+	t.Parallel()
+
+	check(t, run(t, testrig.Script{Frames: 60}), "traffic")
 }
