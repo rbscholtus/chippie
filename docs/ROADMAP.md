@@ -31,7 +31,7 @@ To be settled while building, not before:
 - **Licensing of kripod ROMs.** The repo has no licence file. We only link to
   it, never copy from it, so this matters only if we ever mirror files.
 - **Hires CHIP-8 (64×64).** Add it as a platform in Chippie before the
-  database has it?
+  database has it? See "Hires CHIP-8 ROMs" below.
 - **Fonts for the UI and OSD.** Settled in M6 for now: the Go fonts already
   in the project (Go Medium for the channel dial, Go Mono Bold for the OSD).
   A period face (OFL only) could still replace them.
@@ -54,6 +54,23 @@ To be settled while building, not before:
   An issue there, after play-testing Chipcross and Piper.
 - **XO-CHIP scrolling reference pictures** for the test suite, which has
   none (Chippie generates its own).
+- **Hires CHIP-8 ROMs.** Eight ROMs in kripod/chip8-roms' `hires/` folder
+  are in no chip-8-database entry and can't be played yet
+  (`docs/coverage.md`, "Not in chip-8-database"):
+  Astro Dodge Hires, Hires Maze, Hires Particle Demo, Hires Sierpinski,
+  Hires Stars, Hires Test, Hires Worm V4 and Trip8 Hires Demo. Most need
+  the 64×64 "Hires CHIP-8" variant of the COSMAC VIP: each ROM starts with
+  a `1260` jump over a short machine-code patch (the same bytes in every
+  one checked) that switches the interpreter to a 64×64 screen; the program
+  itself starts at 0x260. Steps:
+  1. Add the platform to `chip8/` (64×64 display, VIP quirks, recognise
+     the patch rather than run it) with tests, and to Chippie's overlay, so the ROMs get download locations and a
+     platform.
+  2. Play-test each ROM to confirm its platform; note any that need
+     something else.
+  3. Upstream: the deferred issue proposing the platform to chip-8-database
+     ([upstream/](upstream/README.md)), then a PR adding the ROMs, with
+     Chippie as the evidence.
 - **One entry per program in the library.** Programs with several ROMs
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.

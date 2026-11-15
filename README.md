@@ -110,6 +110,7 @@ database's values. Settings also has the TV skin and the instruction trace.
 | CHIP-8 with machine code (VIP) | 64×32 | Not yet |
 | CHIP-8X | 64×32, colour | Not yet |
 | MEGA-CHIP | up to 256×192 | Not yet |
+| Hires CHIP-8 (VIP variant) | 64×64 | Not yet: not in chip-8-database either ([roadmap](docs/ROADMAP.md)) |
 
 **What are quirks?** Every CHIP-8 interpreter since 1977 has behaved a little
 differently: whether shifts use `VX` or `VY`, whether `I` changes after a
