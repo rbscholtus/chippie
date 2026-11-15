@@ -14,8 +14,9 @@ including the UI and the CRT shader, and compiled to WebAssembly.
 
 ## Features
 
-- **Six CHIP-8 platforms**: the original COSMAC VIP CHIP-8, modern CHIP-8,
-  CHIP-48, SUPER-CHIP 1.0 and 1.1, and XO-CHIP, each with its own quirks.
+- **Seven CHIP-8 platforms**: the original COSMAC VIP CHIP-8 and its 64×64
+  Hires mode, modern CHIP-8, CHIP-48, SUPER-CHIP 1.0 and 1.1, and XO-CHIP,
+  each with its own quirks.
 - **The right settings for each game**: platform, quirks, speed, colours
   and screen rotation come from the community
   [chip-8-database](https://github.com/chip-8/chip-8-database). You can
