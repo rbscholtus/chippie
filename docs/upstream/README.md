@@ -14,11 +14,13 @@ account and its link recorded in the draft, in `catalogue/overlay.json`
 | 04 | [Two pixels in the scrolling pictures](04-test-suite-scrolling-pictures.md) | Timendus/chip8-test-suite | issue | [#38](https://github.com/Timendus/chip8-test-suite/issues/38), open |
 | 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), open |
 | 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), open |
+| 07 | [A Hires CHIP-8 (64×64) platform](07-hires-platform.md) | chip-8-database | issue | approved, not posted |
+| 08 | [Add the 8 Hires CHIP-8 programs](08-hires-roms.md) | chip-8-database | PR (after 07) | approved, not posted |
 
 **Deferred until the maintainers react to #29–#31 (owner's decision,
 2026-11-15):** issues proposing a "where to download" field, asking where
-the unsourced hashes came from, and a 64×64 platform (for kripod's 8 hires
-ROMs). (The 7 metadata conflicts were dropped: see the plan.)
+the unsourced hashes came from, and the 64×64 platform (drafts 07 and 08,
+from M10). (The 7 metadata conflicts were dropped: see the plan.)
 
 Submitted from the owner's fork, [rbscholtus/chip-8-database](https://github.com/rbscholtus/chip-8-database), one branch per PR.
 
@@ -33,7 +35,7 @@ Chippie doesn't wait for upstream: pending database changes live in
    field in the database. Today only 12 programs have a `urls` field. If it is
    accepted, Chippie's `sources.json` becomes a thin layer over the shared
    database and other emulators benefit too.
-3. **Hires CHIP-8 platform:** possibly propose a 64×64 "Hires CHIP-8" platform
-   entry, needed by most of the 8 kripod hires ROMs.
+3. **Hires CHIP-8 platform:** propose the 64×64 platform and its 8 ROMs
+   (drafts 07 and 08), which Chippie plays since M10.
 4. **Conflicts:** report metadata disagreements between chip8Archive and
    chip-8-database found by `catalogue-gen`.

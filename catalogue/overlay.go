@@ -7,11 +7,14 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/rbscholtus/chippie/chip8"
 )
 
 // The overlay is Chippie's pending additions and corrections to
 // chip-8-database (catalogue/overlay.json), applied on top of the database
-// until upstream has them (DESIGN §10). Every entry names where it was
+// until upstream has them (DESIGN §10). It can add platforms, programs and
+// ROMs, and change ROMs. Every entry names where it was
 // proposed upstream. Where upstream already has what an entry adds or sets,
 // the entry does nothing and its status says so: then it can be deleted.
 
@@ -28,8 +31,16 @@ var (
 
 // Overlay is a parsed overlay.json.
 type Overlay struct {
-	Add    []OverlayAdd    `json:"add"`
-	Change []OverlayChange `json:"change"`
+	Platforms []OverlayPlatform `json:"platforms"`
+	Add       []OverlayAdd      `json:"add"`
+	Change    []OverlayChange   `json:"change"`
+}
+
+// OverlayPlatform adds a platform, in platforms.json's shape. Chippie must
+// know its id (chip8.ParsePlatform), so its ROMs can run.
+type OverlayPlatform struct {
+	Upstream string      `json:"upstream"` // the upstream PR or issue, or "pending"
+	Platform rawPlatform `json:"platform"`
 }
 
 // OverlayAdd adds a program, or (with To) more ROMs to an existing one.
@@ -78,6 +89,17 @@ func ParseOverlay(data []byte) (*Overlay, error) {
 		return nil
 	}
 
+	for _, p := range o.Platforms {
+		if err := check(p.Upstream, p.Platform.ID); err != nil {
+			return nil, err
+		}
+
+		if _, ok := chip8.ParsePlatform(p.Platform.ID); !ok || p.Platform.Name == "" {
+			return nil, fmt.Errorf("%w: overlay: platform %q needs a name and an id Chippie knows",
+				ErrInvalid, p.Platform.ID)
+		}
+	}
+
 	for _, a := range o.Add {
 		if err := check(a.Upstream, a.Program.Title); err != nil {
 			return nil, err
@@ -108,14 +130,24 @@ func ParseOverlay(data []byte) (*Overlay, error) {
 }
 
 // ApplyOverlay adds and changes what the overlay says, skipping whatever
-// upstream already has, and reports each entry's status. Changes to ROMs
-// already in the database go first (so a renamed program shows its new
-// name), then the additions, then changes to ROMs the overlay added.
+// upstream already has, and reports each entry's status. New platforms go
+// first (the ROMs may need them), then changes to ROMs already in the
+// database (so a renamed program shows its new name), then the additions,
+// then changes to ROMs the overlay added.
 func (db *DB) ApplyOverlay(o *Overlay) ([]OverlayStatus, error) {
 	var (
 		status []OverlayStatus
 		later  []OverlayChange
 	)
+
+	for _, p := range o.Platforms {
+		st, err := db.applyPlatform(p)
+		if err != nil {
+			return nil, err
+		}
+
+		status = append(status, st)
+	}
 
 	change := func(c OverlayChange) error {
 		st, err := db.applyChange(c)
@@ -152,6 +184,26 @@ func (db *DB) ApplyOverlay(o *Overlay) ([]OverlayStatus, error) {
 	}
 
 	return status, nil
+}
+
+// applyPlatform adds a platform, unless upstream has one with its id.
+func (db *DB) applyPlatform(p OverlayPlatform) (OverlayStatus, error) {
+	st := OverlayStatus{Upstream: p.Upstream, What: "add platform " + p.Platform.ID}
+
+	if db.Platforms[p.Platform.ID] != nil {
+		st.Done = true
+
+		return st, nil
+	}
+
+	plat := newPlatform(p.Platform)
+	if err := checkPlatform(plat, db.quirks); err != nil {
+		return st, fmt.Errorf("overlay: %w", err)
+	}
+
+	db.Platforms[plat.ID] = plat
+
+	return st, nil
 }
 
 func (db *DB) applyAdd(a OverlayAdd) (OverlayStatus, error) {

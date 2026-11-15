@@ -55,16 +55,20 @@ var suiteROMs = map[string]string{
 
 // The platforms the CHIP-8 tests run on.
 var (
-	modernOnly    = []chip8.Platform{chip8.ModernChip8}
-	originalOnly  = []chip8.Platform{chip8.OriginalChip8}
+	modernOnly = []chip8.Platform{chip8.ModernChip8}
+	// vipChip8 is the COSMAC VIP's CHIP-8, at 64×32 and with the 64×64
+	// mode: without the 1260 start, hiresChip8 must run exactly as
+	// originalChip8 (DESIGN §6.3).
+	vipChip8      = []chip8.Platform{chip8.OriginalChip8, chip8.HiresChip8}
 	superChipOnly = []chip8.Platform{chip8.SuperChip}
 	xoChipOnly    = []chip8.Platform{chip8.XOChip}
 	notXOChip     = []chip8.Platform{
-		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip,
+		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.HiresChip8,
 	}
 	// allPlatforms is every implemented platform.
 	allPlatforms = []chip8.Platform{
 		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.XOChip,
+		chip8.HiresChip8,
 	}
 )
 
@@ -102,7 +106,7 @@ var suiteCases = []suiteCase{
 	{
 		// Quirks test with the CHIP-8 target on the COSMAC VIP: every
 		// quirk matches (quirks.png).
-		"quirks-chip8", "5-quirks.ch8", originalOnly,
+		"quirks-chip8", "5-quirks.ch8", vipChip8,
 		testrig.Script{Pokes: poke1FF(1), Frames: 600},
 		"5-quirks-chip8", true,
 	},
@@ -332,5 +336,59 @@ func TestSuiteBeep(t *testing.T) {
 				t.Error("manual: buzzer on after B was released, want off")
 			}
 		})
+	}
+}
+
+// hiresTestROM is a tiny hiresChip8 program, written for this test (CC0):
+// the 1260 start, an empty patch area (a plain jump would halt on 0000),
+// and at 0x2C0 a program that clears the 64×64 screen with 0230 and draws
+// in all four corners and across the middle, then loops. Without the 64×64
+// mode, the lower half would not show (DESIGN §6.3).
+func hiresTestROM() []byte {
+	const patchSize = 0xC0 // 0x200..0x2BF: the VIP's machine-code patch
+
+	rom := make([]byte, patchSize, patchSize+64)
+	rom[0], rom[1] = 0x12, 0x60
+
+	for _, op := range []uint16{
+		0x0230,         // 2C0: clear the 64×64 screen
+		0x6008,         // 2C2: V0 = 8
+		0xF029,         //      I = the font's "8"
+		0x6100, 0x6200, //      (0, 0): top left
+		0xD125,
+		0x613E, 0x623B, //      (62, 59): bottom right, clipped at the right edge
+		0xD125,
+		0x6100, 0x623B, //      (0, 59): bottom left
+		0xD125,
+		0x613E, 0x6200, //      (62, 0): top right, clipped
+		0xD125,
+		0x600E, 0xF029, //      "E" at (30, 30) and (30, 40): across the middle
+		0x611E, 0x621E,
+		0xD125,
+		0x6228,
+		0xD125,
+		0x12EC, //      2EC: loop here
+	} {
+		rom = append(rom, byte(op>>8), byte(op))
+	}
+
+	return rom
+}
+
+func TestHiresScreen(t *testing.T) {
+	t.Parallel()
+
+	m, err := testrig.Run(hiresTestROM(), suiteProfile(chip8.HiresChip8), testrig.Script{Frames: 30})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if m.Halted() {
+		t.Fatal(m.State().Err)
+	}
+
+	c := testrig.Checker{GoldenDir: goldenDir, FailureDir: filepath.Join(failureDir, "hiresChip8"), Update: chip8.Update()}
+	if err := c.Check(testrig.Golden{Name: "hires-chip8"}, testrig.FromDisplay(m.Display())); err != nil {
+		t.Error(err)
 	}
 }
