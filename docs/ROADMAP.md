@@ -64,8 +64,8 @@ To be settled while building, not before:
   one checked) that switches the interpreter to a 64×64 screen; the program
   itself starts at 0x260. Steps:
   1. Add the platform to `chip8/` (64×64 display, VIP quirks, recognise
-     the patch rather than run it) with tests, and to Chippie's overlay, so the ROMs get download locations and a
-     platform.
+     the patch rather than run it) with tests, and to Chippie's overlay,
+     so the ROMs get download locations and a platform.
   2. Play-test each ROM to confirm its platform; note any that need
      something else.
   3. Upstream: the deferred issue proposing the platform to chip-8-database
