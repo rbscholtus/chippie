@@ -3,7 +3,8 @@
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from a branch of the owner's fork, after the platform issue (draft 07)
   is agreed. It can add the platform too, if the maintainers prefer one PR.
-- **Status:** draft, not posted.
+- **Status:** approved, not posted. Goes after draft 07, which is deferred
+  until the maintainers react to #29–#32.
 - **Overlay entries:** the 8 `add` entries on `hiresChip8` in
   `catalogue/overlay.json`.
 
@@ -36,9 +37,9 @@ lo-res and SUPER-CHIP versions of several of them as separate programs
   Stars, SuperWorm V4, Trip8 Demo). They are different programs for a
   different platform, as the database already does for Super Trip8 Demo
   and Super Particle Demo, and it matches Chippie's overlay.
-- [ ] Titles, authors and descriptions checked by the owner. Authors follow
+- [x] Titles, authors and descriptions checked by the owner (with the text, 2026-11-15). Authors follow
   the database's entries for the lo-res versions.
-- [ ] Text below approved.
+- [x] Text below approved (owner, 2026-11-15). All 8 also play-tested by the owner.
 
 ## The PR
 
