@@ -21,8 +21,55 @@ M7 does not depend on M6, and M8 does not depend on M6.
 | M7 | XO-CHIP | Quirks + scrolling tests for XO-CHIP; pattern audio |
 | M8 | Upstream | PRs/issues to chip-8-database and the test suite submitted ([upstream/](upstream/README.md)) |
 | M9 | Our own game (in progress) | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
+| M10 | Hires CHIP-8 | The 64×64 COSMAC VIP mode implemented and tested; its 8 known ROMs in the library and playable ([below](#hires-chip-8)) |
 
 M1–M8 are done and deployed.
+
+## Platforms
+
+### Hires CHIP-8
+
+A 64×64 mode for the COSMAC VIP that runs on an unmodified machine, using a
+two-page display. chip-8-database has no platform for it and none of its
+ROMs, so Chippie adds both through its overlay, then proposes them
+upstream.
+
+**The 8 ROMs**, all in kripod/chip8-roms' `hires/` folder
+(`docs/coverage.md`, "Not in chip-8-database"): Astro Dodge Hires, Hires
+Maze, Hires Particle Demo, Hires Sierpinski, Hires Stars, Hires Test (Tom
+Swan, 1979), Hires Worm V4 and Trip8 Hires Demo.
+
+**How it works** (from the folder's
+[`!hires_information.txt`](https://github.com/kripod/chip8-roms/blob/master/hires/%21hires_information.txt)):
+each ROM starts at 0x200 with a `1260` jump over a short machine-code patch
+(the same bytes in every ROM checked) that switches the VIP interpreter to
+64×64. An emulator doesn't run the patch: when `1260` is the first
+instruction, it switches to 64×64 and jumps to **0x2C0**, where the CHIP-8
+program starts. `0230` clears the 64×64 screen.
+
+**Steps:**
+
+1. Add the platform to `chip8/`: a 64×64 display, VIP quirks, the `1260`
+   start and `0230`. Unit tests, and golden frames from the ROMs (no
+   reference pictures exist).
+2. Add the platform and the 8 ROMs to `catalogue/overlay.json`, so the
+   library lists them with download locations.
+3. Play-test each ROM and note any that need something else.
+4. Upstream: the deferred issue proposing the platform to chip-8-database
+   ([upstream/](upstream/README.md)), then a PR adding the ROMs, with
+   Chippie as the evidence. "Hires" names more than one variant (Tom Swan's
+   1980 HI-RES CHIP-8 is 64×128), so the proposal must say which.
+
+### Not planned
+
+- **CHIP-8X** (RCA, 1980): colour, sound and a second keypad, through VIP
+  expansion boards. chip-8-database lists no ROMs for it, and only two
+  programs are known.
+- **MEGA-CHIP** (Revival Studios, 2007): 256×192 with 256 colours, sampled
+  sound, large ROMs. chip-8-database lists no ROMs for it, only a few demos
+  and one game are known, and its specification is loose.
+
+Either can be reconsidered if ROMs turn up in the database.
 
 ## Open questions
 
@@ -30,8 +77,6 @@ To be settled while building, not before:
 
 - **Licensing of kripod ROMs.** The repo has no licence file. We only link to
   it, never copy from it, so this matters only if we ever mirror files.
-- **Hires CHIP-8 (64×64).** Add it as a platform in Chippie before the
-  database has it? See "Hires CHIP-8 ROMs" below.
 - **Fonts for the UI and OSD.** Settled in M6 for now: the Go fonts already
   in the project (Go Medium for the channel dial, Go Mono Bold for the OSD).
   A period face (OFL only) could still replace them.
@@ -47,30 +92,12 @@ To be settled while building, not before:
 - **Upstream proposals, deferred until the maintainers react** (M8 items
   4–6): a standard "where to download" field in chip-8-database, with
   Chippie's `sources.json` as an example; asking where its ~230 unsourced
-  ROM hashes came from; a 64×64 "Hires CHIP-8" platform, which kripod's 8
-  hires ROMs need.
+  ROM hashes came from. (The 64×64 platform is now M10.)
 - **chip8Archive's platform fields:** for 5–6 of its 7 conflicts with
   chip-8-database the archive's platform is too basic (`docs/coverage.md`).
   An issue there, after play-testing Chipcross and Piper.
 - **XO-CHIP scrolling reference pictures** for the test suite, which has
   none (Chippie generates its own).
-- **Hires CHIP-8 ROMs.** Eight ROMs in kripod/chip8-roms' `hires/` folder
-  are in no chip-8-database entry and can't be played yet
-  (`docs/coverage.md`, "Not in chip-8-database"):
-  Astro Dodge Hires, Hires Maze, Hires Particle Demo, Hires Sierpinski,
-  Hires Stars, Hires Test, Hires Worm V4 and Trip8 Hires Demo. Most need
-  the 64×64 "Hires CHIP-8" variant of the COSMAC VIP: each ROM starts with
-  a `1260` jump over a short machine-code patch (the same bytes in every
-  one checked) that switches the interpreter to a 64×64 screen; the program
-  itself starts at 0x260. Steps:
-  1. Add the platform to `chip8/` (64×64 display, VIP quirks, recognise
-     the patch rather than run it) with tests, and to Chippie's overlay,
-     so the ROMs get download locations and a platform.
-  2. Play-test each ROM to confirm its platform; note any that need
-     something else.
-  3. Upstream: the deferred issue proposing the platform to chip-8-database
-     ([upstream/](upstream/README.md)), then a PR adding the ROMs, with
-     Chippie as the evidence.
 - **One entry per program in the library.** Programs with several ROMs
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.
