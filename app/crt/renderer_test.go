@@ -91,35 +91,39 @@ func TestPictureFallsBackToScreen(t *testing.T) {
 }
 
 // TestPlaceFrame checks where the frame's corners land in the picture for
-// each rotation (clockwise).
+// each rotation. Every frame size fills the same picture: a 64×64 Hires
+// CHIP-8 frame is stretched to 2:1 like the others (DESIGN §6.3).
 func TestPlaceFrame(t *testing.T) {
 	t.Parallel()
-
-	const w, h = 64, 32
 
 	pic := image.Rect(10, 20, 110, 220)
 	tl, tr := image.Pt(pic.Min.X, pic.Min.Y), image.Pt(pic.Max.X, pic.Min.Y)
 	bl, br := image.Pt(pic.Min.X, pic.Max.Y), image.Pt(pic.Max.X, pic.Max.Y)
 
-	for _, tc := range []struct {
-		rot                       int
-		frameTL, frameTR, frameBL image.Point // where the frame's corners go
-	}{
-		{0, tl, tr, bl},
-		{90, tr, br, tl},
-		{180, br, bl, tr},
-		{270, bl, tl, br},
-	} {
-		var m ebiten.GeoM
-		PlaceFrame(&m, w, h, pic, tc.rot)
+	for _, size := range []image.Point{{64, 32}, {64, 64}, {128, 64}} {
+		w, h := float64(size.X), float64(size.Y)
 
-		for _, c := range []struct {
-			x, y float64
-			want image.Point
-		}{{0, 0, tc.frameTL}, {w, 0, tc.frameTR}, {0, h, tc.frameBL}} {
-			x, y := m.Apply(c.x, c.y)
-			if math.Abs(x-float64(c.want.X)) > 1e-9 || math.Abs(y-float64(c.want.Y)) > 1e-9 {
-				t.Errorf("rotation %d: frame (%v, %v) → (%.1f, %.1f), want %v", tc.rot, c.x, c.y, x, y, c.want)
+		for _, tc := range []struct {
+			rot                       int
+			frameTL, frameTR, frameBL image.Point // where the frame's corners go
+		}{
+			{0, tl, tr, bl},
+			{90, tr, br, tl},
+			{180, br, bl, tr},
+			{270, bl, tl, br},
+		} {
+			var m ebiten.GeoM
+			PlaceFrame(&m, size.X, size.Y, pic, tc.rot)
+
+			for _, c := range []struct {
+				x, y float64
+				want image.Point
+			}{{0, 0, tc.frameTL}, {w, 0, tc.frameTR}, {0, h, tc.frameBL}} {
+				x, y := m.Apply(c.x, c.y)
+				if math.Abs(x-float64(c.want.X)) > 1e-9 || math.Abs(y-float64(c.want.Y)) > 1e-9 {
+					t.Errorf("%v rotation %d: frame (%v, %v) → (%.1f, %.1f), want %v",
+						size, tc.rot, c.x, c.y, x, y, c.want)
+				}
 			}
 		}
 	}
