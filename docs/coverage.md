@@ -1,27 +1,28 @@
 # ROM coverage
 
-Generated 2026-11-14T21:02:53Z by `cmd/catalogue-gen`.
+Generated 2026-11-15T01:26:02Z by `cmd/catalogue-gen`.
 
 chip-8-database: 484 programs, 543 ROMs.
 
 | Source | Unique ROMs | In database | Missing |
 |---|---|---|---|
 | chip8Archive | 104 | 104 | 0 |
-| kripod/chip8-roms | 106 | 98 | 8 |
+| kripod/chip8-roms | 106 | 106 | 0 |
 | Timendus CHIP-8 test suite | 8 | 8 | 0 |
 | Matthew Mikolay's CHIP-8 programs | 6 | 6 | 0 |
 | 3D Viper Maze (Timendus) | 1 | 1 | 0 |
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
 | Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 68 | 0 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **302** | **8** |
+| **All combined** | **310** | **310** | **0** |
 
-Downloadable ROMs in the manifest: 302 of 577 in the database and Chippie's overlay.
+Downloadable ROMs in the manifest: 310 of 585 in the database and Chippie's overlay.
 
 ## Chippie's overlay (pending upstream)
 
 Additions and corrections in `catalogue/overlay.json`; "done" ones can be deleted.
 
+- add platform hiresChip8: not yet proposed upstream
 - change Mr Worm: title: waiting for https://github.com/chip-8/chip-8-database/pull/28
 - change Computer Simulator: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
 - change Infini Br8kr: screenRotation: waiting for https://github.com/chip-8/chip-8-database/pull/31
@@ -61,17 +62,17 @@ Additions and corrections in `catalogue/overlay.json`; "done" ones can be delete
 - add ROMs to Rush Hour: waiting for https://github.com/chip-8/chip-8-database/pull/32
 - add ROMs to Delay Timer Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
 - add ROMs to Random Number Test: waiting for https://github.com/chip-8/chip-8-database/pull/32
+- add Astro Dodge Hires: not yet proposed upstream
+- add Hires Maze: not yet proposed upstream
+- add Hires Particle Demo: not yet proposed upstream
+- add Hires Sierpinski: not yet proposed upstream
+- add Hires Stars: not yet proposed upstream
+- add Hires Test: not yet proposed upstream
+- add Hires Worm V4: not yet proposed upstream
+- add Trip8 Hires Demo: not yet proposed upstream
 
 ## Not in chip-8-database
 
-- kripod/chip8-roms: `hires/Astro Dodge Hires [Revival Studios, 2008].ch8`
-- kripod/chip8-roms: `hires/Hires Maze [David Winter, 199x].ch8`
-- kripod/chip8-roms: `hires/Hires Particle Demo [zeroZshadow, 2008].ch8`
-- kripod/chip8-roms: `hires/Hires Sierpinski [Sergey Naydenov, 2010].ch8`
-- kripod/chip8-roms: `hires/Hires Stars [Sergey Naydenov, 2010].ch8`
-- kripod/chip8-roms: `hires/Hires Test [Tom Swan, 1979].ch8`
-- kripod/chip8-roms: `hires/Hires Worm V4 [RB-Revival Studios, 2007].ch8`
-- kripod/chip8-roms: `hires/Trip8 Hires Demo (2008) [Revival Studios].ch8`
 
 ## chip8Archive vs chip-8-database
 

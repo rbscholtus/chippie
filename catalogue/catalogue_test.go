@@ -33,7 +33,7 @@ func TestSnapshotLoads(t *testing.T) {
 
 	c := loadSnapshot(t)
 
-	if len(c.DB.Programs) < 400 || c.DB.ROMCount() < 500 || len(c.DB.Platforms) < 9 {
+	if len(c.DB.Programs) < 400 || c.DB.ROMCount() < 500 || len(c.DB.Platforms) < 10 {
 		t.Errorf("snapshot looks short: %d programs, %d ROMs, %d platforms",
 			len(c.DB.Programs), c.DB.ROMCount(), len(c.DB.Platforms))
 	}
@@ -51,11 +51,18 @@ func TestSnapshotLoads(t *testing.T) {
 }
 
 // TestChip8DefaultsMatchDatabase catches drift between chip8's built-in
-// platform table and the database's platforms.json.
+// platform table and the database's platforms.json, with the platforms the
+// overlay adds.
 func TestChip8DefaultsMatchDatabase(t *testing.T) {
 	t.Parallel()
 
 	db := loadSnapshot(t).DB
+
+	for _, p := range chip8.Platforms() {
+		if db.Platforms[p.String()] == nil {
+			t.Errorf("chip8 has %s, which neither the database nor the overlay has", p)
+		}
+	}
 
 	for id, p := range db.Platforms {
 		cp, ok := chip8.ParsePlatform(id)
