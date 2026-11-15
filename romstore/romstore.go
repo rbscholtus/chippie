@@ -1,5 +1,5 @@
 // Package romstore downloads ROMs, checks their SHA-1 and caches them, so
-// a ROM works offline after its first play (README §9.3).
+// a ROM works offline after its first play (DESIGN §9.3).
 package romstore
 
 import (

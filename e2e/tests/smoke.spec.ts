@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { appLayout, click, golden, gridText, offline, sampleScreen, waitForApp } from "./screen";
 
 // Software rendering in headless Chromium is slow, so the tests poll for
-// the expected picture instead of waiting a fixed time (README §15.3).
+// the expected picture instead of waiting a fixed time (DESIGN §15.3).
 
 test.beforeEach(async ({ page }) => offline(page));
 

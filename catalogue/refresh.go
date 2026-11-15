@@ -41,7 +41,7 @@ type RefreshResult struct {
 // database.
 var ErrNoRefresh = errors.New("catalogue: no newer database")
 
-// Refresh fetches the latest database in a goroutine (README §10). A valid
+// Refresh fetches the latest database in a goroutine (DESIGN §10). A valid
 // download is cached and delivered; if the download fails or doesn't
 // validate, the last good cached copy is delivered instead; otherwise an
 // error, and the app keeps its snapshot. The channel has room for the

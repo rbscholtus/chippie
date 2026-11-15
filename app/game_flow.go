@@ -163,7 +163,7 @@ func (g *Game) overrides(sha1 string) catalogue.Overrides {
 }
 
 // profileFor resolves the profile a ROM runs with. The random seed comes
-// from the clock here, not in the core (README §6.1).
+// from the clock here, not in the core (DESIGN §6.1).
 func (g *Game) profileFor(sha1 string) chip8.Profile {
 	p := g.Catalogue.DB.Resolve(sha1, g.overrides(sha1)).Profile
 	p.Seed = uint64(time.Now().UnixNano())

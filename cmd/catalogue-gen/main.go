@@ -1,4 +1,4 @@
-// Command catalogue-gen refreshes the catalogue snapshot (README §9–10). It
+// Command catalogue-gen refreshes the catalogue snapshot (DESIGN §9–10). It
 // downloads chip-8-database and the ROM archives at pinned commits, hashes
 // every ROM, and writes into catalogue/snapshot/:
 //

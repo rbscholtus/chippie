@@ -1,5 +1,5 @@
 // Command skin-gen turns the TV artwork into the files the app loads
-// (README §12). It reads the generated master image from assets/source/
+// (DESIGN §12). It reads the generated master image from assets/source/
 // (not committed: it's large) and, for each skin, the measurements in
 // assets/tv/<skin>/recipe.json, and writes into that folder:
 //

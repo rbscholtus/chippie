@@ -22,7 +22,7 @@ type archive struct {
 	include func(file string) bool
 }
 
-// archives are the collections in README §9.1 that browsers can download
+// archives are the collections in DESIGN §9.1 that browsers can download
 // from (GitHub raw, CORS *). Zophar's packs and David Winter's page aren't:
 // the ROMs only found there are hosted by Chippie; see hostedArchive.
 var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
@@ -232,7 +232,7 @@ func sortedKeys(m map[string][]byte) []string {
 	return keys
 }
 
-// report renders the coverage report as Markdown (README §9.1).
+// report renders the coverage report as Markdown (DESIGN §9.1).
 func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string {
 	var b strings.Builder
 

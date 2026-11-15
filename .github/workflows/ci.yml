@@ -99,7 +99,7 @@ jobs:
           fi
       - name: Browser build
         run: ./scripts/build.sh
-      - name: Download size budget (README §16)
+      - name: Download size budget (DESIGN §16)
         run: |
           size=$(wc -c < web/dist/chippie-gz.wasm)
           echo "chippie-gz.wasm: $((size / 1024)) KB" >> "$GITHUB_STEP_SUMMARY"

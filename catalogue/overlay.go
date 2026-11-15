@@ -11,7 +11,7 @@ import (
 
 // The overlay is Chippie's pending additions and corrections to
 // chip-8-database (catalogue/overlay.json), applied on top of the database
-// until upstream has them (README §18). Every entry names where it was
+// until upstream has them (DESIGN §10). Every entry names where it was
 // proposed upstream. Where upstream already has what an entry adds or sets,
 // the entry does nothing and its status says so: then it can be deleted.
 
