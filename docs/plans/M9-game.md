@@ -169,8 +169,16 @@ Each lane is a record in a table, so tuning means editing numbers:
 | `count` | 1 | objects in the lane (1–4) |
 | `x[4]` | 4 | object positions, 0–127 |
 
-Each frame: `acc += speed + round × step`; on overflow past 16, the lane
-moves 1 px: erase every object with XOR, change the `x` values, draw again.
+Each update: `acc += speed + round × step`; every 16 makes a whole pixel,
+and the lane moves that far in one go: erase every object with XOR, change
+the `x` values, draw again.
+
+As built (step 4), a record is 10 bytes, `y, flags, speed, acc, sprite,
+count, x0–x3`: the direction and kind are bits in `flags`, and every
+object is one 16 px sprite (a long pallet is two side by side). A lane
+updates every other frame (§2.4), so `speed` is per two frames. The table
+sits in the state block, so tests can poke a quiet yard and read where the
+pallets are.
 
 ### 2.3 Collisions are worked out, not read from VF
 
@@ -191,6 +199,16 @@ pallet?" and is deterministic for the tests.
 - **If it gets tight:** draw a solid object's move as two 1-column sprites
   (clear the trailing column, set the leading one) instead of erasing and
   redrawing all its tiles. Only if the budget test asks for it.
+- **As built (step 4):** the first chute made the worst frame ~650
+  instructions. Three changes brought it to ~450, measured over a minute
+  of hopping: a lane loads its whole record into v0–v9 once and moves each
+  object in four instructions; each frame updates every other lane record,
+  and the table keeps the empty walkway last so both halves have three busy
+  lanes; and the hit test is one range check per object.
+- **Late frames:** a frame that overruns doesn't drop (the counter still
+  goes up), it starts late, and the game reads input a frame late. So
+  `wait-frame` counts the frames where the timer had already run out
+  (`s-late`), and the budget tests check that stays 0.
 
 ### 2.5 Memory map
 

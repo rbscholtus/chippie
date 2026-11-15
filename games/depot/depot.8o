@@ -6,43 +6,11 @@
 #  Design: docs/plans/M9-game.md. Build: scripts/build-games.sh.
 #  Runs at 500 ticks per frame, 128x64, two planes.
 #
-#  Build order step 3 of 9: the courier hops across the yard, where
-#  forklifts and trolleys cost lives; game over starts a new game.
+#  Build order step 4 of 9: the courier hops across the yard, where
+#  forklifts and trolleys cost lives, and rides pallets over the chute;
+#  game over starts a new game.
 #
 ###########################################################################
-
-###########################################################################
-#  State block. It comes first, so Octo puts it right after the jump to
-#  main, at 0x202. The tests read it with Machine.Peek: keep the order and
-#  update games/depot/depot_test.go when it changes.
-###########################################################################
-
-: state
-: s-frame      0 0    # 0x202  game frames run, 16 bits, low byte first
-: s-mode       0      # 0x204  MODE-*
-: s-round      1      # 0x205
-: s-lives      3      # 0x206
-: s-score      0 0 0 0  # 0x207  four decimal digits, most significant first
-: s-x          60     # 0x20B  courier x
-: s-row        8      # 0x20C  courier row: 0 hatches .. 8 dock
-: s-lit        0      # 0x20D  lit hatch, 0-3
-: s-filled     0      # 0x20E  filled hatches, one bit each
-: s-best       8      # 0x20F  highest row (lowest number) reached this crossing
-: s-timer      0      # 0x210  frames left in MODE-DYING or MODE-OVER
-: s-ghost      0      # 0x211  not 0: nothing hits the courier (tests poke it)
-
-# Scratch for score-add: the points as three decimal digits.
-: score-tmp    0 0 0
-
-###########################################################################
-#  Registers kept for the whole game. v0-v9 and vE are scratch; vF is the
-#  flag register.
-###########################################################################
-
-:alias cx      vA    # courier x (saved to s-x every frame)
-:alias crow    vB    # courier row (saved to s-row every frame)
-:alias held    vC    # direction held last frame: DIR-*
-:alias repeat  vD    # frames until a held key hops again
 
 ###########################################################################
 #  Constants
@@ -61,6 +29,7 @@
 
 :const X-COURIER-START 60
 :const X-COURIER-MAX  120   # the courier is 5 px wide; hops are 4 px
+:const X-COURIER-EDGE 123   # riding a pallet further right falls off
 :const ROW-TOP         1    # highest row the courier can hop to (for now)
 :const ROW-DOCK        8
 
@@ -100,20 +69,85 @@
 
 :const POINTS-ROW   10
 
-# Lanes (design §2.2): see the lane table at the end.
+# Lanes (design §2.2): see the lane table in the state block.
 :const LANE-SIZE     10
-:const LANES-END     70    # 7 lanes, rows 1-7
+:const LANES-END     70    # 7 lanes
 :const LANE-LEFT      1    # flag: objects move left
 :const LANE-PLATFORM  2    # flag: objects are pallets to ride, not hazards
-:const SUBPIXELS     16    # speed is in 1/16 px per frame
+:const LANE-CHUTE-L   3    # LANE-PLATFORM + LANE-LEFT
+:const LANE-PAIR     20    # update-lanes does every other lane each frame
+:const SUBPIXELS     16    # speed is in 1/16 px per update (every 2 frames)
 :const HIT-WIDTH     14    # objects are 16 px; 1 px of each end is forgiven
 :const COURIER-WIDTH  5
+:const OVERLAP-SPAN  18    # HIT-WIDTH + COURIER-WIDTH - 1 (see overlap)
 
 # Lane sprites: offsets into lane-sprites, which the lane table's sprite
 # column holds.
 :const SPR-FORKLIFT-R  0
 :const SPR-FORKLIFT-L 32
 :const SPR-TROLLEY    64
+:const SPR-PALLET     96
+
+###########################################################################
+#  State block. It's the first data, so Octo puts it right after the jump
+#  to main, at 0x202. The tests read it with Machine.Peek: keep the order and
+#  update games/depot/depot_test.go when it changes.
+###########################################################################
+
+: state
+: s-frame      0 0    # 0x202  game frames run, 16 bits, low byte first
+: s-mode       0      # 0x204  MODE-*
+: s-round      1      # 0x205
+: s-lives      3      # 0x206
+: s-score      0 0 0 0  # 0x207  four decimal digits, most significant first
+: s-x          60     # 0x20B  courier x
+: s-row        8      # 0x20C  courier row: 0 hatches .. 8 dock
+: s-lit        0      # 0x20D  lit hatch, 0-3
+: s-filled     0      # 0x20E  filled hatches, one bit each
+: s-best       8      # 0x20F  highest row (lowest number) reached this crossing
+: s-timer      0      # 0x210  frames left in MODE-DYING or MODE-OVER
+: s-ghost      0      # 0x211  not 0: nothing hits the courier (tests poke it)
+: s-late       0      # 0x212  frames whose work ran over into the next (up to 255)
+
+# Scratch for score-add: the points as three decimal digits.
+: score-tmp    0 0 0   # 0x213
+
+# The lane table (0x216): one record per row from 1 (chute 1) to 7
+# (yard 3), with the empty walkway (row 4) last so that every other
+# record splits the busy lanes evenly (update-lanes); lane-offsets finds a
+# row's record. See "Lanes". The tests poke and read it. Named values need
+# :byte: a bare name in Octo is a call to that address.
+#   y     flags           speed acc     sprite      count x0  x1  x2  x3
+: lanes
+	12 :byte LANE-CHUTE-L   10  0 :byte SPR-PALLET      3   0  44  88   0   # chute 1
+	18 :byte LANE-PLATFORM  16  0 :byte SPR-PALLET      4   8  24  72  88   # chute 2
+	24 :byte LANE-CHUTE-L   12  0 :byte SPR-PALLET      3  20  62 104   0   # chute 3
+	36 :byte 0              12  0 :byte SPR-FORKLIFT-R  3   0  44  88   0   # yard 1
+	42 :byte LANE-LEFT      18  0 :byte SPR-TROLLEY     3  10  52  94   0   # yard 2
+	48 :byte 0              24  0 :byte SPR-FORKLIFT-R  2  20  84   0   0   # yard 3
+	30 :byte 0               0  0 :byte 0               0   0   0   0   0   # walkway
+
+
+###########################################################################
+#  Registers kept for the whole game. v0-v9 and vE are scratch; vF is the
+#  flag register.
+###########################################################################
+
+:alias cx      vA    # courier x (saved to s-x every frame)
+:alias crow    vB    # courier row (saved to s-row every frame)
+:alias held    vC    # direction held last frame: DIR-*
+:alias repeat  vD    # frames until a held key hops again
+
+# courier-y sets Y to the courier's y, 6 * row + 6 (the y of its row's
+# lane, too). Uses T.
+:macro courier-y Y T {
+	Y := crow
+	Y += crow
+	T := Y
+	Y += T
+	Y += T
+	Y += 6
+}
 
 ###########################################################################
 #  Main
@@ -135,8 +169,19 @@
 		save cx - crow
 	again
 
-# wait-frame waits for the next 60 Hz frame and counts it. Uses v0, v1, vf.
+# wait-frame waits for the next 60 Hz frame and counts it, leaving the
+# count's low byte in v0. If the timer has already run out, the last
+# frame's work took too long: s-late counts those (the budget tests check
+# it stays 0). Uses v0, v1, vf.
 : wait-frame
+	vf := delay
+	if vf == 0 begin
+		i := s-late
+		load v0
+		if v0 != 255 then v0 += 1
+		i := s-late
+		save v0
+	end
 	loop
 		vf := delay
 		while vf != 0
@@ -299,10 +344,15 @@
 		if crow != ROW-DOCK then crow += 1
 	end
 	if v0 == DIR-LEFT begin
-		if cx != 0 then cx += -4
+		# Riding leaves x anywhere: a short hop to the edge is fine.
+		if cx < 4 then cx := 4
+		cx += -4
 	end
 	if v0 == DIR-RIGHT begin
-		if cx != X-COURIER-MAX then cx += 4
+		if cx < X-COURIER-MAX begin
+			cx += 4
+			if cx > X-COURIER-MAX then cx := X-COURIER-MAX
+		end
 	end
 	draw-courier
 	# A row reached for the first time on this crossing scores.
@@ -318,24 +368,22 @@
 ###########################################################################
 #  Lanes
 #
-#  Each lane is a 10-byte record in the lane table (see the end):
+#  Each lane is a 10-byte record in the lane table (in the state block):
 #    y, flags, speed, acc, sprite, count, x0, x1, x2, x3
-#  speed is in 1/16 px per frame, acc collects the fractions, sprite is an
+#  speed is in 1/16 px per update (a lane updates every other frame), acc
+#  collects the fractions, sprite is an
 #  offset into lane-sprites, and count objects (0-4) sit at x0.. .
 #  Objects are 16x16 sprites whose bottom 11 rows are empty, so a 16 px
 #  object takes one draw.
 ###########################################################################
 
-# lane-offset returns the lane record offset for the courier's row in v9:
-# (row - 1) * 10. Uses v8.
+# lane-offset returns the lane record offset for the courier's row in v9,
+# from lane-offsets. Uses v0.
 : lane-offset
-	v8 := crow
-	v8 += -1
-	v9 := v8
-	v9 += v9
-	v9 += v9
-	v9 += v8
-	v9 += v9
+	i := lane-offsets
+	i += crow
+	load v0
+	v9 := v0
 ;
 
 # draw-lanes draws every lane's objects (at the start of a game).
@@ -366,88 +414,123 @@
 	again
 ;
 
-# update-lanes moves every lane by its speed.
+# update-lanes moves half the lanes by their speed, every other record in
+# the lane table: chutes 1 and 3 and yard 2 (and the empty walkway) on
+# even frames, chute 2 and yards 1 and 3 on odd ones. A frame never moves
+# all the lanes, and the halves cost the same (design §2.4). Expects v0 = the frame count's low byte (wait-frame).
 : update-lanes
 	plane 1
-	v9 := 0
+	vE := 1
+	vE &= v0
+	if vE != 0 then vE := LANE-SIZE
 	loop
 		update-lane
-		v9 += LANE-SIZE
-		while v9 != LANES-END
+		vE += LANE-PAIR
+		if vE >= LANES-END then return
 	again
-;
 
-# update-lane adds the lane's speed to its sub-pixel count and moves it a
-# pixel for every whole pixel collected. Keeps v9; uses v0-v8, vE.
+# move-object erases the lane object at x = X, moves it v2 px (wrapping
+# with v3 = 127) and draws it again. Expects i at its sprite, v0 its y.
+:macro move-object X {
+	sprite X v0 0
+	X += v2
+	X &= v3
+	sprite X v0 0
+}
+
+# update-lane adds the lane's speed to its sub-pixel count and, when that
+# makes whole pixels, moves the lane's objects that far in one go; a
+# pallet carries the courier along. The lane is at offset vE (kept).
+# Uses v0-v9.
 : update-lane
 	i := lanes
-	i += v9
-	load v5         # y, flags, speed, acc, sprite, count
+	i += vE
+	load v9         # y, flags, speed, acc, sprite, count, x0-x3
 	if v5 == 0 then return
 	v3 += v2
-	v7 := 0         # pixels to move
+	v2 := 0         # whole pixels to move
 	loop
 		while v3 >= SUBPIXELS
 		v3 += -16
-		v7 += 1
+		v2 += 1
 	again
+	i := lanes      # save the new acc (v2 isn't the speed any more)
+	i += vE
+	vF := 3
+	i += vF
+	save v3 - v3
+	if v2 == 0 then return
+
+	v3 := LANE-LEFT
+	v3 &= v1
+	if v3 != 0 begin
+		v3 := 0     # moving left: v2 = -v2
+		v3 -= v2
+		v2 := v3
+	end
+	i := lane-sprites
+	i += v4
+	v3 := 127
+	move-object v6
+	if v5 != 1 begin
+		move-object v7
+		if v5 != 2 begin
+			move-object v8
+			if v5 != 3 begin
+				move-object v9
+			end
+		end
+	end
 	i := lanes
-	i += v9
-	save v5
-	loop
-		while v7 != 0
-		move-lane
-		v7 += -1
-	again
+	i += vE
+	v3 := 6
+	i += v3
+	save v6 - v9
+
+	v3 := LANE-PLATFORM
+	v3 &= v1
+	if v3 != 0 then jump carry
 ;
 
-# move-lane moves the lane's objects 1 px, wrapping at the screen edge.
-# Expects v0 y, v1 flags, v4 sprite, v5 count, v9 lane offset; keeps
-# them and v7. Uses v2, v3, v6, v8.
-: move-lane
-	v6 := v9
-	v6 += 6         # offset of x0
-	v3 := v5
-	loop
-		i := lanes
-		i += v6
-		load v8 - v8
-		i := lane-sprites
-		i += v4
-		sprite v8 v0 0      # erase
-		v2 := LANE-LEFT
-		v2 &= v1
-		if v2 == 0 then v8 += 1
-		if v2 != 0 then v8 += -1
-		v2 := 127
-		v8 &= v2
-		sprite v8 v0 0      # draw
-		i := lanes
-		i += v6
-		save v8 - v8
-		v6 += 1
-		v3 += -1
-		while v3 != 0
-	again
+# carry moves the courier v2 px (a signed step) along with the chute lane
+# at y = v0, if the courier is playing in it. Carried off the screen edge,
+# it falls. Uses v0-v4.
+: carry
+	courier-y v3 v4
+	if v3 != v0 then return
+	i := s-mode
+	load v0
+	if v0 != MODE-PLAY then return
+	i := s-ghost        # movement tests aren't carried either
+	load v0
+	if v0 != 0 then return
+	v3 := v2            # draw-courier uses v1, v2
+	draw-courier        # erase
+	v4 := 0             # fell off the edge?
+	cx += v3
+	if cx > X-COURIER-EDGE begin
+		# Past the right edge, or below 0 (which wraps to 255).
+		v4 := 1
+		cx := 0
+		if v3 < 128 then cx := X-COURIER-EDGE
+	end
+	draw-courier
+	if v4 != 0 then jump lose-life
 ;
 
 # overlap sets vE to 1 if the object at x = X overlaps the courier, with
-# wrap-around. Expects v0 = 127. Uses v3, v4.
+# wrap-around. The courier covers cx to cx+4 and the object X+1 to X+14
+# (its end pixels are forgiven), so they overlap when cx+4 - (X+1), mod
+# 128, is less than OVERLAP-SPAN. Expects v0 = 127, v3 = cx + 3. Uses v4.
 :macro overlap X {
-	v3 := X
-	v3 += 1         # forgive the object's first pixel
-	v4 := cx
-	v4 -= v3
-	v4 &= v0
-	if v4 < HIT-WIDTH then vE := 1
 	v4 := v3
-	v4 -= cx
+	v4 -= X
 	v4 &= v0
-	if v4 < COURIER-WIDTH then vE := 1
+	if v4 < OVERLAP-SPAN then vE := 1
 }
 
 # check-hit costs a life if the courier touches a hazard, or stands in a
-# platform lane without a pallet under it.
+# chute lane without a pallet under it (an empty lane included).
 : check-hit
 	i := s-ghost
 	load v0
@@ -457,18 +540,21 @@
 	i := lanes
 	i += v9
 	load v9         # y, flags, speed, acc, sprite, count, x0-x3
-	if v5 == 0 then return
 	v0 := 127
+	v3 := cx
+	v3 += 3
 	vE := 0
-	overlap v6
-	if v5 != 1 begin
-		overlap v7
-	end
-	if v5 >= 3 begin
-		overlap v8
-	end
-	if v5 == 4 begin
-		overlap v9
+	if v5 != 0 begin
+		overlap v6
+		if v5 != 1 begin
+			overlap v7
+			if v5 != 2 begin
+				overlap v8
+				if v5 != 3 begin
+					overlap v9
+				end
+			end
+		end
 	end
 	v2 := LANE-PLATFORM
 	v2 &= v1
@@ -638,36 +724,19 @@
 	sprite v4 v5 3
 ;
 
-# draw-courier draws (or, drawn again, erases) the courier at cx, crow:
-# y = 6 * row + 6. Uses v1, v2.
+# draw-courier draws (or, drawn again, erases) the courier at cx, crow.
+# Uses v1, v2.
 : draw-courier
 	plane 2
-	v1 := crow
-	v1 += crow
-	v2 := v1
-	v1 += v2
-	v1 += v2
-	v1 += 6
+	courier-y v1 v2
 	i := sprite-courier
 	sprite cx v1 5
 	plane 1
 ;
 
-###########################################################################
-#  The lane table: one record per row from 1 (chute 1) to 7 (yard 3).
-#  The chute lanes get their pallets in step 4. Named values need :byte:
-#  a bare name in Octo is a call to that address.
-#    y     flags         speed acc     sprite      count x0 x1 x2 x3
-###########################################################################
-
-: lanes
-	12 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 1
-	18 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 2
-	24 :byte LANE-PLATFORM  0  0 :byte 0               0   0  0  0  0   # chute 3
-	30 :byte 0              0  0 :byte 0               0   0  0  0  0   # walkway
-	36 :byte 0              6  0 :byte SPR-FORKLIFT-R  3   0 44 88  0   # yard 1
-	42 :byte LANE-LEFT      9  0 :byte SPR-TROLLEY     3  10 52 94  0   # yard 2
-	48 :byte 0             12  0 :byte SPR-FORKLIFT-R  2  20 84  0  0   # yard 3
+# lane-offsets holds each row's offset in the lane table, from row 0 (the
+# hatches, which have no lane) to row 7.
+: lane-offsets  0  0 10 20 60 30 40 50
 
 ###########################################################################
 #  Sprites
@@ -701,6 +770,14 @@
 	0b11111111 0b11111111
 	0b01111110 0b01111110
 	0b00100100 0b00100100
+	blank-rows
+
+	# Pallet: a slatted deck on three blocks.
+	0b01111111 0b11111110
+	0b01010101 0b01010110
+	0b01111111 0b11111110
+	0b01110001 0b10001110
+	0b01110001 0b10001110
 	blank-rows
 
 : tile-wall

@@ -38,7 +38,39 @@ const (
 	addrX     = 0x20B
 	addrRow   = 0x20C
 	addrGhost = 0x211 // not 0: nothing hits the courier
+	addrLate  = 0x212 // frames whose work ran over into the next
+	addrLanes = 0x216 // the lane table: laneSize bytes per row, from row 1
 )
+
+// Lane records (depot.8o, "Lanes"): y, flags, speed, acc, sprite, count,
+// x0-x3.
+const (
+	laneSize   = 10
+	laneCount  = 5
+	laneX      = 6
+	rowChute3  = 3
+	rowWalkway = 4
+)
+
+// laneIndex is each row's record in the lane table, which keeps the
+// walkway (row 4) last.
+var laneIndex = map[int]uint16{1: 0, 2: 1, 3: 2, 4: 6, 5: 3, 6: 4, 7: 5}
+
+// laneAddr returns the address of field off in row's lane record.
+func laneAddr(row int, off uint16) uint16 {
+	return addrLanes + laneIndex[row]*laneSize + off
+}
+
+// quietYard empties the three yard lanes, so the courier can walk to the
+// chute; more pokes can follow.
+func quietYard(more ...testrig.Poke) []testrig.Poke {
+	p := make([]testrig.Poke, 0, 3+len(more))
+	for row := 5; row <= 7; row++ {
+		p = append(p, testrig.Poke{Addr: laneAddr(row, laneCount), Value: 0})
+	}
+
+	return append(p, more...)
+}
 
 // Modes (s-mode).
 const (
@@ -183,11 +215,26 @@ func TestFrameBudget(t *testing.T) {
 		n      = 3600 // one minute
 	)
 
-	start := frames(run(t, testrig.Script{Frames: warmUp}))
-	end := frames(run(t, testrig.Script{Frames: warmUp + n}))
+	budget(t, testrig.Script{}, warmUp, n)
+}
 
-	if got := end - start; got != n {
+// budget runs s for warmUp frames of start-up and then n more, and checks
+// the game took none of them late or dropped any: its frame counter went up
+// by n and no frame's work ran over into the next.
+func budget(t *testing.T, s testrig.Script, warmUp, n int) {
+	t.Helper()
+
+	s.Frames = warmUp
+	before := run(t, s)
+	s.Frames = warmUp + n
+	after := run(t, s)
+
+	if got := frames(after) - frames(before); got != n {
 		t.Errorf("game counted %d frames in %d: it dropped %d", got, n, n-got)
+	}
+
+	if got := after.Peek(addrLate) - before.Peek(addrLate); got != 0 {
+		t.Errorf("%d frames ran late", got)
 	}
 }
 
@@ -276,12 +323,7 @@ func TestFrameBudgetWhileMoving(t *testing.T) {
 		keys = append(keys, tap([]uint8{keyUp, keyRight, keyDown, keyLeft, keyUp}[k%5], f))
 	}
 
-	start := frames(run(t, testrig.Script{Keys: keys, Frames: warmUp}))
-	end := frames(run(t, testrig.Script{Keys: keys, Frames: warmUp + n}))
-
-	if got := end - start; got != n {
-		t.Errorf("game counted %d frames in %d: it dropped %d", got, n, n-got)
-	}
+	budget(t, testrig.Script{Keys: keys}, warmUp, n)
 }
 
 // until runs the machine a frame at a time, keeping its keys, until done
@@ -302,6 +344,21 @@ func until(t *testing.T, m *chip8.Machine, limit int, done func() bool) {
 	}
 
 	t.Fatalf("not done after %d frames", limit)
+}
+
+// press presses key for two frames and lets go for two, so the next press
+// is a new hop.
+func press(t *testing.T, m *chip8.Machine, key uint8) {
+	t.Helper()
+
+	for i := range 4 {
+		m.SetKey(key, i < 2)
+		m.RunFrame()
+	}
+
+	if err := m.State().Err; err != nil {
+		t.Fatal(err)
+	}
 }
 
 // TestHitInTheYard hops into yard 3 and waits for a forklift.
@@ -384,4 +441,126 @@ func TestTraffic(t *testing.T) {
 	t.Parallel()
 
 	check(t, run(t, testrig.Script{Frames: 60}), "traffic")
+}
+
+// TestLaneTable checks the tests' idea of where the lane table is.
+func TestLaneTable(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Frames: 1})
+	for row := 1; row <= 7; row++ {
+		if got, want := m.Peek(laneAddr(row, 0)), byte(6*row+6); got != want {
+			t.Errorf("row %d lane y = %d, want %d", row, got, want)
+		}
+	}
+}
+
+// TestFallInTheChute walks over a quiet yard into chute 3 with no pallets.
+func TestFallInTheChute(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{
+		Pokes:  quietYard(testrig.Poke{Addr: laneAddr(rowChute3, laneCount), Value: 0}),
+		Frames: begin,
+	})
+
+	for range startRow - rowChute3 {
+		press(t, m, keyUp)
+	}
+
+	until(t, m, 10, func() bool { return m.Peek(addrMode) == modeDying })
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
+
+	if got := m.Peek(addrLives); got != 2 {
+		t.Errorf("lives %d, want 2", got)
+	}
+}
+
+// onPallet walks over a quiet yard to the walkway, waits for a pallet in
+// chute 3 to come under the courier, and hops onto it. It returns which
+// pallet.
+func onPallet(t *testing.T) (*chip8.Machine, uint16) {
+	t.Helper()
+
+	m := run(t, testrig.Script{Pokes: quietYard(), Frames: begin})
+	for range startRow - rowWalkway {
+		press(t, m, keyUp)
+	}
+
+	// A pallet's deck is x+1 to x+14 and the courier is 5 px wide; the
+	// pallet moves left while the hop is pressed, so leave it a margin.
+	var pallet uint16
+
+	until(t, m, 600, func() bool {
+		cx := int(m.Peek(addrX))
+		for i := range uint16(3) {
+			x := int(m.Peek(laneAddr(rowChute3, laneX+i)))
+			if x+3 <= cx && cx+5 <= x+12 {
+				pallet = i
+
+				return true
+			}
+		}
+
+		return false
+	})
+
+	m.SetKey(keyUp, true)
+	m.RunFrame()
+	m.SetKey(keyUp, false)
+	m.RunFrame()
+
+	if _, row := courier(m); row != rowChute3 {
+		t.Fatalf("courier in row %d, want %d", row, rowChute3)
+	}
+
+	return m, pallet
+}
+
+// TestRidePallet rides a pallet for a second: the courier moves with it.
+func TestRidePallet(t *testing.T) {
+	t.Parallel()
+
+	m, pallet := onPallet(t)
+	palletX := func() int { return int(m.Peek(laneAddr(rowChute3, laneX+pallet))) }
+
+	x0, _ := courier(m)
+	offset := x0 - palletX()
+
+	for range 60 {
+		m.RunFrame()
+	}
+
+	if got := m.Peek(addrMode); got != modePlay {
+		t.Fatalf("mode %d after riding, want playing (%d)", got, modePlay)
+	}
+
+	x, _ := courier(m)
+	if x >= x0 {
+		t.Errorf("courier at x %d after riding a pallet left from %d", x, x0)
+	}
+
+	if got := x - palletX(); got != offset {
+		t.Errorf("courier %d px from its pallet after riding, was %d", got, offset)
+	}
+
+	check(t, m, "riding")
+}
+
+// TestCarriedOffTheEdge rides a pallet until it reaches the left edge.
+func TestCarriedOffTheEdge(t *testing.T) {
+	t.Parallel()
+
+	m, _ := onPallet(t)
+	until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+
+	if x, _ := courier(m); x != 0 {
+		t.Errorf("courier fell at x %d, want the edge (0)", x)
+	}
+
+	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
+
+	if got := m.Peek(addrLives); got != 2 {
+		t.Errorf("lives %d, want 2", got)
+	}
 }
