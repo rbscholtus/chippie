@@ -1,7 +1,7 @@
 {
   "platforms": [
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "platform": {
         "id": "hiresChip8",
         "name": "Cosmac VIP Hires CHIP-8",
@@ -1202,7 +1202,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Astro Dodge Hires",
         "authors": [
@@ -1229,7 +1229,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Maze",
         "authors": [
@@ -1248,7 +1248,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Particle Demo",
         "authors": [
@@ -1267,7 +1267,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Sierpinski",
         "authors": [
@@ -1286,7 +1286,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Stars",
         "authors": [
@@ -1305,7 +1305,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Test",
         "authors": [
@@ -1324,7 +1324,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Hires Worm V4",
         "authors": [
@@ -1344,7 +1344,7 @@
       }
     },
     {
-      "upstream": "pending",
+      "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "program": {
         "title": "Trip8 Hires Demo",
         "authors": [

@@ -1,8 +1,10 @@
 # Draft 07: propose a Hires CHIP-8 (64×64) platform
 
 - **Where:** issue on [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database).
-- **Status:** approved, not posted. Deferred until the maintainers react to
-  #29–#32 (owner's decision, 2026-11-15).
+- **Status:** posted 2026-11-16 as
+  [#33](https://github.com/chip-8/chip-8-database/issues/33), open. The
+  owner chose to post it, and 08, without waiting for #29–#32. Its last
+  line was changed to point to the PR (#34), as agreed.
 - **Overlay entry:** the `hiresChip8` entry under `platforms` in
   `catalogue/overlay.json`. Its ROMs follow in draft 08.
 

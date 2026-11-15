@@ -3,8 +3,12 @@
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from a branch of the owner's fork, after the platform issue (draft 07)
   is agreed. It can add the platform too, if the maintainers prefer one PR.
-- **Status:** approved, not posted. Goes after draft 07, which is deferred
-  until the maintainers react to #29–#32.
+- **Status:** posted 2026-11-16 as
+  [#34](https://github.com/chip-8/chip-8-database/pull/34), open. It also
+  adds the platform (`platforms.json`, the schema's platform list and the
+  README's), because the schema only accepts known platform ids; one
+  sentence saying so was added to the body, as agreed. Branch
+  `add-hires-chip8` of the owner's fork.
 - **Overlay entries:** the 8 `add` entries on `hiresChip8` in
   `catalogue/overlay.json`.
 
