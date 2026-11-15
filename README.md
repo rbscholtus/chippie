@@ -152,7 +152,7 @@ Hires CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
 **Next:**
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
-- Proposing Hires CHIP-8 and its ROMs to chip-8-database.
+- Getting Hires CHIP-8 and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 

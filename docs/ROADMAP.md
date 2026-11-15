@@ -34,10 +34,12 @@ known ROMs (kripod/chip8-roms' `hires/` folder), all added through the
 overlay with the platform. All 8 play with the two rules (the `1260` start
 and `0230`); none needed anything else.
 
-**Left:** proposing the platform and the ROMs to chip-8-database (drafts
-[07](upstream/07-hires-platform.md) and [08](upstream/08-hires-roms.md)),
-once the maintainers have reacted to #29–#32. When upstream has them, the
-weekly refresh lists the overlay entries as done.
+**Left:** upstream. The platform is proposed in chip-8-database
+[#33](https://github.com/chip-8/chip-8-database/issues/33), and
+[#34](https://github.com/chip-8/chip-8-database/pull/34) adds it with the
+8 programs (drafts [07](upstream/07-hires-platform.md) and
+[08](upstream/08-hires-roms.md)). When upstream has them, the weekly
+refresh lists the overlay entries as done.
 
 ### Not planned
 
@@ -64,7 +66,7 @@ To be settled while building, not before:
 
 - **Follow up on the upstream submissions** ([upstream/](upstream/README.md);
   `catalogue/overlay.json`). Answer the maintainers'
-  questions on chip-8-database #29–#32 and chip8-test-suite #38. When
+  questions on chip-8-database #29–#34 and chip8-test-suite #38. When
   chip-8-database merges a PR, the weekly refresh lists its overlay entries
   as done: delete them from `catalogue/overlay.json`. If the test suite's
   pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
