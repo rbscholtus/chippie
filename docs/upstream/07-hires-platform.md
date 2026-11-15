@@ -26,9 +26,15 @@ which is 64×128 and needs a modified interpreter.
   program, and none reached while playing them.
 - [x] All 8 play in Chippie with these two rules and VIP quirks
   (2026-11-15).
-- [ ] **Release year.** The entry says 1978, the VIP CHIP-8 era; the oldest
-  dated ROM is Tom Swan's Hires Test (1979). Confirm or drop the field
-  before posting.
+- [x] **Release year: left out** (owner's decision, 2026-11-15). No source
+  dates the two-page 64×64 mode: the earlier "1978" was a guess from the
+  VIP CHIP-8 era, and the oldest dated ROM, Tom Swan's Hires Test, is "1979"
+  only in kripod's file name. Swan's known hires work is the different
+  64×128 HI-RES CHIP-8 (VIPER, January 1980), so even that date may not
+  belong to this mode. `modernChip8` has no `release` either. The issue
+  asks the maintainers for a date if they know one; the VIPER scans
+  ([mattmikolay/viper](https://github.com/mattmikolay/viper)) are where to
+  look.
 - [ ] **Resolutions.** The entry lists 64×32 and 64×64, as a ROM without
   the `1260` start runs at 64×32. Upstream may prefer 64×64 only.
 - [ ] Text below approved.
@@ -71,7 +77,6 @@ which is 64×128 and needs a modified interpreter.
 >   "id": "hiresChip8",
 >   "name": "Cosmac VIP Hires CHIP-8",
 >   "description": "A 64x64 mode for CHIP-8 on the Cosmac VIP, using two pages of display memory. It runs on an unmodified VIP: each program starts with a jump (1260) over a short machine-code patch that switches the interpreter to 64x64, and the CHIP-8 program starts at 0x2C0. 0230 clears the 64x64 screen. Emulators can skip the patch: when the first instruction at 0x200 is 1260, switch to 64x64 and continue at 0x2C0. Not to be confused with Tom Swan's 64x128 HI-RES CHIP-8 (1980).",
->   "release": "1978",
 >   "displayResolutions": ["64x32", "64x64"],
 >   "defaultTickrate": 15,
 >   "quirks": {
@@ -88,6 +93,10 @@ which is 64×128 and needs a modified interpreter.
 >
 > The quirks and tick rate are `originalChip8`'s. The id follows the
 > existing ones; happy to change it, or the name, to whatever fits best.
+>
+> I've left out `release`: I couldn't find when this mode was first
+> published. If you know the VIPER issue or another source that introduced
+> it, I'll add the date.
 >
 > **Reference implementation:** Chippie
 > (https://rbscholtus.github.io/chippie/), which plays all 8 ROMs this way
