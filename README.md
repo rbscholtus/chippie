@@ -107,10 +107,10 @@ database's values. Settings also has the TV skin and the instruction trace.
 | CHIP-48 (HP48, 1990) | 64×32 | ✅ Playable |
 | SUPER-CHIP 1.0 and 1.1 (HP48, 1991) | 64×32, 128×64 | ✅ Playable, with an optional legacy HP48 mode |
 | XO-CHIP (Octo, 2014) | 64×32, 128×64, 4 colours | ✅ Playable, with sound patterns |
+| Hires CHIP-8 (COSMAC VIP, 64×64 mode) | 64×64 | 🗓️ Planned, for the 8 known ROMs ([roadmap](docs/ROADMAP.md)) |
 | CHIP-8 with machine code (VIP) | 64×32 | Not yet |
-| CHIP-8X | 64×32, colour | Not yet |
-| MEGA-CHIP | up to 256×192 | Not yet |
-| Hires CHIP-8 (VIP variant) | 64×64 | Not yet: not in chip-8-database either ([roadmap](docs/ROADMAP.md)) |
+| MEGA-CHIP (2007) | 64×32, 128×64, 256×192, 256 colours | Not planned: hardly any ROMs |
+| CHIP-8X (RCA, 1980) | 64×32, colour | Not planned: hardly any ROMs |
 
 **What are quirks?** Every CHIP-8 interpreter since 1977 has behaved a little
 differently: whether shifts use `VX` or `VY`, whether `I` changes after a
@@ -150,6 +150,7 @@ TV with touch support, and the upstream contributions (milestones M1–M8).
 **Next:**
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
+- **Hires CHIP-8**, the COSMAC VIP's 64×64 mode, and its 8 known ROMs (M10).
 - Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 
@@ -184,6 +185,9 @@ built, and why, is in [docs/DESIGN.md](docs/DESIGN.md).
 - [Writing an emulator in JavaScript (CHIP-8)](https://www.taniarascia.com/writing-an-emulator-in-javascript-chip8/), Tania Rascia
 - [CHIP-8 variant opcode table](https://chip8.gulrak.net/), Gulrak: every opcode across the variants
 - [XO-CHIP specification](https://johnearnest.github.io/Octo/docs/XO-ChipSpecification.html), John Earnest
+- [CHIP-8 extensions and compatibility](https://chip-8.github.io/extensions/): the CHIP-8 family tree and how the variants differ
+- [CHIP-8 Extensions Reference](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Extensions-Reference), Matthew Mikolay: the historical variants, with their sources
+- [CHIP-8 Reference (CHIP-8-KB)](https://chip8kb.gulrak.net/reference/), Gulrak: opcodes, quirks and variants in depth (some pages still in progress)
 
 **Test and metadata**
 
@@ -194,8 +198,9 @@ built, and why, is in [docs/DESIGN.md](docs/DESIGN.md).
 
 - [chip8Archive](https://johnearnest.github.io/chip8Archive/): CC0 games from the Octojam game jams
 - [Octo](https://johnearnest.github.io/Octo/): a CHIP-8 assembler and IDE in the browser
+- [Cadmium](https://github.com/gulrak/cadmium): a CHIP-8 emulator for many variants, useful to compare behaviour
 - [Octojam on itch.io](https://itch.io/jam/octojam-10): the yearly CHIP-8 game jam
-- [kripod/chip8-roms](https://github.com/kripod/chip8-roms) and [Zophar's CHIP-8 PD ROMs](https://www.zophar.net/pdroms/chip8.html): the classic games
+- [kripod/chip8-roms](https://github.com/kripod/chip8-roms) and [Zophar's CHIP-8 PD ROMs](https://www.zophar.net/pdroms/chip8.html): the classic games; kripod's [`hires/`](https://github.com/kripod/chip8-roms/tree/master/hires) folder has the 64×64 Hires CHIP-8 ROMs and how to run them
 
 ## Credits and licence
 

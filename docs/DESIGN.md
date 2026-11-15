@@ -301,12 +301,13 @@ value. Defaults come straight from that file:
 | `originalChip8` | 64×32 | 15 | COSMAC VIP. `vblank` and `logic` quirks on. |
 | `hybridVIP` | 64×32 | 15 | VIP plus machine-code routines (later) |
 | `modernChip8` | 64×32 | 12 | Behaviour most modern ROMs expect |
-| `chip8x` | 64×32 | 15 | Colour extension (later) |
+| `chip8x` | 64×32 | 15 | Colour extension. Not planned: no ROMs in the database ([roadmap](ROADMAP.md#not-planned)) |
 | `chip48` | 64×32 | 30 | HP48 |
 | `superchip1` | 64×32, 128×64 | 30 | SCHIP 1.0 |
 | `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
-| `megachip8` | up to 256×192 | 1000 | Later, if ever |
+| `megachip8` | up to 256×192 | 1000 | Not planned: no ROMs in the database ([roadmap](ROADMAP.md#not-planned)) |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
+| Hires CHIP-8 (overlay) | 64×64 | 15 | Not in the database; planned as M10 ([roadmap](ROADMAP.md#hires-chip-8)) |
 
 **Order of implementation:** `modernChip8` → `originalChip8` → `chip48` /
 `superchip1` / `superchip` → `xochip`. That covers about 98% of the ROMs in the
