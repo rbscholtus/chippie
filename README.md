@@ -6,38 +6,46 @@ a mid-1970s CRT television. It supports several CHIP-8 platforms, each with its
 own quirks, and plays games straight from public ROM archives, so users never
 have to find or download a ROM file themselves.
 
-This is a fresh design and implementation, not a port of the earlier Rust
-version.
-
-> **Status:** design complete and the risky parts proven by a prototype (see
-> [§3](#3-prototype-findings)). Implementation not started.
-> Coding standards are in [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ---
 
 ## Contents
 
-1. [Goals](#1-goals)
-2. [Key decisions](#2-key-decisions)
-3. [Prototype findings](#3-prototype-findings)
-4. [Architecture](#4-architecture)
-5. [Repository layout](#5-repository-layout)
-6. [Emulator core](#6-emulator-core)
-7. [Platforms, quirks and profiles](#7-platforms-quirks-and-profiles)
-8. [Timing](#8-timing)
-9. [Game library](#9-game-library)
-10. [Metadata](#10-metadata)
-11. [Presentation: the 1970s TV](#11-presentation-the-1970s-tv)
-12. [TV artwork](#12-tv-artwork)
-13. [Input and audio](#13-input-and-audio)
-14. [Browser integration](#14-browser-integration)
-15. [Testing](#15-testing)
-16. [Performance](#16-performance)
-17. [Build, CI and deployment](#17-build-ci-and-deployment)
-18. [Upstream contributions](#18-upstream-contributions)
-19. [Milestones](#19-milestones)
-20. [Open questions](#20-open-questions)
-21. [References](#21-references)
+- [Chippie](#chippie)
+  - [1. Goals](#1-goals)
+  - [2. Key decisions](#2-key-decisions)
+  - [3. Prototype findings](#3-prototype-findings)
+  - [4. Architecture](#4-architecture)
+  - [5. Repository layout](#5-repository-layout)
+  - [6. Emulator core](#6-emulator-core)
+    - [6.1 Principles](#61-principles)
+    - [6.2 Public API (sketch)](#62-public-api-sketch)
+    - [6.3 Platforms](#63-platforms)
+    - [6.4 Instruction trace](#64-instruction-trace)
+  - [7. Platforms, quirks and profiles](#7-platforms-quirks-and-profiles)
+  - [8. Timing](#8-timing)
+  - [9. Game library](#9-game-library)
+    - [9.1 Sources and coverage (measured 2026-11-08)](#91-sources-and-coverage-measured-2026-11-08)
+    - [9.2 Approach: one shared metadata database, URLs of our own, no copies](#92-approach-one-shared-metadata-database-urls-of-our-own-no-copies)
+    - [9.3 Sources manifest](#93-sources-manifest)
+  - [10. Metadata](#10-metadata)
+  - [11. Presentation: the 1970s TV](#11-presentation-the-1970s-tv)
+  - [12. TV artwork](#12-tv-artwork)
+    - [12.1 How the art is used](#121-how-the-art-is-used)
+    - [12.2 Scaling across devices](#122-scaling-across-devices)
+    - [12.3 Image brief](#123-image-brief)
+  - [13. Input and audio](#13-input-and-audio)
+  - [14. Browser integration](#14-browser-integration)
+  - [15. Testing](#15-testing)
+    - [15.1 Unit tests](#151-unit-tests)
+    - [15.2 Screenshot tests with the Timendus suite (v4.2)](#152-screenshot-tests-with-the-timendus-suite-v42)
+    - [15.3 Browser tests (Playwright)](#153-browser-tests-playwright)
+    - [15.4 Native run](#154-native-run)
+  - [16. Performance](#16-performance)
+  - [17. Build, CI and deployment](#17-build-ci-and-deployment)
+  - [18. Upstream contributions](#18-upstream-contributions)
+  - [19. Milestones](#19-milestones)
+  - [20. Open questions](#20-open-questions)
+  - [21. References](#21-references)
 
 ---
 
@@ -1040,7 +1048,8 @@ overlay: everything upstream.
 Detailed plans for M1–M4: [docs/plans/M1-M4.md](docs/plans/M1-M4.md). For M5
 and M7: [docs/plans/M5-M7.md](docs/plans/M5-M7.md). For M6 and M8:
 [docs/plans/M6-M8.md](docs/plans/M6-M8.md). The order is M5, M7, M6, M8;
-M7 does not depend on M6, and M8 does not depend on M6.
+M7 does not depend on M6, and M8 does not depend on M6. For M9, our own game:
+[docs/plans/M9-game.md](docs/plans/M9-game.md).
 
 | # | Milestone | Done when |
 |---|---|---|
@@ -1052,6 +1061,7 @@ M7 does not depend on M6, and M8 does not depend on M6.
 | M6 | The 1970s TV | Generated art in, `skin.json`, knobs (click/drag/wheel), power animation, OSD, remote on touch devices, HiDPI layout, CRT at 60 FPS on iPhone |
 | M7 | XO-CHIP | Quirks + scrolling tests for XO-CHIP; pattern audio |
 | M8 | Upstream | PRs/issues from §18 submitted |
+| M9 | Our own game | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
 
 ## 20. Open questions
 
