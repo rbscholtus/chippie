@@ -58,6 +58,12 @@ func (m *Machine) step() {
 		m.trace.record(TraceEntry{PC: pc, Op: op, I: m.i, Frame: m.frame})
 	}
 
+	if m.startsHires(pc, op) {
+		m.startHires()
+
+		return
+	}
+
 	m.pc = (pc + 2) & m.memMask
 	m.execute(pc, op)
 }
@@ -121,7 +127,7 @@ func (m *Machine) execute0(pc, op uint16) {
 	case 0x00EE:
 		m.op00EE()
 	default:
-		if !m.executeSuper0(op) {
+		if !m.executeSuper0(op) && !m.executeHires0(op) {
 			m.unknown(pc, op)
 		}
 	}

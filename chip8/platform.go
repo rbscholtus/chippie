@@ -23,6 +23,7 @@ const (
 	SuperChip                     // SUPER-CHIP 1.1 (modern behaviour unless Quirks.LegacySuperChip)
 	MegaChip8                     // MEGA-CHIP
 	XOChip                        // XO-CHIP
+	HiresChip8                    // COSMAC VIP two-page 64×64 CHIP-8; from Chippie's overlay (DESIGN §6.3)
 	numPlatforms
 )
 
@@ -38,6 +39,7 @@ const (
 const (
 	loresWidth   = 64
 	loresHeight  = 32
+	vipHiresSize = 64 // the VIP's two-page hires mode is 64×64
 	hiresWidth   = 128
 	hiresHeight  = 64
 	megaWidth    = 256
@@ -57,6 +59,9 @@ const (
 	// opsXO is XO-CHIP: 00DN 5XY2 5XY3 F000 FN01 F002 FX3A, and F000's
 	// four-byte length.
 	opsXO
+	// opsHires is the COSMAC VIP's two-page 64×64 mode: the 1260 start
+	// and 0230 (DESIGN §6.3).
+	opsHires
 )
 
 // platformInfo holds the defaults for one platform. Tick rates, resolutions
@@ -74,7 +79,8 @@ type platformInfo struct {
 	implemented bool
 }
 
-// vipQuirks are the COSMAC VIP's quirks (originalChip8, hybridVIP, chip8x).
+// vipQuirks are the COSMAC VIP's quirks (originalChip8, hybridVIP, chip8x,
+// hiresChip8).
 var vipQuirks = Quirks{VBlank: true, Logic: true} //nolint:gochecknoglobals // read-only defaults
 
 // platforms is indexed by Platform.
@@ -127,6 +133,12 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 		quirks: Quirks{Wrap: true},
 		ops:    opsSuper | opsScroll | opsXO, implemented: true,
 	},
+	HiresChip8: {
+		// Not in chip-8-database: Chippie's overlay adds it (DESIGN §6.3).
+		id: "hiresChip8", name: "Hires CHIP-8 (COSMAC VIP)", ticks: 15, memSize: memSize4K,
+		maxWidth: vipHiresSize, maxHeight: vipHiresSize, planes: singlePlane,
+		quirks: vipQuirks, ops: opsHires, implemented: true,
+	},
 }
 
 // String returns the platforms.json id, e.g. "modernChip8".
@@ -164,7 +176,8 @@ func (p Platform) info() *platformInfo {
 	return &platforms[p]
 }
 
-// Platforms returns every known platform, in platforms.json order.
+// Platforms returns every known platform, in platforms.json order, followed
+// by the overlay's.
 func Platforms() []Platform {
 	out := make([]Platform, 0, numPlatforms)
 	for p := range numPlatforms {

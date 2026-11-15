@@ -26,7 +26,7 @@ func loadBenchROM(b *testing.B) []byte {
 func BenchmarkRunFrame(b *testing.B) {
 	rom := loadBenchROM(b)
 
-	for _, p := range []Platform{ModernChip8, OriginalChip8, SuperChip, XOChip} {
+	for _, p := range []Platform{ModernChip8, OriginalChip8, SuperChip, XOChip, HiresChip8} {
 		for _, ticks := range []int{p.DefaultTicks(), 1000} {
 			b.Run(p.String()+"/"+strconv.Itoa(ticks), func(b *testing.B) {
 				prof := DefaultProfile(p)
