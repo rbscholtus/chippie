@@ -31,9 +31,11 @@ lo-res and SUPER-CHIP versions of several of them as separate programs
 - [x] SHA-1s computed from the files at Chippie's pinned commit (kripod
   `c723a9e`).
 - [x] All 8 play in Chippie on `hiresChip8` (2026-11-15).
-- [ ] **One program each, or join the existing programs** (Astro Dodge,
-  Maze, Particle Demo, Sierpinski, Stars, SuperWorm V4, Trip8 Demo) as
-  extra ROMs? Ask the maintainers if they prefer the latter.
+- [x] **One program each** (owner's decision, 2026-11-15), not extra ROMs
+  on the lo-res programs (Astro Dodge, Maze, Particle Demo, Sierpinski,
+  Stars, SuperWorm V4, Trip8 Demo). They are different programs for a
+  different platform, as the database already does for Super Trip8 Demo
+  and Super Particle Demo, and it matches Chippie's overlay.
 - [ ] Titles, authors and descriptions checked by the owner. Authors follow
   the database's entries for the lo-res versions.
 - [ ] Text below approved.
@@ -47,8 +49,7 @@ lo-res and SUPER-CHIP versions of several of them as separate programs
 > Following #ISSUE, this adds the `hiresChip8` platform's 8 known programs,
 > from kripod/chip8-roms' `hires/` folder. Each is its own program, named
 > as in kripod's file names, like the existing Super Trip8 Demo and Super
-> Particle Demo; I can move them into the lo-res programs as extra ROMs
-> instead if you prefer.
+> Particle Demo, which are separate from their lo-res versions too.
 >
 > Titles, authors and dates come from the file names and the folder's
 > `.txt` files; authors match the database's entries for the lo-res
