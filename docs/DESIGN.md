@@ -172,7 +172,7 @@ chippie/
 │   ├── golden-import/          # test-suite pictures → golden frames
 │   └── skin-gen/               # TV master art + recipe → assets/tv/<skin>/ (§12.1)
 ├── chip8/                      # emulator core: stdlib only, no clock, no I/O
-│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go
+│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_hires.go
 │   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
 │   ├── testdata/               # disassembly goldens
 │   └── *_test.go   suite_test.go   perf_test.go
@@ -307,7 +307,16 @@ value. Defaults come straight from that file:
 | `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
 | `megachip8` | up to 256×192 | 1000 | Not planned: no ROMs in the database ([roadmap](ROADMAP.md#not-planned)) |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
-| Hires CHIP-8 (overlay) | 64×64 | 15 | Not in the database; planned as M10 ([roadmap](ROADMAP.md#hires-chip-8)) |
+| `hiresChip8` (overlay) | 64×32, 64×64 | 15 | COSMAC VIP two-page 64×64 mode, VIP quirks. Not in the database: Chippie's overlay adds it (§10) |
+
+**Hires CHIP-8** (M10) is VIP CHIP-8 plus two rules. A hires ROM starts at
+0x200 with `1260`, a jump over a machine-code patch that switches the VIP
+interpreter to 64×64. The core doesn't run the patch: when `1260` is the
+instruction at 0x200, it switches to 64×64 and continues at 0x2C0, where the
+CHIP-8 program starts. `0230` (the patch's clear routine) clears the screen.
+Without `1260` a ROM runs exactly as on `originalChip8`, so the Timendus
+suite runs on it with the same goldens. The picture stays 2:1: a 64×64
+frame is stretched to fill it, with tall pixels.
 
 **Order of implementation:** `modernChip8` → `originalChip8` → `chip48` /
 `superchip1` / `superchip` → `xochip`. That covers about 98% of the ROMs in the
@@ -334,7 +343,7 @@ pixels, so scrolling can move half a lo-res pixel.
 The emulator works out a profile when a ROM is loaded:
 
 ```
-1. Platform defaults        platforms.json → quirks + default tickrate
+1. Platform defaults        platforms.json (+ the overlay's) → quirks + default tickrate
 2. ROM-specific overrides   programs.json → roms[sha1].platforms[0]
                                           → roms[sha1].quirkyPlatforms[platform]
                                           → roms[sha1].tickrate, colors, keys
@@ -432,7 +441,8 @@ current numbers.
   and `tick` (chip8Archive), `Guess (alt)` (same file as Zophar/c8games
   `GUESS`), `Rush Hour (alt)`, and 8 "hires" ROMs from kripod. Most of the
   hires ones are probably the 64×64 "Hires CHIP-8" variant, which the
-  database has no platform for yet.
+  database has no platform for yet. (M10 confirmed all 8 are, and added
+  them and the platform through the overlay.)
 
 ### 9.2 Approach: one shared metadata database, URLs of our own, no copies
 
@@ -513,7 +523,9 @@ every URL it can be downloaded from:
 **The overlay:** Chippie doesn't wait for upstream. `catalogue/overlay.json`
 holds its pending additions and corrections to chip-8-database, in the
 database's own format, each linked to the upstream PR that proposes it (or
-"pending"). `catalogue` applies it on top of the snapshot and the runtime
+"pending"). It can add platforms (in `platforms.json`'s shape, checked like
+the database's, and only ids `chip8` knows), programs and ROMs, and change
+ROMs; platforms are added first, so ROMs can use them. `catalogue` applies it on top of the snapshot and the runtime
 refresh; `catalogue-gen` applies it too, so its ROMs get download locations.
 Whatever upstream already has, an entry skips; the weekly refresh summary and
 `docs/coverage.md` list those entries for deletion. The goal is an empty

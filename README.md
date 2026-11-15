@@ -81,7 +81,7 @@ you can see its controls. A game that waits for any key says so.
 - **Search** by title, author, year or platform. Every word must match, and
   part of a word is enough. Platform words include `chip8`, `chip-8`,
   `modern`, `vip`, `cosmac`, `chip48`, `chip-48`, `schip`, `superchip`,
-  `super-chip`, `xo`, `xochip` and `xo-chip`.
+  `super-chip`, `xo`, `xochip`, `xo-chip`, `hires` and `64x64`.
 - **Filter** by platform with the chips under the search field.
 - Games for platforms Chippie can't run yet are listed under **Coming soon**.
 - **Load your own ROM** with "Load a ROM from this device", or drag a file
@@ -103,11 +103,11 @@ database's values. Settings also has the TV skin and the instruction trace.
 | Platform | Screen | Status |
 |---|---|---|
 | CHIP-8 (COSMAC VIP, 1977) | 64×32 | ✅ Playable |
+| Hires CHIP-8 (COSMAC VIP, 64×64 mode) | 64×64 | ✅ Playable: the 8 known ROMs |
 | Modern CHIP-8 | 64×32 | ✅ Playable |
 | CHIP-48 (HP48, 1990) | 64×32 | ✅ Playable |
 | SUPER-CHIP 1.0 and 1.1 (HP48, 1991) | 64×32, 128×64 | ✅ Playable, with an optional legacy HP48 mode |
 | XO-CHIP (Octo, 2014) | 64×32, 128×64, 4 colours | ✅ Playable, with sound patterns |
-| Hires CHIP-8 (COSMAC VIP, 64×64 mode) | 64×64 | 🗓️ Planned, for the 8 known ROMs ([roadmap](docs/ROADMAP.md)) |
 | CHIP-8 with machine code (VIP) | 64×32 | Not yet |
 | MEGA-CHIP (2007) | 64×32, 128×64, 256×192, 256 colours | Not planned: hardly any ROMs |
 | CHIP-8X (RCA, 1980) | 64×32, colour | Not planned: hardly any ROMs |
@@ -143,14 +143,15 @@ chip-8-database and the test suite ([docs/upstream/](docs/upstream/README.md)).
 
 ## Roadmap
 
-**Done:** the emulator core for six platforms with screenshot tests, the
+**Done:** the emulator core for seven platforms with screenshot tests, the
 browser app, the library and download sources, SUPER-CHIP, XO-CHIP, the 1970s
-TV with touch support, and the upstream contributions (milestones M1–M8).
+TV with touch support, the upstream contributions (milestones M1–M8), and
+Hires CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
 
 **Next:**
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
-- **Hires CHIP-8**, the COSMAC VIP's 64×64 mode, and its 8 known ROMs (M10).
+- Proposing Hires CHIP-8 and its ROMs to chip-8-database.
 - Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 
