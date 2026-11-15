@@ -7,7 +7,7 @@ is in [DESIGN.md](DESIGN.md).
 
 Detailed plans for M1–M4: [M1-M4.md](plans/M1-M4.md). For M5
 and M7: [M5-M7.md](plans/M5-M7.md). For M6 and M8:
-[M6-M8.md](plans/M6-M8.md). The order is M5, M7, M6, M8;
+[M6-M8.md](plans/M6-M8.md). For M10: [M10-hires.md](plans/M10-hires.md). The order is M5, M7, M6, M8;
 M7 does not depend on M6, and M8 does not depend on M6.
 
 | # | Milestone | Done when |
@@ -21,7 +21,7 @@ M7 does not depend on M6, and M8 does not depend on M6.
 | M7 | XO-CHIP | Quirks + scrolling tests for XO-CHIP; pattern audio |
 | M8 | Upstream | PRs/issues to chip-8-database and the test suite submitted ([upstream/](upstream/README.md)) |
 | M9 | Our own game (in progress) | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
-| M10 | Hires CHIP-8 | The 64×64 COSMAC VIP mode implemented and tested; its 8 known ROMs in the library and playable ([below](#hires-chip-8)) |
+| M10 | Hires CHIP-8 | The 64×64 COSMAC VIP mode implemented and tested; its 8 known ROMs in the library and playable ([plan](plans/M10-hires.md), [below](#hires-chip-8)) |
 
 M1–M8 are done and deployed.
 
