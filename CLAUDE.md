@@ -31,3 +31,8 @@ to WebAssembly, presented as a mid-1970s CRT TV.
   Never weaken a golden frame to make a test pass. Fix the emulator, or
   explain in the PR why the golden was wrong.
 - **The user prefers clarifying questions** before big or ambiguous changes.
+- **Name issues and PRs in full** when writing to the user, in commits and
+  in PRs: say whether it's an issue or a PR, and name the repository when
+  it isn't Chippie's own, e.g. "chip-8-database PR #34", "chip-8-database
+  issue #33", "Chippie PR #20". A bare "#34" is ambiguous here, because
+  Chippie and the upstream repositories have overlapping numbers.
