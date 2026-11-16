@@ -226,8 +226,8 @@ more commit on branch `add-hires-chip8`, synced from Chippie's overlay
 
 `npm test` (schema and formatting) passes.
 
-- [ ] Commit approved for pushing.
-- [ ] Title and body below approved.
+- [x] Commit approved for pushing (owner, 2026-11-17).
+- [x] Title and body below approved (owner, 2026-11-17).
 
 **Title:** Add the 2 Page Display for CHIP-8 platform and its 8 programs
 from kripod/chip8-roms

@@ -123,9 +123,9 @@ updated to match (draft 08).
 - [x] Facts checked: the patch at 0x200–0x249 matches the article's listing
   byte for byte, in all 8 ROMs; Hires Test is the article's test program,
   moved by 0x60; the two Naydenov demos need `memoryLeaveIUnchanged`.
-- [ ] "PIPS for VIPs": from tobiasvl's extensions page, not checked in the
-  book itself.
-- [ ] Text below approved.
+- [x] "PIPS for VIPs": from tobiasvl's extensions page, not checked in the
+  book itself; kept (owner, 2026-11-17).
+- [x] Text below approved (owner, 2026-11-17).
 
 **Comment on chip-8-database issue #33:**
 
