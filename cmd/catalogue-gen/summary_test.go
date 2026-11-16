@@ -14,9 +14,10 @@ func TestSummary(t *testing.T) {
 		pins:   map[string]string{"a/db": "1111111aaaa", "b/roms": "2222222bbbb"},
 	}
 	after := snapshotState{
-		counts:      counts{programs: 302, roms: 545, downloadable: 204, conflicts: 1},
-		pins:        map[string]string{"a/db": "3333333cccc", "b/roms": "2222222bbbb"},
-		overlayDone: []string{"add Tick (https://github.com/chip-8/chip-8-database/pull/99)"},
+		counts:       counts{programs: 302, roms: 545, downloadable: 204, conflicts: 1},
+		pins:         map[string]string{"a/db": "3333333cccc", "b/roms": "2222222bbbb"},
+		overlayDone:  []string{"add Tick (https://github.com/chip-8/chip-8-database/pull/99)"},
+		overlayLinks: []string{"https://github.com/chip-8/chip-8-database/pull/99"},
 	}
 
 	got := summary(before, true, after)
@@ -27,8 +28,10 @@ func TestSummary(t *testing.T) {
 		"| chip8Archive conflicts | 2 | 1 | -1 |",
 		"| a/db | 1111111 | 3333333 |",
 		"| b/roms | 2222222 | unchanged |",
-		"delete them from `catalogue/overlay.json`",
+		"this refresh deleted them from `catalogue/overlay.json`",
 		"- add Tick (https://github.com/chip-8/chip-8-database/pull/99)",
+		"**Manual step before merging:** in `docs/upstream/README.md`",
+		"- https://github.com/chip-8/chip-8-database/pull/99\n",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("summary lacks %q:\n%s", want, got)

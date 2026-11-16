@@ -71,7 +71,22 @@ type OverlayStatus struct {
 	Upstream string
 	What     string // e.g. "add Dino Run", "change Mr: title"
 	Done     bool   // upstream already has it: the entry can be deleted
+	Entry    OverlayEntry
 }
+
+// OverlayEntry is where an entry is in overlay.json: its section and its
+// index in that section.
+type OverlayEntry struct {
+	Section string // "platforms", "add" or "change"
+	Index   int
+}
+
+// The overlay.json sections, as in OverlayEntry.
+const (
+	sectionPlatforms = "platforms"
+	sectionAdd       = "add"
+	sectionChange    = "change"
+)
 
 // ParseOverlay reads and checks an overlay.
 func ParseOverlay(data []byte) (*Overlay, error) {
@@ -137,48 +152,51 @@ func ParseOverlay(data []byte) (*Overlay, error) {
 func (db *DB) ApplyOverlay(o *Overlay) ([]OverlayStatus, error) {
 	var (
 		status []OverlayStatus
-		later  []OverlayChange
+		later  []int // indexes of changes to ROMs the overlay adds
 	)
 
-	for _, p := range o.Platforms {
+	for i, p := range o.Platforms {
 		st, err := db.applyPlatform(p)
 		if err != nil {
 			return nil, err
 		}
 
+		st.Entry = OverlayEntry{Section: sectionPlatforms, Index: i}
 		status = append(status, st)
 	}
 
-	change := func(c OverlayChange) error {
-		st, err := db.applyChange(c)
+	change := func(i int) error {
+		st, err := db.applyChange(o.Change[i])
+		st.Entry = OverlayEntry{Section: sectionChange, Index: i}
 		status = append(status, st)
 
 		return err
 	}
 
-	for _, c := range o.Change {
+	for i, c := range o.Change {
 		if _, ok := db.roms[c.SHA1]; !ok {
-			later = append(later, c)
+			later = append(later, i)
 
 			continue
 		}
 
-		if err := change(c); err != nil {
+		if err := change(i); err != nil {
 			return nil, err
 		}
 	}
 
-	for _, a := range o.Add {
+	for i, a := range o.Add {
 		st, err := db.applyAdd(a)
 		if err != nil {
 			return nil, err
 		}
 
+		st.Entry = OverlayEntry{Section: sectionAdd, Index: i}
 		status = append(status, st)
 	}
 
-	for _, c := range later {
-		if err := change(c); err != nil {
+	for _, i := range later {
+		if err := change(i); err != nil {
 			return nil, err
 		}
 	}
@@ -323,6 +341,60 @@ func newROM(hash string, rr rawROM, prog *Program) *ROM {
 		QuirkyPlatforms: rr.QuirkyPlatforms, Tickrate: rr.Tickrate, Colors: rr.Colors,
 		Keys: rr.Keys, TouchInputMode: rr.TouchInputMode, ScreenRotation: rr.ScreenRotation, Program: prog,
 	}
+}
+
+// PruneOverlay returns the overlay in data without the entries that status
+// reports done, so upstream's merges empty it (DESIGN §10). The entries it
+// keeps are unchanged, and so is their formatting, as long as data is
+// indented like json.MarshalIndent with two spaces (as overlay.json is).
+func PruneOverlay(data []byte, status []OverlayStatus) ([]byte, error) {
+	// The entries stay raw, so their keys keep their order; the struct
+	// keeps the sections' order.
+	var raw struct {
+		Platforms []json.RawMessage `json:"platforms"`
+		Add       []json.RawMessage `json:"add"`
+		Change    []json.RawMessage `json:"change"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("%w: overlay: %w", ErrInvalid, err)
+	}
+
+	done := map[OverlayEntry]bool{}
+
+	for _, s := range status {
+		if s.Done {
+			done[s.Entry] = true
+		}
+	}
+
+	keep := func(section string, entries []json.RawMessage) []json.RawMessage {
+		kept := []json.RawMessage{} // never null, even when empty
+
+		for i, e := range entries {
+			if !done[OverlayEntry{Section: section, Index: i}] {
+				kept = append(kept, e)
+			}
+		}
+
+		return kept
+	}
+
+	raw.Platforms = keep(sectionPlatforms, raw.Platforms)
+	raw.Add = keep(sectionAdd, raw.Add)
+	raw.Change = keep(sectionChange, raw.Change)
+
+	var b strings.Builder
+
+	enc := json.NewEncoder(&b)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(raw); err != nil {
+		return nil, fmt.Errorf("encode overlay: %w", err)
+	}
+
+	return []byte(b.String()), nil
 }
 
 // EmbeddedOverlay is the overlay compiled into the app.

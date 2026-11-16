@@ -17,9 +17,10 @@ type counts struct {
 
 // snapshotState is what the summary compares: the numbers and the pins.
 type snapshotState struct {
-	counts      counts
-	pins        map[string]string
-	overlayDone []string // overlay entries upstream now has: delete them
+	counts       counts
+	pins         map[string]string
+	overlayDone  []string // overlay entries upstream now has, deleted by this refresh
+	overlayLinks []string // their upstream PRs and issues
 }
 
 // readState reads the snapshot in dir as it is before a refresh. ok is
@@ -119,13 +120,7 @@ func summary(before snapshotState, hadBefore bool, after snapshotState) string {
 		fmt.Fprintf(&b, "| %s | %s | %s |\n", r, old, now)
 	}
 
-	if len(after.overlayDone) > 0 {
-		b.WriteString("\n**Upstream now has these overlay entries; delete them from `catalogue/overlay.json`:**\n\n")
-
-		for _, d := range after.overlayDone {
-			fmt.Fprintf(&b, "- %s\n", d)
-		}
-	}
+	writeOverlayDone(&b, after)
 
 	return b.String()
 }
@@ -137,4 +132,26 @@ func short(commit string) string {
 	}
 
 	return commit
+}
+
+// writeOverlayDone lists the overlay entries this refresh deleted, and the
+// manual step they leave.
+func writeOverlayDone(b *strings.Builder, after snapshotState) {
+	if len(after.overlayDone) == 0 {
+		return
+	}
+
+	b.WriteString("\n**Upstream now has these overlay entries, so this refresh deleted them from " +
+		"`catalogue/overlay.json`:**\n\n")
+
+	for _, d := range after.overlayDone {
+		fmt.Fprintf(b, "- %s\n", d)
+	}
+
+	b.WriteString("\n**Manual step before merging:** in `docs/upstream/README.md`, mark these as merged " +
+		"(and update the drafts' status lines):\n\n")
+
+	for _, l := range after.overlayLinks {
+		fmt.Fprintf(b, "- %s\n", l)
+	}
 }

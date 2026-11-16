@@ -250,7 +250,8 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		len(res.sources.ROMs), db.ROMCount())
 
 	b.WriteString("\n## Chippie's overlay (pending upstream)\n\n")
-	b.WriteString("Additions and corrections in `catalogue/overlay.json`; \"done\" ones can be deleted.\n\n")
+	b.WriteString("Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the " +
+		"\"done\" ones (upstream has them) from it as it writes this report.\n\n")
 
 	if len(res.overlay) == 0 {
 		b.WriteString("Empty.\n")
@@ -263,7 +264,7 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		}
 
 		if s.Done {
-			state = "**done: upstream has it** (" + s.Upstream + ")"
+			state = "**done: upstream has it, deleted from the overlay** (" + s.Upstream + ")"
 		}
 
 		fmt.Fprintf(&b, "- %s: %s\n", s.What, state)

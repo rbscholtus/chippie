@@ -6,6 +6,11 @@ owner approves the draft; then it's submitted with `gh` under the owner's
 account and its link recorded in the draft, in `catalogue/overlay.json`
 (for database changes) and in the table below.
 
+The Status column is kept by hand. When upstream merges an overlay change,
+the weekly refresh PR deletes its entries from `catalogue/overlay.json` and
+lists the merged PRs under "Manual step before merging": update their rows
+here (and the drafts' status lines) in that PR.
+
 | # | Draft | Where | Kind | Status |
 |---|---|---|---|---|
 | 01 | [Add Dino Run, Mato8 and Tick](01-chip8archive-new-programs.md) | chip-8-database | PR | [#30](https://github.com/chip-8/chip-8-database/pull/30), open |

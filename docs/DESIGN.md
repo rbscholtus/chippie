@@ -527,9 +527,12 @@ database's own format, each linked to the upstream PR that proposes it (or
 the database's, and only ids `chip8` knows), programs and ROMs, and change
 ROMs; platforms are added first, so ROMs can use them. `catalogue` applies it on top of the snapshot and the runtime
 refresh; `catalogue-gen` applies it too, so its ROMs get download locations.
-Whatever upstream already has, an entry skips; the weekly refresh summary and
-`docs/coverage.md` list those entries for deletion. The goal is an empty
-overlay: everything upstream ([upstream/](upstream/README.md)).
+Whatever upstream already has, an entry skips, and `catalogue-gen` deletes it
+from `overlay.json`, so the weekly refresh PR carries the cleanup (a change
+counts as done only when upstream has every field it sets; an addition, when
+upstream has its ROMs). The PR's summary lists the upstream PRs concerned:
+marking them merged in [upstream/README.md](upstream/README.md) stays a manual
+step. The goal is an empty overlay: everything upstream.
 
 ## 11. Presentation: the 1970s TV
 
