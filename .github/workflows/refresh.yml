@@ -30,6 +30,8 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Regenerate
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # for the API's rate limit; read-only use
         run: go run ./cmd/catalogue-gen -update-pins -summary "$RUNNER_TEMP/summary.md"
       - name: Check the snapshot still loads
         run: go test ./catalogue/

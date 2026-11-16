@@ -17,6 +17,10 @@ func TestFetch(t *testing.T) {
 		switch r.URL.Path {
 		case "/ok":
 			_, _ = w.Write([]byte("hello"))
+		case "/auth":
+			if r.Header.Get("Authorization") != "Bearer x" {
+				http.Error(w, "no token", http.StatusUnauthorized)
+			}
 		case "/big":
 			_, _ = w.Write(make([]byte, 11))
 		default:
@@ -28,6 +32,15 @@ func TestFetch(t *testing.T) {
 	body, err := Fetch(t.Context(), srv.URL+"/ok", 10)
 	if err != nil || string(body) != "hello" {
 		t.Errorf("ok: %q, %v", body, err)
+	}
+
+	token := map[string]string{"Authorization": "Bearer x"}
+	if _, err := FetchWithHeaders(t.Context(), srv.URL+"/auth", 10, token); err != nil {
+		t.Errorf("auth: header not sent: %v", err)
+	}
+
+	if _, err := Fetch(t.Context(), srv.URL+"/auth", 10); !errors.Is(err, ErrHTTPStatus) {
+		t.Errorf("auth without header: err=%v, want ErrHTTPStatus", err)
 	}
 
 	if _, err := Fetch(t.Context(), srv.URL+"/big", 10); !errors.Is(err, ErrTooLarge) {
