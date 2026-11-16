@@ -17,6 +17,9 @@
 //	go run ./cmd/catalogue-gen               # regenerate at the pinned commits
 //	go run ./cmd/catalogue-gen -update-pins  # follow each repository's branch or tag
 //
+// -update-pins uses the GitHub API; set GITHUB_TOKEN (e.g. to the output of
+// gh auth token) to avoid its anonymous rate limit.
+//
 // -summary writes a Markdown comparison with the previous snapshot (counts
 // and pins), which the refresh workflow shows on its run page and in its PR.
 package main
@@ -378,14 +381,21 @@ func repos() []string {
 }
 
 // resolvePins updates each pin to the current commit of its branch or tag.
+// It uses the GitHub API, with GITHUB_TOKEN if set: without it, the limit
+// is 60 requests an hour per IP address, which shared CI runners can use up.
 func resolvePins(ctx context.Context, pins map[string]string) error {
 	refs := map[string]string{databaseRepo: databaseRef}
 	for _, a := range archives {
 		refs[a.repo] = a.ref
 	}
 
+	headers := map[string]string{"Accept": "application/vnd.github+json"}
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		headers["Authorization"] = "Bearer " + token
+	}
+
 	for repo, ref := range refs {
-		data, err := platform.Fetch(ctx, "https://api.github.com/repos/"+repo+"/commits/"+ref, maxJSON)
+		data, err := platform.FetchWithHeaders(ctx, "https://api.github.com/repos/"+repo+"/commits/"+ref, maxJSON, headers)
 		if err != nil {
 			return fmt.Errorf("resolve %s@%s: %w", repo, ref, err)
 		}
