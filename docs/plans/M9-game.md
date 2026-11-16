@@ -15,7 +15,7 @@ Decisions made so far (2026-11-15):
 - **Language: Octo**, assembled with the `octo-assembler` npm package (the
   same tool the Timendus suite uses, `third_party/chip8-test-suite/package.json`).
 - **Same repository.** Source under `games/`, built ROM bundled with the app.
-- **Claude writes the game**; the user play-tests and decides.
+- **Claude (Opus 5.5) writes the game**; the user play-tests and decides. It is credited as "Claude Opus 5.5", the model, because what a model can do changes quickly.
 - **Name: Depot.** **Licence: CC0** for everything under `games/`, so the
   game can also go into chip8Archive.
 - **Speed: 500 ticks per frame.**
@@ -308,6 +308,12 @@ with directions.
   in the user config folder natively.
 - Applies to every ROM that uses `FX75`, not just Depot, as in Octo. A
   "forget saved data" button in the game's details is a possible follow-up.
+- **As built (step 8):** stored in the preferences (`localStorage`, and
+  the config-folder JSON natively) rather than IndexedDB, the user's choice
+  on 2026-11-17: see DESIGN §13 for why and for the write rules (only
+  changed bytes, at most once a second, flushed on pause and before another
+  ROM). Tests: the saver in `app/flags_test.go`, the core API, Depot's best
+  score across a new machine, and a Playwright reload.
 
 ## 4. Testing
 

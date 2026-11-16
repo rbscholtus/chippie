@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import {
   br8kout, click, desktopRow, golden, gridText, offline, running, sampleScreen, waitForApp,
@@ -62,6 +63,36 @@ test("Space and the arrow keys play a game with a keys hint (Depot)", async ({ p
   await page.waitForTimeout(100);
   await page.keyboard.up("ArrowLeft");
   await expect.poll(() => pixel(62, 56), { intervals: [200] }).toBe(background);
+});
+
+test("Depot's best score comes back after a reload (saved flag registers)", async ({ page }) => {
+  const bundled = JSON.parse(readFileSync(new URL("../../assets/roms/bundled.json", import.meta.url), "utf8"));
+  const depot: string = bundled.find((e: { id: string }) => e.id === "depot").sha1;
+
+  // The title's best-score digits: x 67-86, y 31-35 of Depot's 128×64 screen.
+  const digits = async () => {
+    const g = await sampleScreen(page, 128, 64);
+    const rows: string[] = [];
+    for (let y = 31; y <= 35; y++) {
+      rows.push(g.rgb.slice(y * 128 + 67, y * 128 + 87).map((c) => c.join()).join(" "));
+    }
+    return rows.join("\n");
+  };
+  const title = async () => {
+    await page.goto(`/?rom=${depot}&shader=clean`);
+    await waitForApp(page);
+    await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+    await page.waitForTimeout(300); // the title takes three frames
+    return digits();
+  };
+
+  await offline(page);
+  const fresh = await title(); // BEST 0000
+
+  // What the app saves after a best score of 0130 (app/flags.go): the
+  // marker, then the digits two to a byte.
+  await page.evaluate(([k, v]) => localStorage.setItem(k, v), [`chippie.flags/${depot}`, "d3900130000000000000000000000000"]);
+  expect(await title()).not.toBe(fresh);
 });
 
 test("a coming-soon game can't be started", async ({ page }) => {

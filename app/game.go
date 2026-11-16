@@ -73,6 +73,7 @@ type Game struct {
 	currentROM []byte
 	hasROM     bool
 	extras     input.Extras // arrows, Space and Shift for current's keys hint
+	flags      flagSaver    // saves current's flag registers (flags.go)
 
 	renderer *crt.Renderer
 	sound    sound.Output

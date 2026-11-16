@@ -99,7 +99,10 @@ func (m *Machine) setHires(on bool) {
 func (m *Machine) opFX30(x int) { m.i = BigFontAddr + uint16(m.v[x]&0xF)*bigFontHeight }
 
 // opFX75 (LD R, VX) stores V0..VX in the flag registers.
-func (m *Machine) opFX75(x int) { copy(m.rpl[:m.flagCount(x)], m.v[:]) }
+func (m *Machine) opFX75(x int) {
+	copy(m.rpl[:m.flagCount(x)], m.v[:])
+	m.saves++
+}
 
 // opFX85 (LD VX, R) loads V0..VX from the flag registers.
 func (m *Machine) opFX85(x int) { copy(m.v[:m.flagCount(x)], m.rpl[:]) }

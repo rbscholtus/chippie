@@ -1015,3 +1015,43 @@ func TestHopSound(t *testing.T) {
 		t.Error("hop still sounding after 3 frames")
 	}
 }
+
+// TestBestScoreSurvivesAReload sets a best score, then starts the ROM again
+// on a new machine with the flag registers the app saved (as Chippie does
+// after a reload, app/flags.go): the title shows the same best score.
+func TestBestScoreSurvivesAReload(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	deliver(t, m)
+	loseAll(t, m)
+
+	want := best(m)
+	if want == 0 {
+		t.Fatal("no best score to save")
+	}
+
+	flags := m.Flags()
+	if flags[0] != 0xD3 || flags[1] != 0x90 {
+		t.Fatalf("flags % X, want the D3 90 marker first", flags)
+	}
+
+	again := chip8.New(profile())
+	if err := again.LoadROM(loadROM(t)); err != nil {
+		t.Fatal(err)
+	}
+
+	again.SetFlags(flags)
+
+	for range begin {
+		again.RunFrame()
+	}
+
+	if got := best(again); got != want {
+		t.Errorf("best score %d after a reload, want %d", got, want)
+	}
+
+	if got := again.Peek(addrMode); got != modeTitle {
+		t.Errorf("mode %d after a reload, want the title", got)
+	}
+}

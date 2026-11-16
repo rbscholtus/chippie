@@ -759,6 +759,34 @@ The prompts used for each cabinet, and tips for making new skins, are in
 - Keys in the database's `keys` hint are lighter. The `touchInputMode` hint
   (e.g. a gamepad layout) isn't used yet.
 
+**Saved flag registers (M9):**
+
+Programs keep data between runs in the flag registers (`FX75` saves V0..VX
+there, `FX85` loads them): SUPER-CHIP has 8, XO-CHIP 16. Octo keeps them
+between sessions, and so does Chippie, per ROM, so a game's high score
+(Depot's best score, for one) survives a reload.
+
+- **Core:** `Machine.Flags`, `Machine.SetFlags`, and `Machine.FlagSaves`,
+  a count of `FX75`s since the last reset, so the app notices a save
+  without comparing the bytes every frame. `Reset` clears all three; the
+  core stays clock-free and does no I/O.
+- **Where they're stored: the preferences** (`platform.Prefs`, so
+  `localStorage` in the browser and the config-folder JSON natively), key
+  `flags/<sha1>`, the 16 bytes in hex; no key means all zero. Decided in M9
+  step 8 instead of the planned IndexedDB store: 16 bytes per ROM is a
+  preference-sized value, `Prefs` already falls back to memory when storage
+  is blocked, and it needs no database version bump. Like the other
+  preferences, they're per device and go when the site's data is cleared.
+- **When they're written** (`app/flags.go`): only when the bytes differ
+  from what is stored, and at most once a second, because some ROMs use
+  the flags as scratch space and run `FX75` every frame. A pending save is
+  written at once when the game pauses (drawer, settings, power, focus
+  lost, halt) and before another ROM starts.
+- **Restored** right after `LoadROM`, before the first frame, for every
+  ROM. Changing the platform or quirks restarts the ROM the same way, so
+  its saved flags come back too.
+- **Not yet:** a way to forget a game's saved data (ROADMAP).
+
 **Text input:**
 
 - The search field (`app/textfield.go`, from the prototype's `field.go`) uses
@@ -790,7 +818,7 @@ with desktop stubs so `go run ./cmd/chippie` works natively:
 | Need | Browser implementation |
 |---|---|
 | ROM and metadata cache | IndexedDB, through `syscall/js`, wrapped in goroutines and channels (from the prototype) |
-| Small preferences | `localStorage` (synchronous; wrapped so the app works when storage is blocked) |
+| Small preferences, and games' saved flag registers (§13) | `localStorage` (synchronous; wrapped so the app works when storage is blocked) |
 | "Load ROM from device" | A hidden `<input type="file">` created from Go. Its `change` event reads the file with `arrayBuffer()` and sends the bytes on a channel. This is the async case that was hard in the Rust version; goroutines make it a few lines. |
 | Drag-and-drop ROMs | `ebiten.DroppedFiles()`, no JS needed |
 | Network | `platform.Fetch`: `fetch()` through `syscall/js` (Go's `net/http` would add ~1.7 MB gzip); `net/http` natively |

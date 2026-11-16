@@ -79,6 +79,12 @@ Otherwise Chippie watches the game: every key it
 checks is added to a "Keys it reads" line, so after a few seconds of play
 you can see its controls. A game that waits for any key says so.
 
+### Saved high scores
+
+Games that save data the CHIP-8 way (SUPER-CHIP and XO-CHIP's flag
+registers), such as Depot's best score, keep it in your browser, so it's
+still there next time.
+
 ### The library
 
 - **Search** by title, author, year or platform. Every word must match, and

@@ -101,6 +101,9 @@ To be settled while building, not before:
   `keys` hint were done in M9 (DESIGN §13). Hints with 0x10 added mean a
   second keypad: show those properly instead of "?", if any turn up (none
   in the database as of 2026-11-17).
+- **Forget a game's saved data.** Chippie keeps each ROM's flag registers
+  (DESIGN §13), e.g. Depot's best score. A button in the game's details
+  could clear them.
 - **Favourite games.** Mark a game as a favourite (e.g. a star in the
   details), stored per device like the ROM cache, and list favourites first
   in the library drawer (or behind a "Favourites" filter) so they start in
