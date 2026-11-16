@@ -25,7 +25,7 @@ SHA-1 changes with every build; `assets/roms/bundled.json` has the current one.
 
 | File | Title | Author | Source |
 |---|---|---|---|
-| `depot.ch8` | Depot | Barend Scholtus, Claude | `games/depot/depot.8o` |
+| `depot.ch8` | Depot | Barend Scholtus, Claude Opus 5.5 | `games/depot/depot.8o` |
 
 ## TV artwork (`assets/tv/<skin>/`, shipped separately, not compiled in)
 
