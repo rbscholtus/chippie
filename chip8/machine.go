@@ -63,6 +63,7 @@ type Machine struct {
 	disp  display
 	rng   rng
 	ops   opSet              // the platform's optional instruction groups
+	minST byte               // lowest sound timer value that sounds (platformInfo.minSound)
 	hires bool               // SUPER-CHIP extended screen mode
 	plane byte               // bit-planes that drawing, clearing and scrolling affect
 	rpl   [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
@@ -117,6 +118,7 @@ func (m *Machine) Reset(p Profile) {
 	m.err = nil
 
 	m.ops = info.ops
+	m.minST = max(info.minSound, 1)
 	m.hires = false
 	m.plane = 1
 	m.rpl = [numRegisters]byte{}
@@ -194,7 +196,9 @@ func (m *Machine) Display() DisplayView { return m.disp.view() }
 
 // SoundState is what the audio output needs to know.
 type SoundState struct {
-	Buzzer bool // the buzzer sounds while the sound timer is non-zero
+	// Buzzer sounds while the sound timer is non-zero; on the COSMAC VIP,
+	// while it is at least 2.
+	Buzzer bool
 
 	// XO-CHIP: while the buzzer sounds, a ROM that has loaded a pattern plays
 	// it, at a rate set by Pitch.
@@ -205,7 +209,7 @@ type SoundState struct {
 
 // Sound returns the current sound state.
 func (m *Machine) Sound() SoundState {
-	return SoundState{Buzzer: m.st > 0, HasPattern: m.patternLoaded, Pattern: m.pattern, Pitch: m.pitch}
+	return SoundState{Buzzer: m.st >= m.minST, HasPattern: m.patternLoaded, Pattern: m.pattern, Pitch: m.pitch}
 }
 
 // CPUState is a snapshot of the CPU, for tracing, debugging and the UI.

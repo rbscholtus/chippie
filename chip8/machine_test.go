@@ -391,3 +391,33 @@ func FuzzRunFrame(f *testing.F) {
 		}
 	})
 }
+
+// TestVIPIgnoresSoundTimerOne checks that the COSMAC VIP platforms stay
+// silent for a sound timer of 1 and sound from 2, and that the others sound
+// from 1.
+func TestVIPIgnoresSoundTimerOne(t *testing.T) {
+	t.Parallel()
+
+	for _, p := range Platforms() {
+		if !p.Implemented() {
+			continue
+		}
+
+		vip := p == OriginalChip8 || p == HybridVIP || p == Chip8X || p == HiresChip8
+
+		m := New(DefaultProfile(p))
+		m.v[1], m.v[2] = 1, 2
+
+		exec(m, 0xF118) // ST = 1
+
+		if got := m.Sound().Buzzer; got == vip {
+			t.Errorf("%s: buzzer=%v with ST=1, want %v", p, got, !vip)
+		}
+
+		exec(m, 0xF218) // ST = 2
+
+		if !m.Sound().Buzzer {
+			t.Errorf("%s: buzzer off with ST=2", p)
+		}
+	}
+}

@@ -330,7 +330,18 @@ func (m *Machine) opFX18(x int) { m.st = m.v[x] }
 func (m *Machine) opFX1E(x int) { m.i += uint16(m.v[x]) }
 
 // opFX29 (LD F, VX) points I at the small-font glyph for the low nibble of VX.
-func (m *Machine) opFX29(x int) { m.i = FontAddr + uint16(m.v[x]&0xF)*smallFontHeight }
+// On SUPER-CHIP 1.0, VX 10–1F points I at the big-font glyph instead (only
+// digits 0–9 are defined there; Chippie's big font also has A–F).
+func (m *Machine) opFX29(x int) {
+	v := m.v[x]
+	if m.ops&opsFontFX29 != 0 && v>>4 == 1 {
+		m.i = BigFontAddr + uint16(v&0xF)*bigFontHeight
+
+		return
+	}
+
+	m.i = FontAddr + uint16(v&0xF)*smallFontHeight
+}
 
 // opFX33 (LD B, VX) stores VX as three decimal digits at I, I+1 and I+2.
 func (m *Machine) opFX33(x int) {
