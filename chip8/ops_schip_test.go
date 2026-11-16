@@ -42,8 +42,10 @@ func TestOpcodesExistPerPlatform(t *testing.T) {
 		{0xF030, map[Platform]bool{ModernChip8: false, Chip48: false, SuperChip1: true, SuperChip: true}},
 		{0xF075, map[Platform]bool{OriginalChip8: false, Chip48: false, SuperChip1: true, SuperChip: true}},
 		{0x00DE, map[Platform]bool{SuperChip: false}},
-		{0x0230, map[Platform]bool{OriginalChip8: false, ModernChip8: false, XOChip: false, HiresChip8: true}},
-		{0x00FF, map[Platform]bool{HiresChip8: false}},
+		// twoPageChip8's 0230 exists only once the 2 Page Display has started:
+		// see ops_twopage_test.go.
+		{0x0230, map[Platform]bool{OriginalChip8: false, ModernChip8: false, XOChip: false}},
+		{0x00FF, map[Platform]bool{TwoPageChip8: false}},
 	}
 
 	for _, tt := range tests {

@@ -19,8 +19,8 @@ here (and the drafts' status lines) in that PR.
 | 04 | [Two pixels in the scrolling pictures](04-test-suite-scrolling-pictures.md) | Timendus/chip8-test-suite | issue | [#38](https://github.com/Timendus/chip8-test-suite/issues/38), open |
 | 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), merged 2026-11-15 |
 | 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), merged 2026-11-15 |
-| 07 | [A Hires CHIP-8 (64×64) platform](07-hires-platform.md) | chip-8-database | issue | [#33](https://github.com/chip-8/chip-8-database/issues/33), open |
-| 08 | [Add the 8 Hires CHIP-8 programs](08-hires-roms.md) | chip-8-database | PR (with the platform) | [#34](https://github.com/chip-8/chip-8-database/pull/34), open |
+| 07 | [A 2 Page Display (64×64) platform](07-hires-platform.md) | chip-8-database | issue | [#33](https://github.com/chip-8/chip-8-database/issues/33), open; [follow-up](https://github.com/chip-8/chip-8-database/issues/33#issuecomment-6925757552) posted 2026-11-17 |
+| 08 | [Add the 8 2 Page Display programs](08-hires-roms.md) | chip-8-database | PR (with the platform) | [#34](https://github.com/chip-8/chip-8-database/pull/34), open; updated 2026-11-17 for the 2 Page Display |
 
 **Deferred until the maintainers react to #29–#31 (owner's decision,
 2026-11-15):** issues proposing a "where to download" field, asking where

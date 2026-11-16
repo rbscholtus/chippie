@@ -75,8 +75,8 @@ Under the TV, Chippie shows which keys the running game uses. Where
 chip-8-database knows a game's controls, it lists them (and the on-screen
 remote highlights them), and the arrow keys, Space and Shift work too: the
 arrows for the game's directions, Space and Shift for its two buttons.
-Otherwise Chippie watches the game: every key it
-checks is added to a "Keys it reads" line, so after a few seconds of play
+Otherwise Chippie watches the game: every key it checks is added to a
+"Keys it reads" line, and lit on the remote, so after a few seconds of play
 you can see its controls. A game that waits for any key says so.
 
 ### Saved high scores
@@ -112,7 +112,7 @@ database's values. Settings also has the TV skin and the instruction trace.
 | Platform | Screen | Status |
 |---|---|---|
 | CHIP-8 (COSMAC VIP, 1977) | 64×32 | ✅ Playable |
-| Hires CHIP-8 (COSMAC VIP, 64×64 mode) | 64×64 | ✅ Playable: the 8 known ROMs |
+| 2 Page Display for CHIP-8 (COSMAC VIP, 1978; "Hires CHIP-8") | 64×64 | ✅ Playable: the 8 known ROMs |
 | Modern CHIP-8 | 64×32 | ✅ Playable |
 | CHIP-48 (HP48, 1990) | 64×32 | ✅ Playable |
 | SUPER-CHIP 1.0 and 1.1 (HP48, 1991) | 64×32, 128×64 | ✅ Playable, with an optional legacy HP48 mode |
@@ -156,13 +156,13 @@ chip-8-database and the test suite ([docs/upstream/](docs/upstream/README.md)).
 browser app, the library and download sources, SUPER-CHIP, XO-CHIP, the 1970s
 TV with touch support, the upstream contributions (milestones M1–M8),
 Depot, an XO-CHIP game of our own bundled with Chippie, with arrow keys for
-games whose controls are known and saved high scores (M9), and Hires
-CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
+games whose controls are known and saved high scores (M9), and the COSMAC
+VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (M10).
 
 **Next:**
 
 - Proposing Depot to chip-8-database and chip8Archive.
-- Getting Hires CHIP-8 and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
+- Getting the 2 Page Display and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Favourite games, and one library entry per program.
 
 The full list, with open questions, is in [docs/ROADMAP.md](docs/ROADMAP.md).

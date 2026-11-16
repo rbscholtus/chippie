@@ -22,7 +22,7 @@ Downloadable ROMs in the manifest: 310 of 585 in the database and Chippie's over
 
 Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
 
-- add platform hiresChip8: waiting for https://github.com/chip-8/chip-8-database/pull/34
+- add platform twoPageChip8: waiting for https://github.com/chip-8/chip-8-database/pull/34
 - change Mr Worm: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/28)
 - change Computer Simulator: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/31)
 - change Infini Br8kr: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/31)
