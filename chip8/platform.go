@@ -52,7 +52,10 @@ const (
 type opSet uint8
 
 const (
-	// opsSuper is SUPER-CHIP 1.0: 00FD 00FE 00FF DXY0 FX30 FX75 FX85.
+	// opsSuper is SUPER-CHIP 1.0: 00FD 00FE 00FF DXY0 FX75 FX85, plus 1.1's
+	// FX30. SUPER-CHIP 1.0 had no FX30 (it used FX29, see opsFontFX29);
+	// keeping it there is a harmless extra that lets a ROM labelled 1.0 but
+	// written for 1.1 run.
 	opsSuper opSet = 1 << iota
 	// opsScroll is SUPER-CHIP 1.1's scrolling: 00CN 00FB 00FC.
 	opsScroll
@@ -62,6 +65,9 @@ const (
 	// opsHires is the COSMAC VIP's two-page 64×64 mode: the 1260 start
 	// and 0230 (DESIGN §6.3).
 	opsHires
+	// opsFontFX29 is SUPER-CHIP 1.0's FX29: VX 10–19 points I at the big
+	// font for digit VX-10. SUPER-CHIP 1.1 moved that to FX30.
+	opsFontFX29
 )
 
 // platformInfo holds the defaults for one platform. Tick rates, resolutions
@@ -76,6 +82,7 @@ type platformInfo struct {
 	planes      int // display bit-planes
 	quirks      Quirks
 	ops         opSet // optional instruction groups
+	minSound    byte  // lowest sound timer value that sounds (vipMinSound); 0 means 1
 	implemented bool
 }
 
@@ -83,17 +90,24 @@ type platformInfo struct {
 // hiresChip8).
 var vipQuirks = Quirks{VBlank: true, Logic: true} //nolint:gochecknoglobals // read-only defaults
 
+// vipMinSound is the COSMAC VIP's lowest sound timer value that sounds: "the
+// minimum value that the timer will respond to is 0x02" (Mikolay, CHIP-8
+// Technical Reference, citing the VIP manual). Chippie models it as the
+// buzzer sounding while the timer is at least 2, so FX18 with 1 is silent and
+// every beep is a frame shorter (DESIGN §13).
+const vipMinSound = 2
+
 // platforms is indexed by Platform.
 var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-only defaults table
 	OriginalChip8: {
 		id: "originalChip8", name: "CHIP-8 (COSMAC VIP)", ticks: 15, memSize: memSize4K,
 		maxWidth: loresWidth, maxHeight: loresHeight, planes: singlePlane,
-		quirks: vipQuirks, implemented: true,
+		quirks: vipQuirks, minSound: vipMinSound, implemented: true,
 	},
 	HybridVIP: {
 		id: "hybridVIP", name: "CHIP-8 with machine code (COSMAC VIP)", ticks: 15, memSize: memSize4K,
 		maxWidth: loresWidth, maxHeight: loresHeight, planes: singlePlane,
-		quirks: vipQuirks,
+		quirks: vipQuirks, minSound: vipMinSound,
 	},
 	ModernChip8: {
 		id: "modernChip8", name: "Modern CHIP-8", ticks: 12, memSize: memSize4K,
@@ -103,7 +117,7 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 	Chip8X: {
 		id: "chip8x", name: "CHIP-8X", ticks: 15, memSize: memSize4K,
 		maxWidth: loresWidth, maxHeight: loresHeight, planes: singlePlane,
-		quirks: vipQuirks,
+		quirks: vipQuirks, minSound: vipMinSound,
 	},
 	Chip48: {
 		id: "chip48", name: "CHIP-48", ticks: 30, memSize: memSize4K,
@@ -114,7 +128,7 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 		id: "superchip1", name: "SUPER-CHIP 1.0", ticks: 30, memSize: memSize4K,
 		maxWidth: hiresWidth, maxHeight: hiresHeight, planes: singlePlane,
 		quirks: Quirks{Shift: true, MemoryIncrementByX: true, Jump: true},
-		ops:    opsSuper, implemented: true,
+		ops:    opsSuper | opsFontFX29, implemented: true,
 	},
 	SuperChip: {
 		id: "superchip", name: "SUPER-CHIP 1.1", ticks: 30, memSize: memSize4K,
@@ -137,7 +151,7 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 		// Not in chip-8-database: Chippie's overlay adds it (DESIGN §6.3).
 		id: "hiresChip8", name: "Hires CHIP-8 (COSMAC VIP)", ticks: 15, memSize: memSize4K,
 		maxWidth: vipHiresSize, maxHeight: vipHiresSize, planes: singlePlane,
-		quirks: vipQuirks, ops: opsHires, implemented: true,
+		quirks: vipQuirks, minSound: vipMinSound, ops: opsHires, implemented: true,
 	},
 }
 

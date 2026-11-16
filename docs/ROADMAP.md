@@ -52,6 +52,19 @@ refresh lists the overlay entries as done.
 
 Either can be reconsidered if ROMs turn up in the database.
 
+- **A CDP1802 core for the COSMAC VIP** (idea from the
+  [extensions review](DESIGN.md#63-platforms), 2026-11-16): run the real VIP
+  interpreter instead of reimplementing it, as Cadmium does. That gives
+  `hybridVIP` (machine-code `0NNN` calls) and would replace the Hires
+  special case, and most VIPER-era variants (four-page 64×128, CHIP-8E,
+  CHIP-10, CHIP-8X) would run by loading their interpreter. A milestone-sized
+  job for few ROMs: chip-8-database has one `hybridVIP` ROM (Clock Program)
+  and none for the variants. More ROMs come from finding downloads (310 of
+  585 have one) than from new platforms.
+- **Octo's `0000` halt** on XO-CHIP: stop cleanly instead of reporting an
+  unknown opcode when a program runs into empty memory. Not more ROMs, a
+  nicer message.
+
 ## Open questions
 
 To be settled while building, not before:

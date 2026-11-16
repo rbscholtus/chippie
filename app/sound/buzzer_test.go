@@ -234,3 +234,38 @@ func TestBuzzerVolume(t *testing.T) {
 		}
 	}
 }
+
+// TestPatternRestartsWithEachSound checks that a new sound starts the
+// pattern from its first bit, even when the buzzer goes off and on between
+// two reads, and that staying on doesn't restart it.
+func TestPatternRestartsWithEachSound(t *testing.T) {
+	t.Parallel()
+
+	var (
+		b       Buzzer
+		pattern [PatternBytes]byte
+	)
+
+	pattern[0] = 0x80 // only the first bit is high
+
+	b.SetPattern(true, pattern, basePitch)
+	b.Set(true)
+	samples(&b, 100) // about 8 bits in
+
+	b.Set(true) // still on: no restart
+
+	if s := samples(&b, 1); s[0] >= 0 {
+		t.Fatalf("pattern restarted while the buzzer stayed on (sample %v)", s[0])
+	}
+
+	b.Set(false)
+	b.Set(true) // off and on again before the next read
+
+	if s := samples(&b, 1); s[0] <= 0 {
+		t.Errorf("new sound didn't start at the first bit (sample %v)", s[0])
+	}
+
+	if b.patternPos != b.step {
+		t.Errorf("position %v after one sample, want %v", b.patternPos, b.step)
+	}
+}

@@ -327,6 +327,41 @@ planes as bits of that byte. The buffer is sized for the platform's largest
 resolution. Legacy SUPER-CHIP lo-res keeps the full 128×64 screen with 2×2
 pixels, so scrolling can move half a lo-res pixel.
 
+**Where platform behaviour comes from.** `quirks.json` and the Timendus
+suite cover the quirks, but not which instructions each platform has or how
+its sound behaves. For those the reference is
+[CHIP-8 extensions and compatibility](https://chip-8.github.io/extensions/),
+checked against Chippie on 2026-11-16. Nothing else checks what is taken
+from it, so each such behaviour gets a unit test that pins it. From that
+review:
+
+- **SUPER-CHIP 1.0 font:** 1.0 has no `FX30`; its `FX29` points I at the
+  big font when VX is `10`–`19`. SUPER-CHIP 1.1 added `FX30` and made `FX29`
+  small-font only. Chippie does 1.0's `FX29` (`opsFontFX29`) and also keeps
+  `FX30` on 1.0, a harmless extra for ROMs labelled 1.0 but written for 1.1.
+- **COSMAC VIP sound timer:** the VIP doesn't respond to a value of 1; the
+  minimum is 2 (Mikolay's
+  [technical reference](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference),
+  citing the VIP manual). On the VIP platforms the buzzer sounds while the
+  timer is at least 2, so `FX18` with 1 is silent (§13).
+- **XO-CHIP pattern position** restarts only when the sound timer reaches 0
+  (§13).
+- **Hires load address:** the page says programs load at `0260`. Both that
+  and the `0x2C0` entry above are right: `0x260`–`0x2BF` is CHIP-8 code that
+  patches the interpreter's memory, and Chippie applies its effect instead.
+- **Deliberate differences:** a 16-entry stack everywhere (the VIP has 12,
+  in memory at `0xEA0`); a big font with all 16 glyphs (SUPER-CHIP has
+  0–9; Octo has 0–F); the whole of `0x200`–`0xFFF` for programs, although
+  the VIP keeps `0xEA0`–`0xFFF` for its stack, work area and screen.
+- **Checked and matching:** VIP coordinate wrap with clipping and the
+  display wait; CHIP-48's `BXNN`, `FX55`/`FX65` I+X (none for X = 0) and
+  VX-only shifts; SUPER-CHIP 1.1's unchanged I, legacy row-counting `VF`,
+  half-pixel lo-res scrolling and no clear on a mode switch; XO-CHIP's
+  four-byte skip over `F000 NNNN`, clearing on a resolution change and the
+  pitch formula.
+- **Ideas not taken up:** see [the roadmap](ROADMAP.md) (a CDP1802 core for
+  the VIP; Octo's `0000` halt).
+
 ### 6.4 Instruction trace
 
 - **A fixed-size ring buffer** of `{PC uint16, Op uint16, I uint16, Frame uint32}`
@@ -732,10 +767,15 @@ The prompts used for each cabinet, and tips for making new skins, are in
 
 - Ebitengine's `audio` package. The audio context is created on the first
   user gesture (the power button), as browsers require.
-- **CHIP-8/SCHIP:** a square wave, gated by the sound timer.
+- **CHIP-8/SCHIP:** a square wave, gated by the sound timer. On the COSMAC
+  VIP platforms it sounds only while the timer is at least 2, because the
+  VIP ignores a value of 1 (§6.3); every VIP beep is a frame shorter.
 - **XO-CHIP:** the same stream plays the 16-byte, 1-bit pattern buffer at the
   pitch register's rate, from the first `F002`. A ROM that never loads a
-  pattern gets the plain square wave.
+  pattern gets the plain square wave. The position in the pattern carries
+  over between frames and pattern loads, and restarts at the first bit when
+  the buzzer switches on, since XO-CHIP resets it only when the sound timer
+  reaches 0.
 - **Volume** from the TV's volume knob.
 
 ## 14. Browser integration
