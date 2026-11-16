@@ -201,7 +201,7 @@ chippie/
 │   └── sound/                  # buzzer and XO-CHIP audio, volume
 ├── assets/
 │   ├── assets.go               # go:embed of the bundled ROMs and every skin.json
-│   ├── roms/                   # bundled CC0 games + bundled.json (M3)
+│   ├── roms/                   # bundled CC0 games (chip8Archive's and Depot) + bundled.json (M3)
 │   ├── source/                 # generated master images (git-ignored)
 │   ├── tv/<skin>/              # one folder per TV skin, made by cmd/skin-gen (see §12)
 │   │   ├── recipe.json             # name and measurements in the master (hand-edited)
@@ -209,6 +209,9 @@ chippie/
 │   │   ├── cabinet@{1,2,3}x.jpg  cabinet-mask@{1,2,3}x.png  backdrop.jpg
 │   │   └── channel  speed  volume  tint  power @{1,2,3}x.png
 │   └── LICENSES.md             # origin and licence of every asset
+├── games/                      # Chippie's own games, in Octo (CC0); built into assets/roms/
+│   ├── README.md  LICENSE  package.json   # how to build; the pinned Octo assembler
+│   └── depot/                  # Depot (M9): depot.8o, its README, headless tests + goldens
 ├── internal/testrig/           # headless runner, golden I/O, image diffs
 ├── testdata/
 │   ├── golden/                 # golden frames (.png native res + .txt)
@@ -221,7 +224,8 @@ chippie/
 │   └── (sources.json is embedded: catalogue/snapshot/)
 ├── e2e/                        # Playwright tests (+ fixtures/: CC0 ROM for download tests)
 ├── scripts/
-│   └── build.sh                # wasm + compression + page assembly
+│   ├── build.sh                # wasm + compression + page assembly
+│   └── build-games.sh          # games/*/*.8o → assets/roms/*.ch8, updates their SHA-1s
 ├── docs/
 │   ├── DESIGN.md               # this document
 │   ├── ROADMAP.md              # milestones, open questions, ideas

@@ -21,10 +21,10 @@ M7 does not depend on M6, and M8 does not depend on M6.
 | M6 | The 1970s TV | Generated art in, `skin.json`, knobs (click/drag/wheel), power animation, OSD, remote on touch devices, HiDPI layout, CRT at 60 FPS on iPhone |
 | M7 | XO-CHIP | Quirks + scrolling tests for XO-CHIP; pattern audio |
 | M8 | Upstream | PRs/issues to chip-8-database and the test suite submitted ([upstream/](upstream/README.md)) |
-| M9 | Our own game (in progress) | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
+| M9 | Our own game | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
 | M10 | Hires CHIP-8 | The 64×64 COSMAC VIP mode implemented and tested; its 8 known ROMs in the library and playable ([plan](plans/M10-hires.md), [below](#hires-chip-8)) |
 
-M1–M8 and M10 are done; M1–M8 are deployed.
+M1–M10 are done; M1–M8 are deployed.
 
 ## Platforms
 

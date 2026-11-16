@@ -154,12 +154,14 @@ chip-8-database and the test suite ([docs/upstream/](docs/upstream/README.md)).
 
 **Done:** the emulator core for seven platforms with screenshot tests, the
 browser app, the library and download sources, SUPER-CHIP, XO-CHIP, the 1970s
-TV with touch support, the upstream contributions (milestones M1–M8), and
-Hires CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
+TV with touch support, the upstream contributions (milestones M1–M8),
+Depot, an XO-CHIP game of our own bundled with Chippie, with arrow keys for
+games whose controls are known and saved high scores (M9), and Hires
+CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
 
 **Next:**
 
-- **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
+- Proposing Depot to chip-8-database and chip8Archive.
 - Getting Hires CHIP-8 and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Favourite games, and one library entry per program.
 

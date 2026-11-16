@@ -6,6 +6,7 @@ package depot_test
 import (
 	"flag"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"testing"
 
@@ -257,7 +258,7 @@ func TestFrameBudget(t *testing.T) {
 // budget runs s for warmUp frames of start-up and then n more, and checks
 // the game took none of them late or dropped any: its frame counter went up
 // by n and no frame's work ran over into the next.
-func budget(t *testing.T, s testrig.Script, warmUp, n int) {
+func budget(t *testing.T, s testrig.Script, warmUp, n int) *chip8.Machine {
 	t.Helper()
 
 	s.Frames = warmUp
@@ -265,13 +266,17 @@ func budget(t *testing.T, s testrig.Script, warmUp, n int) {
 	s.Frames = warmUp + n
 	after := run(t, s)
 
-	if got := frames(after) - frames(before); got != n {
-		t.Errorf("game counted %d frames in %d: it dropped %d", got, n, n-got)
+	// The game's frame counter is 16 bits: it wraps every 65536 frames.
+	const counterMask = 0xFFFF
+	if got := (frames(after) - frames(before)) & counterMask; got != n&counterMask {
+		t.Errorf("game counted %d frames in %d (mod 65536): it dropped %d", got, n&counterMask, n&counterMask-got)
 	}
 
 	if got := after.Peek(addrLate) - before.Peek(addrLate); got != 0 {
 		t.Errorf("%d frames ran late", got)
 	}
+
+	return after
 }
 
 func TestMoves(t *testing.T) {
@@ -1054,4 +1059,89 @@ func TestBestScoreSurvivesAReload(t *testing.T) {
 	if got := again.Peek(addrMode); got != modeTitle {
 		t.Errorf("mode %d after a reload, want the title", got)
 	}
+}
+
+// randomKeys returns n frames of random play from frame from: a tap of a
+// random key (start included, so games end and start again) every 2 to 20
+// frames, from a fixed seed.
+func randomKeys(from, n int) []testrig.KeyEvent {
+	r := rand.New(rand.NewPCG(1, 2)) //nolint:gosec // test input, not security
+	keys := []uint8{keyUp, keyUp, keyDown, keyLeft, keyRight, keyStart}
+
+	var out []testrig.KeyEvent
+	for f := from; f < from+n; f += 2 + r.IntN(19) {
+		out = append(out, tap(keys[r.IntN(len(keys))], f))
+	}
+
+	return out
+}
+
+// TestFrameBudgetForAnHour plays randomly for an hour of game time (design
+// §4): no frame may run late or be dropped, through deaths, game overs,
+// titles and new games. It takes ~5 s; with -race (CI), whose emulator is
+// ~15 times slower and adds nothing for one goroutine, it plays 10
+// minutes. Skipped with -short.
+func TestFrameBudgetForAnHour(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("an hour of game time")
+	}
+
+	const warmUp = 60
+
+	n := 60 * 60 * 60
+	if raceDetector {
+		n = 10 * 60 * 60
+	}
+
+	m := budget(t, testrig.Script{Keys: randomKeys(warmUp, n)}, warmUp, n)
+
+	// The random player dies a lot: games ended and a best score was set.
+	if best(m) == 0 {
+		t.Error("no best score after an hour: the run never reached game over")
+	}
+
+	if err := m.State().Err; err != nil {
+		t.Errorf("halted: %v", err)
+	}
+}
+
+// TestSameGameAt1000Ticks runs the same random minute at 500 and at 1000
+// instructions a frame: the game is locked to the 60 Hz timer, so it plays
+// exactly the same (design §4).
+func TestSameGameAt1000Ticks(t *testing.T) {
+	t.Parallel()
+
+	s := testrig.Script{Keys: randomKeys(begin, 3600), Frames: begin + 3600}
+	s.Keys = append([]testrig.KeyEvent{tap(keyStart, startPress)}, s.Keys...)
+
+	at := func(ticks int) *chip8.Machine {
+		p := profile()
+		p.TicksPerFrame = ticks
+
+		m, err := testrig.Run(loadROM(t), p, s)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return m
+	}
+
+	normal, fast := at(ticksPerFrame), at(2*ticksPerFrame)
+
+	// The state block and the lane table, up to the sound state.
+	for addr := uint16(addrFrame); addr < addrHi+8; addr++ {
+		if addr == addrLate {
+			continue // the fast run can't be late; the normal one isn't either
+		}
+
+		if a, b := normal.Peek(addr), fast.Peek(addr); a != b {
+			t.Errorf("%03X: %d at %d ticks, %d at %d", addr, a, ticksPerFrame, b, 2*ticksPerFrame)
+		}
+	}
+
+	// The same golden for both compares the whole screen.
+	check(t, fast, "random-minute")
+	check(t, normal, "random-minute")
 }

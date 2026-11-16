@@ -150,7 +150,9 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await page.waitForTimeout(300);
 
   const key = "chippie.overrides/2cdcb3c29a5f013a991db5909ca8e18e27b3c42b";
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe('{"tickrate":300}');
+  // Polled: under load the app can be a few frames behind the key presses.
+  const stored = () => page.evaluate((k) => localStorage.getItem(k), key);
+  await expect.poll(stored).toBe('{"tickrate":300}');
 
   // Reset to recommended clears it again.
   await page.reload();
@@ -165,7 +167,7 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
 
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBeNull();
+  await expect.poll(stored).toBeNull();
 });
 
 test("load a ROM from this device", async ({ page }) => {

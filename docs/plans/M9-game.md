@@ -1,5 +1,8 @@
 # Chippie: design for M9, our own game
 
+**Status:** done (2026-11-17), all 9 steps. The "As built" notes below say
+where the result differs from this design.
+
 ## Context
 
 Chippie plays other people's ROMs. M9 adds one of our own: an original
@@ -215,10 +218,12 @@ pallet?" and is deterministic for the tests.
 - **As built (step 6):** the title screen and a new game's board are drawn
   a piece a frame (3 and 4 frames) with the lanes stopped, and game over
   writes its text over three frames. A sound costs a few instructions a
-  frame (a step list played by `sound-frame`). Measured by lowering the
-  tick rate until the budget tests see late frames: play stays under
-  ~380 ticks a frame, and the worst frame overall, on the title and
-  game-over paths, is ~445 of 500.
+  frame (a step list played by `sound-frame`). Corrected in step 9: the
+  ~380/~445 first measured here came from lowering the tick rate until the
+  scripted tests saw late frames, which only covers their paths. A
+  profile of random play shows play frames average ~270 with a rare worst
+  case just over 500 (games/depot/README.md, "Known limit"); kept, as it
+  isn't noticeable.
 - **Late frames:** a frame that overruns doesn't drop (the counter still
   goes up), it starts late, and the game reads input a frame late. So
   `wait-frame` counts the frames where the timer had already run out
