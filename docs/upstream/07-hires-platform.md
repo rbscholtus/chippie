@@ -112,6 +112,10 @@ which is 64×128 and needs a modified interpreter.
 
 ## Follow-up: reply to tobiasvl (2026-11-17)
 
+- **Status:** posted 2026-11-17 as
+  [a comment](https://github.com/chip-8/chip-8-database/issues/33#issuecomment-6925757552),
+  after Chippie PR #20 was merged; the issue retitled as below.
+
 tobiasvl [commented](https://github.com/chip-8/chip-8-database/issues/33#issuecomment-6899378929)
 on 2026-11-15: call it "2 Page Display for CHIP-8" (Modla and Winsor, VIPER
 1/3, September 1978); `1260` jumps to 0x260, not 0x2C0; detect the mode by
