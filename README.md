@@ -74,8 +74,9 @@ Z X C V         A 0 B F
 Under the TV, Chippie shows which keys the running game uses. Where
 chip-8-database knows a game's controls, it lists them (and the on-screen
 remote highlights them). Otherwise Chippie watches the game: every key it
-checks is added to a "Keys it reads" line, so after a few seconds of play
-you can see its controls. A game that waits for any key says so.
+checks is added to a "Keys it reads" line, and lit on the remote, so after
+a few seconds of play you can see its controls. A game that waits for any
+key says so.
 
 ### The library
 

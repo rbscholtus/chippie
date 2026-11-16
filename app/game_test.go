@@ -458,3 +458,28 @@ func TestFilterChipsLayout(t *testing.T) {
 		t.Errorf("phone: %d chips, want %d", len(chips), len(library.Filters))
 	}
 }
+
+func TestRemoteLit(t *testing.T) {
+	t.Parallel()
+
+	const read = 1<<5 | 1<<7 | 1<<8 | 1<<9 // W A S D, as Turnover '77 reads them
+
+	tests := []struct {
+		name  string
+		hints map[string]int
+		read  uint16
+		want  uint16
+	}{
+		{"hint wins", map[string]int{"up": 1, "a": 0xA}, read, 1<<1 | 1<<0xA},
+		{"no hint: the keys read", nil, read, read},
+		{"empty hint: the keys read", map[string]int{}, read, read},
+		{"hint only for a second keypad: the keys read", map[string]int{"up": 0x15}, read, read},
+		{"nothing read yet, or any key only", nil, 0, 0},
+	}
+
+	for _, tt := range tests {
+		if got := remoteLit(tt.hints, tt.read); got != tt.want {
+			t.Errorf("%s: %016b, want %016b", tt.name, got, tt.want)
+		}
+	}
+}
