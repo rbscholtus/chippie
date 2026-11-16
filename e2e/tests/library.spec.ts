@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import {
   br8kout, click, desktopRow, golden, gridText, offline, running, sampleScreen, waitForApp,
@@ -25,6 +26,73 @@ test("typing searches, Enter plays a bundled game", async ({ page }) => {
   await page.keyboard.press("Enter");
 
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+});
+
+test("Chippie's own game, Depot, is in the library and plays offline", async ({ page }) => {
+  await offline(page);
+  await openLibrary(page);
+  await search(page, "depot");
+  await page.keyboard.press("Enter");
+
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+});
+
+test("Space and the arrow keys play a game with a keys hint (Depot)", async ({ page }) => {
+  await offline(page);
+  await openLibrary(page);
+  await search(page, "depot");
+  await page.keyboard.press("Enter");
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+
+  // Depot's 128×64 screen: (0, 2) is always background. On the title the
+  // hatch wall's row (y 8) is dark at the left edge; in a game it's wall.
+  // On the dock, the courier's middle row (y 56) covers x 60-64.
+  const pixel = async (x: number, y: number) => {
+    const g = await sampleScreen(page, 128, 64);
+    return g.rgb[y * 128 + x].join();
+  };
+  const background = await pixel(0, 2);
+  expect(await pixel(2, 8)).toBe(background);
+
+  await page.keyboard.down("Space"); // Depot's "a" is its start key, 6
+  await expect.poll(() => pixel(2, 8), { intervals: [200] }).not.toBe(background);
+  await page.keyboard.up("Space");
+  await expect.poll(() => pixel(62, 56), { intervals: [200] }).not.toBe(background);
+
+  await page.keyboard.down("ArrowLeft"); // left is 7: one hop of 4 px
+  await page.waitForTimeout(100);
+  await page.keyboard.up("ArrowLeft");
+  await expect.poll(() => pixel(62, 56), { intervals: [200] }).toBe(background);
+});
+
+test("Depot's best score comes back after a reload (saved flag registers)", async ({ page }) => {
+  const bundled = JSON.parse(readFileSync(new URL("../../assets/roms/bundled.json", import.meta.url), "utf8"));
+  const depot: string = bundled.find((e: { id: string }) => e.id === "depot").sha1;
+
+  // The title's best-score digits: x 67-86, y 31-35 of Depot's 128×64 screen.
+  const digits = async () => {
+    const g = await sampleScreen(page, 128, 64);
+    const rows: string[] = [];
+    for (let y = 31; y <= 35; y++) {
+      rows.push(g.rgb.slice(y * 128 + 67, y * 128 + 87).map((c) => c.join()).join(" "));
+    }
+    return rows.join("\n");
+  };
+  const title = async () => {
+    await page.goto(`/?rom=${depot}&shader=clean`);
+    await waitForApp(page);
+    await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+    await page.waitForTimeout(300); // the title takes three frames
+    return digits();
+  };
+
+  await offline(page);
+  const fresh = await title(); // BEST 0000
+
+  // What the app saves after a best score of 0130 (app/flags.go): the
+  // marker, then the digits two to a byte.
+  await page.evaluate(([k, v]) => localStorage.setItem(k, v), [`chippie.flags/${depot}`, "d3900130000000000000000000000000"]);
+  expect(await title()).not.toBe(fresh);
 });
 
 test("a coming-soon game can't be started", async ({ page }) => {
@@ -82,7 +150,9 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await page.waitForTimeout(300);
 
   const key = "chippie.overrides/2cdcb3c29a5f013a991db5909ca8e18e27b3c42b";
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe('{"tickrate":300}');
+  // Polled: under load the app can be a few frames behind the key presses.
+  const stored = () => page.evaluate((k) => localStorage.getItem(k), key);
+  await expect.poll(stored).toBe('{"tickrate":300}');
 
   // Reset to recommended clears it again.
   await page.reload();
@@ -97,7 +167,7 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
 
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBeNull();
+  await expect.poll(stored).toBeNull();
 });
 
 test("load a ROM from this device", async ({ page }) => {

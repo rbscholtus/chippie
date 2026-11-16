@@ -112,6 +112,8 @@ func baseName(path string) string {
 // run starts emulating a ROM with its profile: recommended, plus the
 // user's saved overrides.
 func (g *Game) run(e library.Entry, rom []byte) error {
+	g.flags.flush(g.Prefs) // the last game's save, before Reset clears it
+
 	prof := g.profileFor(e.SHA1)
 	g.machine.Reset(prof)
 
@@ -119,12 +121,17 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 		return fmt.Errorf("%s: %w", e.Title, err)
 	}
 
+	flags := loadFlags(g.Prefs, e.SHA1)
+	g.machine.SetFlags(flags)
+	g.flags.start(e.SHA1, flags)
+
 	g.loadTint(e.SHA1)
 	g.renderer.SetPalette(g.paletteWithTint(e.SHA1))
 	g.renderer.SetRotation(e.Rotation)
 	g.renderer.SetPicture(pictureIn(g.tv.lay.tube, e.Rotation))
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
+	g.extras = input.NewExtras(e.Keys)
 	g.syncSpeedKnob()
 	g.message = ""
 	g.state = stateRunning
@@ -191,12 +198,14 @@ func (g *Game) runFrame() {
 	if !shouldRun(g.state, ebiten.IsFocused(), g.machine.Halted()) {
 		input.Release(g.machine)
 		g.sound.SetBuzzer(false)
+		g.flags.flush(g.Prefs)
 
 		return
 	}
 
-	input.Poll(g.machine, g.remote.held)
+	input.Poll(g.machine, g.remote.held|g.extras.Held(ebiten.IsKeyPressed))
 	g.machine.RunFrame()
+	g.flags.frame(g.machine, g.Prefs)
 
 	snd := g.machine.Sound()
 	g.sound.SetPattern(snd.HasPattern, snd.Pattern, snd.Pitch)

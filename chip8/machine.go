@@ -68,6 +68,7 @@ type Machine struct {
 	twoPage bool               // the 2 Page Display has started (ops_twopage.go)
 	plane   byte               // bit-planes that drawing, clearing and scrolling affect
 	rpl     [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
+	saves   uint32             // FX75s run since the last reset
 
 	// XO-CHIP audio.
 	pattern       [patternBytes]byte // 128 one-bit samples, loaded by F002
@@ -124,6 +125,7 @@ func (m *Machine) Reset(p Profile) {
 	m.twoPage = false
 	m.plane = 1
 	m.rpl = [numRegisters]byte{}
+	m.saves = 0
 	m.pattern, m.patternLoaded, m.pitch = [patternBytes]byte{}, false, defaultPitch
 
 	if m.legacy() {
@@ -188,6 +190,23 @@ func (m *Machine) SetQuirks(q Quirks) { m.profile.Quirks = q }
 // reset (bit k for key k), and whether it has waited for any key (FX0A).
 // The UI shows them, so players can find a game's controls.
 func (m *Machine) KeysRead() (uint16, bool) { return m.keysRead, m.anyKey }
+
+// NumFlags is the number of flag registers: XO-CHIP has 16, SUPER-CHIP the
+// first 8.
+const NumFlags = numRegisters
+
+// Flags returns the flag registers, which FX75 stores registers in and FX85
+// loads them from. Programs keep data there between runs, e.g. a high
+// score, so the app saves them (see [Machine.FlagSaves]).
+func (m *Machine) Flags() [NumFlags]byte { return m.rpl }
+
+// SetFlags sets the flag registers, e.g. to what the program saved last
+// time, after [Machine.LoadROM]. Reset clears them.
+func (m *Machine) SetFlags(f [NumFlags]byte) { m.rpl = f }
+
+// FlagSaves counts the FX75 instructions run since the last reset, so the
+// app can notice a save without comparing the flags every frame.
+func (m *Machine) FlagSaves() uint32 { return m.saves }
 
 // Profile returns the profile the machine is running with.
 func (m *Machine) Profile() Profile { return m.profile }

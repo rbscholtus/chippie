@@ -1,6 +1,7 @@
 // Package roms holds the ROMs that need no download: the bundled CC0 games
-// (compiled in) and the Timendus test suite (shipped beside the app, GPLv3).
-// The library lists them with everything else; this package loads them.
+// (chip8Archive's and Chippie's own, compiled in) and the Timendus test
+// suite (shipped beside the app, GPLv3). The library lists them with
+// everything else; this package loads them.
 package roms
 
 import (
