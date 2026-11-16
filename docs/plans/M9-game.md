@@ -212,6 +212,13 @@ pallet?" and is deterministic for the tests.
   refills a pixel a frame during it and while dying, and the end of a game
   clears the board over its last three frames. The worst frame is ~480 of
   500, so step 6 must keep the play frame lean.
+- **As built (step 6):** the title screen and a new game's board are drawn
+  a piece a frame (3 and 4 frames) with the lanes stopped, and game over
+  writes its text over three frames. A sound costs a few instructions a
+  frame (a step list played by `sound-frame`). Measured by lowering the
+  tick rate until the budget tests see late frames: play stays under
+  ~380 ticks a frame, and the worst frame overall, on the title and
+  game-over paths, is ~445 of 500.
 - **Late frames:** a frame that overruns doesn't drop (the counter still
   goes up), it starts late, and the game reads input a frame late. So
   `wait-frame` counts the frames where the timer had already run out
@@ -223,12 +230,15 @@ pallet?" and is deterministic for the tests.
 |---|---|
 | `0x200` | `jump main` |
 | `0x202–0x21F` | **state block** at fixed addresses: frame counter, game state, round, lives, score digits, courier x/row, lit hatch, filled hatches. Tests read it with `Machine.Peek`. |
+| `0x218–0x25D` | the lane table (step 4) |
+| `0x25E–0x264` | best score, new-best flag, sound step and wait (step 6) |
 | `0x220–` | code, lane table, sprites, sound patterns |
 | `0x1000–` | spare (XO-CHIP), reached with `i := long` if assets grow |
 
 **Flag registers:** the best score is 2 bytes (BCD-style digits packed in
 nibbles) plus a 2-byte marker (`0xD3 0x90`) so a never-saved slot reads as
-"no best score". `saveflags v3` after a new best, `loadflags v3` at start-up.
+"no best score". `saveflags v3` after a new best, `loadflags v3` at start-up. As built
+(step 6) the flags are the marker then the digits: `D3 90 d1d2 d3d4`.
 
 The whole game is expected to fit in about 2.5 KB, well under the ~3.5 KB
 that jumps can reach.

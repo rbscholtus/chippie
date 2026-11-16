@@ -6,8 +6,13 @@ hit by a forklift, ride the pallets over the sorting chute, and deliver the
 parcel to the lit hatch at the top. Only one hatch is lit at a time, so plan
 your route. Fill all four to clear the round; every round is faster.
 
-**Status:** in development (step 5 of 9: the whole game, with deliveries, the time bar and rounds; the title screen, best score and sound come next
-order: [docs/plans/M9-game.md](../../docs/plans/M9-game.md).
+**Status:** in development (step 6 of 9: the whole game with its title
+and game-over screens, best score and sound; arrow keys, saving the best
+score between sessions and tuning come next). Design and build order:
+[docs/plans/M9-game.md](../../docs/plans/M9-game.md).
+
+Press E (key 6) on the title screen to start. The best score is kept in the
+flag registers, so Octo keeps it between sessions; Chippie will from step 8.
 
 ## Controls
 

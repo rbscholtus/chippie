@@ -39,10 +39,13 @@ const (
 	addrRow    = 0x20C
 	addrLit    = 0x20D // the lit hatch, 0-3
 	addrFilled = 0x20E // filled hatches, one bit each
+	addrTimer  = 0x210 // frames left in a pause
 	addrGhost  = 0x211 // not 0: nothing hits the courier
 	addrLate   = 0x212 // frames whose work ran over into the next
 	addrTime   = 0x213 // time-bar pixels left
 	addrLanes  = 0x218 // the lane table: laneSize bytes per row, from row 1
+	addrHi     = 0x25E // best score, four digits like addrScore
+	addrNewBst = 0x262 // not 0: the game just over set a new best
 )
 
 // Lane records (depot.8o, "Lanes"): y, flags, speed, acc, sprite, count,
@@ -77,10 +80,12 @@ func quietYard(more ...testrig.Poke) []testrig.Poke {
 
 // Modes (s-mode).
 const (
+	modeTitle   = 0
 	modePlay    = 1
 	modeDying   = 2
 	modeOver    = 3
 	modeDeliver = 4
+	modeStart   = 5
 )
 
 // ghost makes the courier un-hittable, for tests about movement.
@@ -92,6 +97,7 @@ const (
 	keyLeft  = 0x7
 	keyDown  = 0x8
 	keyRight = 0x9
+	keyStart = 0x6
 )
 
 // The courier's start: x 60 on the dock (row 8). Hops are 4 px or one row.
@@ -102,8 +108,14 @@ const (
 	topRow   = 1 // the hatch row (0) can't be entered yet
 )
 
-// begin is the first frame the tests press keys in, after start-up.
-const begin = 10
+// The title takes frames 0-2 to draw and takes the start key from frame
+// 3; the board then takes 4 frames. run presses start at startPress, so
+// the game is playing by frame begin, the first frame the tests press keys
+// in.
+const (
+	startPress = 3
+	begin      = 10
+)
 
 // tap presses key at frame f for two frames.
 func tap(key uint8, f int) testrig.KeyEvent {
@@ -145,7 +157,17 @@ func profile() chip8.Profile {
 	return p
 }
 
+// run starts a game (it presses start on the title screen) and runs s.
 func run(t *testing.T, s testrig.Script) *chip8.Machine {
+	t.Helper()
+
+	s.Keys = append([]testrig.KeyEvent{tap(keyStart, startPress)}, s.Keys...)
+
+	return runTitle(t, s)
+}
+
+// runTitle runs s from power-on, without pressing start.
+func runTitle(t *testing.T, s testrig.Script) *chip8.Machine {
 	t.Helper()
 
 	m, err := testrig.Run(loadROM(t), profile(), s)
@@ -179,6 +201,16 @@ func score(m *chip8.Machine) int {
 	return n
 }
 
+// best reads the four best-score digits as a number.
+func best(m *chip8.Machine) int {
+	n := 0
+	for i := range uint16(4) {
+		n = n*10 + int(m.Peek(addrHi+i))
+	}
+
+	return n
+}
+
 // courier returns the courier's x and row.
 func courier(m *chip8.Machine) (int, int) {
 	return int(m.Peek(addrX)), int(m.Peek(addrRow))
@@ -187,7 +219,7 @@ func courier(m *chip8.Machine) (int, int) {
 func TestPlayfield(t *testing.T) {
 	t.Parallel()
 
-	m := run(t, testrig.Script{Frames: 3}) // start-up takes 3 frames
+	m := run(t, testrig.Script{Frames: begin})
 	check(t, m, "playfield")
 
 	for _, s := range []struct {
@@ -195,7 +227,7 @@ func TestPlayfield(t *testing.T) {
 		addr uint16
 		want byte
 	}{
-		{"mode", addrMode, modePlay}, // the title screen comes in step 6
+		{"mode", addrMode, modePlay},
 		{"round", addrRound, 1},
 		{"lives", addrLives, 3},
 		{"x", addrX, 60},
@@ -392,6 +424,7 @@ func TestHitInTheYard(t *testing.T) {
 	}
 
 	until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+	checkSound(t, m, "hit", patternNoise, pitchHit)
 	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
 
 	if got := m.Peek(addrLives); got != 2 {
@@ -445,9 +478,13 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("lives %d at game over, want 0", got)
 	}
 
-	check(t, m, "game-over")
+	for range 4 { // the text takes three frames
+		m.RunFrame()
+	}
 
-	until(t, m, 200, func() bool { return m.Peek(addrMode) == modePlay })
+	check(t, m, "game-over") // 30 points is a new best: NEW BEST shows
+
+	startGame(t, m)
 
 	if got := m.Peek(addrLives); got != 3 {
 		t.Errorf("lives %d in the new game, want 3", got)
@@ -491,6 +528,7 @@ func TestFallInTheChute(t *testing.T) {
 	}
 
 	until(t, m, 10, func() bool { return m.Peek(addrMode) == modeDying })
+	checkSound(t, m, "fall", patternNoise, pitchFall)
 	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
 
 	if got := m.Peek(addrLives); got != 2 {
@@ -650,6 +688,8 @@ func deliver(t *testing.T, m *chip8.Machine) (int, int) {
 		t.Fatalf("hop into lit hatch %d didn't deliver", lit)
 	}
 
+	checkSound(t, m, "delivery", patternSquare, pitchChime)
+
 	until(t, m, 60, func() bool { return m.Peek(addrMode) == modePlay })
 
 	return lit, left
@@ -673,6 +713,9 @@ func TestTimeOut(t *testing.T) {
 
 	m := run(t, testrig.Script{Frames: begin})
 	start := frames(m)
+
+	until(t, m, timeFull*tickFrames, func() bool { return m.Peek(addrTime) == tickFrom-1 })
+	checkSound(t, m, "time bar tick", patternNoise, pitchTick)
 
 	until(t, m, timeFull*tickFrames+tickFrames, func() bool { return m.Peek(addrMode) == modeDying })
 
@@ -791,7 +834,7 @@ func TestLitHatchMoves(t *testing.T) {
 func TestNewGameClearsTheBoard(t *testing.T) {
 	t.Parallel()
 
-	fresh := run(t, testrig.Script{Frames: 3}).Display()
+	fresh := run(t, testrig.Script{Frames: begin}).Display()
 
 	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
 	defer noneLate(t, m)()
@@ -806,7 +849,7 @@ func TestNewGameClearsTheBoard(t *testing.T) {
 	}
 
 	until(t, m, 120, func() bool { return m.Peek(addrMode) == modeOver })
-	until(t, m, 200, func() bool { return m.Peek(addrMode) == modePlay })
+	startGame(t, m)
 
 	const hatchRows = 12 // the HUD and the hatch wall
 
@@ -832,5 +875,143 @@ func TestNewGameClearsTheBoard(t *testing.T) {
 
 	if light != 6*5 {
 		t.Errorf("%d px of light in the hatch wall, want one hatch's (30)", light)
+	}
+}
+
+// startGame waits for the title screen after a game, presses start and
+// waits for the new game.
+func startGame(t *testing.T, m *chip8.Machine) {
+	t.Helper()
+
+	until(t, m, 300, func() bool { return m.Peek(addrMode) == modeTitle && m.Peek(addrTimer) == 0 })
+	press(t, m, keyStart)
+	until(t, m, 10, func() bool { return m.Peek(addrMode) == modePlay })
+}
+
+// TestTitle checks the title screen at power-on: it waits for the start
+// key, with no best score yet, and is silent (golden).
+func TestTitle(t *testing.T) {
+	t.Parallel()
+
+	m := runTitle(t, testrig.Script{Frames: 20}) // before the prompt first blinks off
+
+	if got := m.Peek(addrMode); got != modeTitle {
+		t.Errorf("mode %d, want the title (%d)", got, modeTitle)
+	}
+
+	if got := best(m); got != 0 {
+		t.Errorf("best score %d with nothing saved, want 0", got)
+	}
+
+	if m.Sound().Buzzer {
+		t.Error("buzzer on at the title")
+	}
+
+	check(t, m, "title")
+
+	m = runTitle(t, testrig.Script{Keys: []testrig.KeyEvent{tap(keyStart, startPress)}, Frames: begin})
+	if got := m.Peek(addrMode); got != modePlay {
+		t.Errorf("mode %d after start, want playing (%d)", got, modePlay)
+	}
+}
+
+// loseAll loses every life, by hopping into yard 3 and waiting, and waits
+// for game over to show its text.
+func loseAll(t *testing.T, m *chip8.Machine) {
+	t.Helper()
+
+	m.Poke(addrGhost, 0)
+
+	for m.Peek(addrLives) > 0 {
+		until(t, m, 120, func() bool { return m.Peek(addrMode) == modePlay })
+		press(t, m, keyUp)
+		until(t, m, 600, func() bool { return m.Peek(addrMode) == modeDying })
+		until(t, m, 120, func() bool { return m.Peek(addrMode) != modeDying })
+	}
+
+	until(t, m, 10, func() bool { return m.Peek(addrMode) == modeOver })
+
+	for range 4 {
+		m.RunFrame()
+	}
+}
+
+// TestBestScore plays two games: the first sets the best score, shown on
+// the title; the second scores less and leaves it.
+func TestBestScore(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Frames: begin})
+	defer noneLate(t, m)()
+
+	deliver(t, m)
+	loseAll(t, m)
+
+	first := score(m)
+	if got := best(m); got != first {
+		t.Errorf("best score %d after the first game, want its score %d", got, first)
+	}
+
+	if m.Peek(addrNewBst) == 0 {
+		t.Error("first game's score isn't marked a new best")
+	}
+
+	until(t, m, 300, func() bool { return m.Peek(addrMode) == modeTitle && m.Peek(addrTimer) == 0 })
+	check(t, m, "title-best")
+
+	press(t, m, keyStart)
+	until(t, m, 10, func() bool { return m.Peek(addrMode) == modePlay })
+	loseAll(t, m)
+
+	if got := score(m); got >= first {
+		t.Fatalf("second game scored %d, want less than %d", got, first)
+	}
+
+	if got := best(m); got != first {
+		t.Errorf("best score %d after a lower score, want %d kept", got, first)
+	}
+
+	if m.Peek(addrNewBst) != 0 {
+		t.Error("lower score marked a new best")
+	}
+}
+
+// Sounds (depot.8o, "Sounds"): the pattern each starts with, by its first
+// byte, and its pitch.
+const (
+	patternSquare = 0xFF
+	patternNoise  = 0xA5
+	pitchHop      = 200
+	pitchTick     = 200
+	pitchHit      = 120
+	pitchFall     = 150
+	pitchChime    = 143
+	tickFrom      = 7 // the time bar ticks from 6 px left
+)
+
+// checkSound checks the sound that started this frame.
+func checkSound(t *testing.T, m *chip8.Machine, what string, pattern, pitch byte) {
+	t.Helper()
+
+	s := m.Sound()
+	if !s.Buzzer || !s.HasPattern || s.Pattern[0] != pattern || s.Pitch != pitch {
+		t.Errorf("%s: buzzer %v, pattern %v from %02X, pitch %d; want on, %02X, %d",
+			what, s.Buzzer, s.HasPattern, s.Pattern[0], s.Pitch, pattern, pitch)
+	}
+}
+
+// TestHopSound hops once: a click, which stops after two frames.
+func TestHopSound(t *testing.T) {
+	t.Parallel()
+
+	m := run(t, testrig.Script{Pokes: ghost, Keys: []testrig.KeyEvent{tap(keyUp, begin)}, Frames: begin + 1})
+	checkSound(t, m, "hop", patternSquare, pitchHop)
+
+	for range 3 {
+		m.RunFrame()
+	}
+
+	if m.Sound().Buzzer {
+		t.Error("hop still sounding after 3 frames")
 	}
 }

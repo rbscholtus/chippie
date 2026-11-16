@@ -6,10 +6,10 @@
 #  Design: docs/plans/M9-game.md. Build: scripts/build-games.sh.
 #  Runs at 500 ticks per frame, 128x64, two planes.
 #
-#  Build order step 5 of 9: the whole game, without its title screen,
-#  best score and sound. Cross the yard, ride the pallets over the chute
-#  and deliver to the lit hatch before the time bar runs out; fill all
-#  four hatches to clear the round.
+#  Build order step 6 of 9: the whole game with its title and game-over
+#  screens, best score and sound. Cross the yard, ride the pallets over the
+#  chute and deliver to the lit hatch before the time bar runs out; fill
+#  all four hatches to clear the round.
 #
 ###########################################################################
 
@@ -42,18 +42,27 @@
 :const X-TIME      92
 :const Y-TIME       1
 
-# Modes (s-mode).
+# Modes (s-mode). The lanes move in every mode but the title and start.
 :const MODE-TITLE   0
 :const MODE-PLAY    1
 :const MODE-DYING   2
 :const MODE-OVER    3
 :const MODE-DELIVER 4
+:const MODE-START   5    # building the board for a new game
 
 # Pauses, in frames. Each is long enough to refill the time bar one pixel a
 # frame (TIME-FULL), with frames to spare for the work done at set times.
 :const DYING-FRAMES   48   # the courier blinks; a multiple of 8 leaves it shown
-:const OVER-FRAMES   120
+:const OVER-FRAMES   150
 :const DELIVER-FRAMES 40
+:const TITLE-FRAMES    3   # the title is drawn a piece a frame
+:const START-FRAMES    4   # so is the board for a new game
+
+# What happens when in the game-over pause (over-frame), counting down
+# from OVER-FRAMES - 1.
+:const AT-BEST      149    # compare with the best score, save a new one
+:const AT-GAME-OVER 148    # GAME OVER in the walkway
+:const AT-NEW-BEST  147    # and NEW BEST beside it
 
 # What happens when in the delivery pause (deliver-frame): its timer counts
 # down from DELIVER-FRAMES - 1.
@@ -101,6 +110,56 @@
 # Key repeat, in frames: the first repeat, then the rest.
 :const REPEAT-FIRST 12
 :const REPEAT-NEXT   6
+
+# Title screen (128x64): the logo, a scene, the best score, the keys.
+:const X-LOGO          42    # 5 letters 7 px wide, 9 px apart
+:const Y-LOGO           3
+:const LOGO-STEP        9
+:const LOGO-HEIGHT     11
+:const LOGO-END        55    # 5 letters of LOGO-HEIGHT bytes
+:const Y-SCENE         19
+:const Y-SCENE-LINE    25
+:const X-SCENE-FORKLIFT 22
+:const X-SCENE-COURIER 61
+:const X-SCENE-PALLET  90
+:const X-BEST          42    # "BEST 0000", 9 characters
+:const X-BEST-DIGITS   67
+:const Y-BEST          31
+:const X-HELP          42    # "WASD MOVE"
+:const Y-HELP          42
+:const X-PROMPT        47    # "E START", blinking
+:const Y-PROMPT        52
+:const BLINK-MASK      31    # the prompt toggles every 32 frames
+
+# Game over: text in the walkway, between its gap lines.
+:const Y-WALK-TEXT     30
+:const X-GAME-OVER     42    # alone, centred
+:const X-GAME-OVER-2   19    # with NEW BEST beside it
+:const X-NEW-BEST      69
+
+# Text (draw-text): characters are 4x5 glyphs, 5 px apart.
+:const CHR-SPACE      254
+:const CHR-END        255
+:const CHR-STEP         5
+:const STR-BEST         0
+:const STR-HELP         5
+:const STR-START       15
+:const STR-GAME-OVER   23
+:const STR-NEW-BEST    33
+
+# Best score in the flag registers (design §2.5): a marker, then the four
+# digits packed two to a byte.
+:const FLAG-MARK-1   0xD3
+:const FLAG-MARK-2   0x90
+
+# Sounds: offsets into the sounds table (sound-frame plays them).
+:const SND-HOP        3
+:const SND-TICK       9
+:const SND-HIT       15
+:const SND-FALL      21
+:const SND-CHIME     42
+:const SND-ROUND     51
+:const TICK-FROM      7    # the time bar ticks from 6 px (3 s) left
 
 :const POINTS-ROW      10
 :const POINTS-DELIVERY 50    # plus 1 per time-bar pixel left
@@ -166,6 +225,11 @@
 	48 :byte 0              24  0 :byte SPR-FORKLIFT-R  2  20  84   0   0   # yard 3
 	30 :byte 0               0  0 :byte 0               0   0   0   0   0   # walkway
 
+# After the lane table (0x25E).
+: s-hi         0 0 0 0  # 0x25E  best score, four digits like s-score
+: s-newbest    0      # 0x262  not 0: the game just over set s-hi
+: s-snd        0      # 0x263  offset of the next sound step, 0: none
+: s-wait       0      # 0x264  frames until it
 
 ###########################################################################
 #  Registers kept for the whole game. v0-v9 and vE are scratch; vF is the
@@ -188,6 +252,17 @@
 	Y += 6
 }
 
+# fill-row draws the sprite at i across the screen at y = v1, every 8 px.
+# Uses v0.
+:macro fill-row HEIGHT {
+	v0 := 0
+	loop
+		sprite v0 v1 HEIGHT
+		v0 += 8
+		while v0 != 128
+	again
+}
+
 ###########################################################################
 #  Main
 ###########################################################################
@@ -196,16 +271,15 @@
 	hires
 	held := DIR-NONE
 	repeat := 0
-	draw-playfield
-	draw-hud
-	draw-lanes
-	start-game
+	load-best
+	show-title
 	loop
 		wait-frame
 		update-lanes
 		by-mode
 		i := s-x
 		save cx - crow
+		sound-frame
 	again
 
 # wait-frame waits for the next 60 Hz frame and counts it, leaving the
@@ -243,6 +317,8 @@
 	if v0 == MODE-DYING then jump dying-frame
 	if v0 == MODE-OVER then jump over-frame
 	if v0 == MODE-DELIVER then jump deliver-frame
+	if v0 == MODE-TITLE then jump title-frame
+	if v0 == MODE-START then jump start-frame
 ;
 
 : play-frame
@@ -254,8 +330,17 @@
 #  Lives
 ###########################################################################
 
-# lose-life starts the courier blinking: it's been hit, or fell.
+# fall starts the courier blinking with the falling sound: it stood in the
+# chute with no pallet, was carried off the edge, or ran out of time.
+: fall
+	v0 := SND-FALL
+	jump lose-with
+
+# lose-life starts the courier blinking: it's been hit.
 : lose-life
+	v0 := SND-HIT
+: lose-with
+	start-sound
 	v0 := MODE-DYING
 	i := s-mode
 	save v0
@@ -293,21 +378,14 @@
 	save v0
 ;
 
-# over-frame waits, then clears the board and starts a new game, over
-# three frames to keep each one in budget. The title and game-over screens
-# come in step 6.
+# over-frame shows GAME OVER (and NEW BEST) in the walkway while the lanes
+# go on, then goes back to the title. The work is a frame at a time.
 : over-frame
 	count-down
-	if v0 == 2 begin
-		draw-score      # erase
-		draw-round      # erase
-		jump draw-time-full     # erase: dying refilled it
-	end
-	if v0 == 1 begin
-		draw-parcels    # erase
-		jump draw-lit   # erase
-	end
-	if v0 == 0 then jump start-game
+	if v0 == AT-BEST then jump check-best
+	if v0 == AT-GAME-OVER then jump draw-game-over
+	if v0 == AT-NEW-BEST then jump draw-new-best
+	if v0 == 0 then jump show-title
 ;
 
 # count-down decrements s-timer and returns it in v0.
@@ -319,8 +397,8 @@
 	save v0
 ;
 
-# start-game resets the game and draws its state: the board must be
-# clear of the last game's (over-frame).
+# start-game resets the game and draws its state on the new board
+# (start-frame).
 : start-game
 	v0 := 0
 	v1 := 0
@@ -426,6 +504,8 @@
 		end
 	end
 	draw-courier
+	v0 := SND-HOP
+	start-sound
 	# A row reached for the first time on this crossing scores.
 	i := s-best
 	load v0
@@ -491,9 +571,13 @@
 # all the lanes, and the halves cost the same (design §2.4). Expects v0 =
 # the frame count's low byte (wait-frame).
 : update-lanes
-	plane 1
 	vE := 1
 	vE &= v0
+	i := s-mode
+	load v0
+	if v0 == MODE-TITLE then return
+	if v0 == MODE-START then return
+	plane 1
 	if vE != 0 then vE := LANE-SIZE
 	loop
 		update-lane
@@ -587,7 +671,7 @@
 		if v3 < 128 then cx := X-COURIER-EDGE
 	end
 	draw-courier
-	if v4 != 0 then jump lose-life
+	if v4 != 0 then jump fall
 ;
 
 # overlap sets vE to 1 if the object at x = X overlaps the courier, with
@@ -635,7 +719,7 @@
 		if vE != 0 then jump lose-life
 		return
 	end
-	if vE == 0 then jump lose-life
+	if vE == 0 then jump fall
 ;
 
 ###########################################################################
@@ -652,6 +736,8 @@
 	draw-lit        # erase: the courier goes in
 	crow := ROW-HATCHES
 	draw-courier
+	v0 := SND-CHIME
+	start-sound
 	v0 := MODE-DELIVER
 	i := s-mode
 	save v0
@@ -731,6 +817,8 @@
 	i := s-round
 	save v0
 	draw-round
+	v0 := SND-ROUND
+	start-sound
 	vE := POINTS-ROUND
 	jump score-add
 
@@ -888,7 +976,11 @@
 	v2 := Y-TIME
 	i := time-column
 	sprite v1 v2 3  # erase the pixel that went
-	if v0 == 0 then jump lose-life
+	if v0 == 0 then jump fall
+	if v0 < TICK-FROM begin
+		v0 := SND-TICK
+		jump start-sound
+	end
 	if v0 != TIME-MOVE then return
 	i := s-round
 	load v0
@@ -1001,23 +1093,329 @@
 ;
 
 ###########################################################################
+#  Title screen and a new game
+###########################################################################
+
+# show-title starts the title screen, which title-frame draws.
+: show-title
+	v0 := MODE-TITLE
+	i := s-mode
+	save v0
+	v0 := TITLE-FRAMES
+	i := s-timer
+	save v0
+;
+
+# title-frame draws the title a piece a frame, then blinks the prompt and
+# waits for the start key.
+: title-frame
+	i := s-timer
+	load v0
+	if v0 != 0 begin
+		v0 += -1
+		i := s-timer
+		save v0
+		if v0 == 2 then jump title-logo
+		if v0 == 1 then jump title-scene
+		jump title-help
+	end
+	v1 := KEY-START
+	if v1 key then jump begin-game
+	i := s-frame
+	load v0
+	v1 := BLINK-MASK
+	v1 &= v0
+	if v1 == 0 then jump draw-prompt
+;
+
+# title-logo clears the screen and draws DEPOT, amber letters (plane 1) on
+# a white shadow (plane 2): orange where they overlap.
+: title-logo
+	plane 3
+	clear
+	v4 := X-LOGO
+	v5 := Y-LOGO
+	v6 := 0
+	loop
+		i := logo
+		i += v6
+		plane 2
+		v7 := v4
+		v7 += 1
+		v8 := v5
+		v8 += 1
+		sprite v7 v8 LOGO-HEIGHT
+		plane 1
+		sprite v4 v5 LOGO-HEIGHT
+		v4 += LOGO-STEP
+		v6 += LOGO-HEIGHT
+		while v6 != LOGO-END
+	again
+;
+
+# title-scene draws a forklift, the courier and a pallet on a yard line,
+# and the best score.
+: title-scene
+	plane 1
+	v4 := X-SCENE-FORKLIFT
+	v5 := Y-SCENE
+	i := lane-sprites       # SPR-FORKLIFT-R
+	sprite v4 v5 0
+	v4 := X-SCENE-PALLET
+	v0 := SPR-PALLET
+	i := lane-sprites
+	i += v0
+	sprite v4 v5 0
+	i := tile-dashes
+	v1 := Y-SCENE-LINE
+	fill-row 1
+	plane 2
+	v4 := X-SCENE-COURIER
+	i := sprite-courier
+	sprite v4 v5 5
+	plane 1
+	v4 := X-BEST
+	v5 := Y-BEST
+	v6 := STR-BEST
+	draw-text
+	v4 := X-BEST-DIGITS
+	i := s-hi
+	jump draw-digits
+
+# title-help draws the keys: WASD to move, and the start prompt.
+: title-help
+	plane 1
+	v4 := X-HELP
+	v5 := Y-HELP
+	v6 := STR-HELP
+	draw-text
+	# fall through
+
+# draw-prompt draws (or erases) E START, on plane 2.
+: draw-prompt
+	plane 2
+	v4 := X-PROMPT
+	v5 := Y-PROMPT
+	v6 := STR-START
+	draw-text
+	plane 1
+;
+
+# begin-game leaves the title: start-frame builds the board.
+: begin-game
+	v0 := MODE-START
+	i := s-mode
+	save v0
+	v0 := START-FRAMES
+	i := s-timer
+	save v0
+;
+
+# start-frame builds a new game's board a piece a frame, then starts it.
+: start-frame
+	count-down
+	if v0 == 3 then jump draw-board-top
+	if v0 == 2 then jump draw-board-bottom
+	if v0 == 1 then jump draw-lanes
+	if v0 == 0 then jump start-game
+;
+
+###########################################################################
+#  Game over and the best score
+###########################################################################
+
+# check-best compares the score with the best score (s-hi), digit by
+# digit, and makes it the new best if it's higher.
+: check-best
+	v0 := 0
+	i := s-newbest
+	save v0
+	i := s-score
+	load v3
+	i := s-hi
+	load v4 - v7
+	if v0 > v4 then jump new-best
+	if v0 < v4 then return
+	if v1 > v5 then jump new-best
+	if v1 < v5 then return
+	if v2 > v6 then jump new-best
+	if v2 < v6 then return
+	if v3 > v7 then jump new-best
+;
+
+# new-best stores the score (in v0-v3) as the best, in s-hi and in the
+# flag registers: the marker, then the digits two to a byte.
+: new-best
+	i := s-hi
+	save v3
+	v4 := v0
+	v4 <<= v4
+	v4 <<= v4
+	v4 <<= v4
+	v4 <<= v4
+	v4 |= v1
+	v5 := v2
+	v5 <<= v5
+	v5 <<= v5
+	v5 <<= v5
+	v5 <<= v5
+	v5 |= v3
+	v0 := FLAG-MARK-1
+	v1 := FLAG-MARK-2
+	v2 := v4
+	v3 := v5
+	saveflags v3
+	v0 := 1
+	i := s-newbest
+	save v0
+;
+
+# load-best reads the best score from the flag registers, if they hold
+# one (the marker), into s-hi.
+: load-best
+	loadflags v3
+	if v0 != FLAG-MARK-1 then return
+	if v1 != FLAG-MARK-2 then return
+	v0 := v2
+	v0 >>= v0
+	v0 >>= v0
+	v0 >>= v0
+	v0 >>= v0
+	v1 := 15
+	v1 &= v2
+	v2 := v3
+	v2 >>= v2
+	v2 >>= v2
+	v2 >>= v2
+	v2 >>= v2
+	v4 := 15
+	v3 &= v4
+	i := s-hi
+	save v3
+;
+
+# draw-game-over writes GAME OVER in the walkway, to the left when NEW
+# BEST goes beside it.
+: draw-game-over
+	i := s-newbest
+	load v0
+	v4 := X-GAME-OVER
+	if v0 != 0 then v4 := X-GAME-OVER-2
+	v6 := STR-GAME-OVER
+	jump draw-walk-text
+
+# draw-new-best writes NEW BEST beside it, after a new best score.
+: draw-new-best
+	i := s-newbest
+	load v0
+	if v0 == 0 then return
+	v4 := X-NEW-BEST
+	v6 := STR-NEW-BEST
+	# fall through
+
+# draw-walk-text writes string v6 at x = v4 in the walkway, on plane 2.
+: draw-walk-text
+	plane 2
+	v5 := Y-WALK-TEXT
+	draw-text
+	plane 1
+;
+
+###########################################################################
+#  Text
+###########################################################################
+
+# draw-text draws (or erases) the string at offset v6 in strings, from
+# x = v4, y = v5, on the selected planes. Uses v0, v4, v6.
+: draw-text
+	loop
+		i := strings
+		i += v6
+		load v0
+		while v0 != CHR-END
+		if v0 != CHR-SPACE begin
+			i := glyphs
+			i += v0
+			sprite v4 v5 5
+		end
+		v4 += CHR-STEP
+		v6 += 1
+	again
+;
+
+# draw-digits draws (or erases) the four digits at i, from x = v4,
+# y = v5, on plane 1. Uses v0-v4.
+: draw-digits
+	load v3
+	plane 1
+	i := hex v0
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v1
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v2
+	sprite v4 v5 5
+	v4 += 5
+	i := hex v3
+	sprite v4 v5 5
+;
+
+###########################################################################
+#  Sound
+#
+#  A sound is a list of steps in the sounds table: pattern (an offset into
+#  patterns), pitch, and frames to play it, ended by a step of 0 frames.
+#  sound-frame plays the next step when the last one's frames are up.
+###########################################################################
+
+# start-sound starts sound v0 (SND-*) on this frame's sound-frame, cutting
+# off the one playing. Uses v0, v1.
+: start-sound
+	v1 := 1
+	i := s-snd
+	save v1
+;
+
+# sound-frame counts down the step playing and starts the next one.
+: sound-frame
+	i := s-snd
+	load v1         # s-snd, s-wait
+	if v0 == 0 then return
+	v1 += -1
+	if v1 == 0 then jump sound-step
+	i := s-snd
+	save v1
+;
+
+# sound-step plays the step at offset v0 in the sounds table.
+: sound-step
+	i := sounds
+	i += v0
+	load v2 - v4    # pattern, pitch, frames
+	v0 += 3
+	if v4 == 0 then v0 := 0
+	v1 := v4
+	i := s-snd
+	save v1
+	if v4 == 0 then return
+	i := patterns
+	i += v2
+	audio
+	pitch := v3
+	buzzer := v4
+;
+
+###########################################################################
 #  Drawing
 ###########################################################################
 
-# fill-row draws the sprite at i across the screen at y = v1, every 8 px.
-# Uses v0.
-:macro fill-row HEIGHT {
-	v0 := 0
-	loop
-		sprite v0 v1 HEIGHT
-		v0 += 8
-		while v0 != 128
-	again
-}
-
-: draw-playfield
-	plane 1
+# draw-board-top clears the screen and draws the hatch wall and the
+# walkway: the first frame of a new game's board (start-frame).
+: draw-board-top
+	plane 3
 	clear
+	plane 1
 
 	# The hatch wall: a hatch wherever x mod 32 is 8 (x = 8, 40, 72, 104).
 	v0 := 0
@@ -1040,7 +1438,12 @@
 	fill-row 1
 	v1 := Y-WALK-BOT
 	fill-row 1
+;
 
+# draw-board-bottom draws the yard's lines, the dock and the HUD's R: the
+# second frame of the board.
+: draw-board-bottom
+	plane 1
 	i := tile-dashes
 	v1 := Y-YARD-1
 	fill-row 1
@@ -1054,10 +1457,6 @@
 	i := tile-floor
 	v1 := Y-FLOOR
 	fill-row 4
-;
-
-: draw-hud
-	plane 1
 
 	# The R before the round number (draw-round).
 	v4 := X-ROUND
@@ -1179,13 +1578,6 @@
 	0b01110000
 	0b00100000
 
-: glyph-r
-	0b11100000
-	0b10010000
-	0b11100000
-	0b10100000
-	0b10010000
-
 # The light in the lit hatch (plane 2), filling its opening.
 : sprite-lit
 	0b01111110
@@ -1215,3 +1607,124 @@
 	0b11111000
 	0b00100000
 	0b01010000
+
+###########################################################################
+#  Text and logo
+###########################################################################
+
+# The text font: 4x5 letters, glyph n at offset 5n.
+: glyphs
+	0b01100000 0b10010000 0b11110000 0b10010000 0b10010000   # A
+	0b11100000 0b10010000 0b11100000 0b10010000 0b11100000   # B
+	0b11100000 0b10010000 0b10010000 0b10010000 0b11100000   # D
+	0b11110000 0b10000000 0b11100000 0b10000000 0b11110000   # E
+	0b01110000 0b10000000 0b10110000 0b10010000 0b01110000   # G
+	0b10010000 0b11110000 0b11110000 0b10010000 0b10010000   # M
+	0b10010000 0b11010000 0b10110000 0b10010000 0b10010000   # N
+	0b01100000 0b10010000 0b10010000 0b10010000 0b01100000   # O
+: glyph-r    # the HUD's R before the round number
+	0b11100000 0b10010000 0b11100000 0b10100000 0b10010000   # R
+	0b01110000 0b10000000 0b01100000 0b00010000 0b11100000   # S
+	0b11100000 0b01000000 0b01000000 0b01000000 0b01000000   # T
+	0b10100000 0b10100000 0b10100000 0b10100000 0b01000000   # V
+	0b10010000 0b10010000 0b11110000 0b11110000 0b10010000   # W
+
+# The title's logo: DEPOT in 7x11 letters, 11 bytes each.
+: logo
+	# D
+	0b11111100
+	0b11111110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11111110
+	0b11111100
+	# E
+	0b11111110
+	0b11111110
+	0b11000000
+	0b11000000
+	0b11111100
+	0b11111100
+	0b11000000
+	0b11000000
+	0b11000000
+	0b11111110
+	0b11111110
+	# P
+	0b11111100
+	0b11111110
+	0b11000110
+	0b11000110
+	0b11111110
+	0b11111100
+	0b11000000
+	0b11000000
+	0b11000000
+	0b11000000
+	0b11000000
+	# O
+	0b01111100
+	0b11111110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11000110
+	0b11111110
+	0b01111100
+	# T
+	0b11111110
+	0b11111110
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+	0b00111000
+
+# Strings: glyph offsets; CHR-SPACE is a gap, CHR-END ends the string.
+: strings
+	5 15 45 50 255   # BEST
+	60 0 45 10 254 25 35 55 15 255   # WASD MOVE
+	15 254 45 50 0 40 50 255   # E START
+	20 0 25 15 254 35 55 15 40 255   # GAME OVER
+	30 15 60 254 5 15 45 50 255   # NEW BEST
+
+###########################################################################
+#  Sounds (design §1.4). XO-CHIP plays a pattern's 128 bits at
+#  4000 * 2^((pitch - 64) / 48) bits a second.
+###########################################################################
+
+# Patterns, 16 bytes each.
+: patterns
+	# 0: a square wave, 16 bits a period: 250 Hz at pitch 64, and C5,
+	# E5, G5, C6 at pitch 115, 131, 143, 163.
+	0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00
+	0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00
+	# 16: noise.
+	0xA5 0x4D 0xCA 0x18 0x25 0x30 0xBB 0x1D
+	0x6D 0x13 0x2C 0xDE 0xD6 0x23 0x7B 0x2E
+
+# Sounds: steps of pattern, pitch, frames; 0 frames ends one. Offsets are
+# the SND-* constants.
+: sounds
+	0 0 0                   # 0: no sound
+	0 200 2      0 0 0      # 3 SND-HOP: a short click
+	16 200 2     0 0 0      # 9 SND-TICK: the time bar's last 3 s
+	16 120 12    0 0 0      # 15 SND-HIT: a noise burst
+	16 150 4  16 130 4  16 110 4  16 90 4  16 70 4  16 50 4  0 0 0
+	                        # 21 SND-FALL: noise, falling
+	0 143 6   0 163 12   0 0 0
+	                        # 42 SND-CHIME: G5, C6
+	0 115 5   0 131 5   0 143 5   0 163 12   0 0 0
+	                        # 51 SND-ROUND: C5 E5 G5 C6
