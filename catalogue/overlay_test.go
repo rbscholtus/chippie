@@ -227,8 +227,16 @@ func TestEmbeddedOverlay(t *testing.T) {
 	} {
 		checkPlayable(t, cat, sha1)
 
-		if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; p != chip8.TwoPageChip8 {
-			t.Errorf("%s: platform %s, want twoPageChip8", sha1, p)
+		prof := cat.DB.Resolve(sha1, Overrides{}).Profile
+		if prof.Platform != chip8.TwoPageChip8 {
+			t.Errorf("%s: platform %s, want twoPageChip8", sha1, prof.Platform)
+		}
+
+		// Sergey Naydenov's compiled demos store back to the address they
+		// loaded from (A684 F065 7001 F055), so FX55/FX65 must leave I alone.
+		naydenov := sha1 == "200b313e4d4c1970641142cc7ff578d7956b93da" || sha1 == "af98ee11adae28a6153cae8e4c16afa00f861907"
+		if prof.Quirks.MemoryLeaveIUnchanged != naydenov {
+			t.Errorf("%s: memoryLeaveIUnchanged = %v, want %v", sha1, prof.Quirks.MemoryLeaveIUnchanged, naydenov)
 		}
 
 		if len(cat.Sources.ROMs[sha1]) == 0 {

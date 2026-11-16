@@ -101,9 +101,12 @@
         "roms": {
           "200b313e4d4c1970641142cc7ff578d7956b93da": {
             "file": "Hires Sierpinski [Sergey Naydenov, 2010].ch8",
-            "platforms": [
-              "twoPageChip8"
-            ]
+            "platforms": [],
+            "quirkyPlatforms": {
+              "twoPageChip8": {
+                "memoryLeaveIUnchanged": true
+              }
+            }
           }
         }
       }
@@ -120,9 +123,12 @@
         "roms": {
           "af98ee11adae28a6153cae8e4c16afa00f861907": {
             "file": "Hires Stars [Sergey Naydenov, 2010].ch8",
-            "platforms": [
-              "twoPageChip8"
-            ]
+            "platforms": [],
+            "quirkyPlatforms": {
+              "twoPageChip8": {
+                "memoryLeaveIUnchanged": true
+              }
+            }
           }
         }
       }
