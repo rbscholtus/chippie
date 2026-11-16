@@ -212,6 +212,9 @@ Appended at the end of `database/programs.json`:
 
 ## Follow-up: update for the 2 Page Display (2026-11-17)
 
+- **Status:** pushed 2026-11-17 as commit `16f44dc` on `add-hires-chip8`;
+  chip-8-database PR #34's title and body updated as below.
+
 After tobiasvl's comment on chip-8-database issue #33 (see draft 07), one
 more commit on branch `add-hires-chip8`, synced from Chippie's overlay
 (Chippie PR #20):
