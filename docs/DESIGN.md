@@ -172,7 +172,7 @@ chippie/
 │   ├── golden-import/          # test-suite pictures → golden frames
 │   └── skin-gen/               # TV master art + recipe → assets/tv/<skin>/ (§12.1)
 ├── chip8/                      # emulator core: stdlib only, no clock, no I/O
-│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_hires.go
+│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_twopage.go
 │   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
 │   ├── testdata/               # disassembly goldens
 │   └── *_test.go   suite_test.go   perf_test.go
@@ -307,9 +307,12 @@ value. Defaults come straight from that file:
 | `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
 | `megachip8` | up to 256×192 | 1000 | Not planned: no ROMs in the database ([roadmap](ROADMAP.md#not-planned)) |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
-| `hiresChip8` (overlay) | 64×32, 64×64 | 15 | COSMAC VIP two-page 64×64 mode, VIP quirks. Not in the database: Chippie's overlay adds it (§10) |
+| `twoPageChip8` (overlay) | 64×32, 64×64 | 15 | COSMAC VIP 2 Page Display (64×64, 1978), VIP quirks. Not in the database: Chippie's overlay adds it (§10) |
 
-**Hires CHIP-8** (M10) is VIP CHIP-8 plus two rules. A hires ROM starts at
+**2 Page Display for CHIP-8** (M10; Andy Modla and Jef Winsor,
+[VIPER](https://github.com/mattmikolay/viper/blob/master/volume1/issue3.pdf)
+1/3, September 1978; often called "Hires CHIP-8", and `hiresChip8` in
+Chippie until 2026-11-16) is VIP CHIP-8 plus two rules. A ROM for it starts at
 0x200 with `1260`, a jump over a machine-code patch that switches the VIP
 interpreter to 64×64. The core doesn't run the patch: when `1260` is the
 instruction at 0x200, it switches to 64×64 and continues at 0x2C0, where the

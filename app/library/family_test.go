@@ -13,7 +13,7 @@ func TestFamilyOf(t *testing.T) {
 	for p, want := range map[chip8.Platform]Family{
 		chip8.OriginalChip8: Chip8Family, chip8.ModernChip8: Chip8Family, chip8.HybridVIP: Chip8Family,
 		chip8.Chip48: SuperChipFamily, chip8.SuperChip1: SuperChipFamily, chip8.SuperChip: SuperChipFamily,
-		chip8.XOChip: XOChipFamily, chip8.MegaChip8: OtherFamily, chip8.HiresChip8: Chip8Family,
+		chip8.XOChip: XOChipFamily, chip8.MegaChip8: OtherFamily, chip8.TwoPageChip8: Chip8Family,
 	} {
 		if got := FamilyOf(p); got != want {
 			t.Errorf("FamilyOf(%s) = %s, want %s", p, got.Name(), want.Name())
@@ -68,7 +68,7 @@ func TestFamilySearchAndFilter(t *testing.T) {
 	}
 
 	for _, e := range hires {
-		if e.Platform != chip8.HiresChip8 || e.Family != Chip8Family || !e.Playable() {
+		if e.Platform != chip8.TwoPageChip8 || e.Family != Chip8Family || !e.Playable() {
 			t.Errorf(`"hires" found %q (%s, %s)`, e.Title, e.Platform.Name(), e.Family.Name())
 		}
 	}

@@ -57,18 +57,18 @@ var suiteROMs = map[string]string{
 var (
 	modernOnly = []chip8.Platform{chip8.ModernChip8}
 	// vipChip8 is the COSMAC VIP's CHIP-8, at 64×32 and with the 64×64
-	// mode: without the 1260 start, hiresChip8 must run exactly as
+	// mode: without the 1260 start, twoPageChip8 must run exactly as
 	// originalChip8 (DESIGN §6.3).
-	vipChip8      = []chip8.Platform{chip8.OriginalChip8, chip8.HiresChip8}
+	vipChip8      = []chip8.Platform{chip8.OriginalChip8, chip8.TwoPageChip8}
 	superChipOnly = []chip8.Platform{chip8.SuperChip}
 	xoChipOnly    = []chip8.Platform{chip8.XOChip}
 	notXOChip     = []chip8.Platform{
-		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.HiresChip8,
+		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.TwoPageChip8,
 	}
 	// allPlatforms is every implemented platform.
 	allPlatforms = []chip8.Platform{
 		chip8.ModernChip8, chip8.OriginalChip8, chip8.Chip48, chip8.SuperChip1, chip8.SuperChip, chip8.XOChip,
-		chip8.HiresChip8,
+		chip8.TwoPageChip8,
 	}
 )
 
@@ -339,12 +339,12 @@ func TestSuiteBeep(t *testing.T) {
 	}
 }
 
-// hiresTestROM is a tiny hiresChip8 program, written for this test (CC0):
+// twoPageTestROM is a tiny twoPageChip8 program, written for this test (CC0):
 // the 1260 start, an empty patch area (a plain jump would halt on 0000),
 // and at 0x2C0 a program that clears the 64×64 screen with 0230 and draws
 // in all four corners and across the middle, then loops. Without the 64×64
 // mode, the lower half would not show (DESIGN §6.3).
-func hiresTestROM() []byte {
+func twoPageTestROM() []byte {
 	const patchSize = 0xC0 // 0x200..0x2BF: the VIP's machine-code patch
 
 	rom := make([]byte, patchSize, patchSize+64)
@@ -375,10 +375,10 @@ func hiresTestROM() []byte {
 	return rom
 }
 
-func TestHiresScreen(t *testing.T) {
+func TestTwoPageScreen(t *testing.T) {
 	t.Parallel()
 
-	m, err := testrig.Run(hiresTestROM(), suiteProfile(chip8.HiresChip8), testrig.Script{Frames: 30})
+	m, err := testrig.Run(twoPageTestROM(), suiteProfile(chip8.TwoPageChip8), testrig.Script{Frames: 30})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -387,8 +387,10 @@ func TestHiresScreen(t *testing.T) {
 		t.Fatal(m.State().Err)
 	}
 
-	c := testrig.Checker{GoldenDir: goldenDir, FailureDir: filepath.Join(failureDir, "hiresChip8"), Update: chip8.Update()}
-	if err := c.Check(testrig.Golden{Name: "hires-chip8"}, testrig.FromDisplay(m.Display())); err != nil {
+	failures := filepath.Join(failureDir, "twoPageChip8")
+	c := testrig.Checker{GoldenDir: goldenDir, FailureDir: failures, Update: chip8.Update()}
+
+	if err := c.Check(testrig.Golden{Name: "two-page-chip8"}, testrig.FromDisplay(m.Display())); err != nil {
 		t.Error(err)
 	}
 }

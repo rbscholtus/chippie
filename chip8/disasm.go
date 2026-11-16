@@ -23,7 +23,7 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 			return s
 		}
 	case 0x1:
-		// On hiresChip8, 1260 at 0x200 starts the 64×64 mode instead, but
+		// On twoPageChip8, 1260 at 0x200 starts the 64×64 mode instead, but
 		// the disassembler doesn't know the address: it shows the jump.
 		return fmt.Sprintf("JP 0x%03X", nnn)
 	case 0x2:
@@ -107,7 +107,7 @@ func disasm0(op uint16, ops opSet) (string, bool) {
 		return "LOW", true
 	case ops&opsSuper != 0 && op == 0x00FF:
 		return "HIGH", true
-	case ops&opsHires != 0 && op == hiresClearOp:
+	case ops&opsTwoPage != 0 && op == twoPageClearOp:
 		return "CLS", true // the 64×64 clear (DESIGN §6.3)
 	}
 

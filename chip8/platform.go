@@ -23,7 +23,7 @@ const (
 	SuperChip                     // SUPER-CHIP 1.1 (modern behaviour unless Quirks.LegacySuperChip)
 	MegaChip8                     // MEGA-CHIP
 	XOChip                        // XO-CHIP
-	HiresChip8                    // COSMAC VIP two-page 64×64 CHIP-8; from Chippie's overlay (DESIGN §6.3)
+	TwoPageChip8                  // COSMAC VIP 2 Page Display (64×64, 1978); from Chippie's overlay (DESIGN §6.3)
 	numPlatforms
 )
 
@@ -39,7 +39,7 @@ const (
 const (
 	loresWidth   = 64
 	loresHeight  = 32
-	vipHiresSize = 64 // the VIP's two-page hires mode is 64×64
+	twoPageSize  = 64 // the VIP's 2 Page Display is 64×64
 	hiresWidth   = 128
 	hiresHeight  = 64
 	megaWidth    = 256
@@ -62,9 +62,9 @@ const (
 	// opsXO is XO-CHIP: 00DN 5XY2 5XY3 F000 FN01 F002 FX3A, and F000's
 	// four-byte length.
 	opsXO
-	// opsHires is the COSMAC VIP's two-page 64×64 mode: the 1260 start
+	// opsTwoPage is the COSMAC VIP's two-page 64×64 mode: the 1260 start
 	// and 0230 (DESIGN §6.3).
-	opsHires
+	opsTwoPage
 	// opsFontFX29 is SUPER-CHIP 1.0's FX29: VX 10–19 points I at the big
 	// font for digit VX-10. SUPER-CHIP 1.1 moved that to FX30.
 	opsFontFX29
@@ -87,7 +87,7 @@ type platformInfo struct {
 }
 
 // vipQuirks are the COSMAC VIP's quirks (originalChip8, hybridVIP, chip8x,
-// hiresChip8).
+// twoPageChip8).
 var vipQuirks = Quirks{VBlank: true, Logic: true} //nolint:gochecknoglobals // read-only defaults
 
 // vipMinSound is the COSMAC VIP's lowest sound timer value that sounds: "the
@@ -147,11 +147,11 @@ var platforms = [numPlatforms]platformInfo{ //nolint:gochecknoglobals // read-on
 		quirks: Quirks{Wrap: true},
 		ops:    opsSuper | opsScroll | opsXO, implemented: true,
 	},
-	HiresChip8: {
+	TwoPageChip8: {
 		// Not in chip-8-database: Chippie's overlay adds it (DESIGN §6.3).
-		id: "hiresChip8", name: "Hires CHIP-8 (COSMAC VIP)", ticks: 15, memSize: memSize4K,
-		maxWidth: vipHiresSize, maxHeight: vipHiresSize, planes: singlePlane,
-		quirks: vipQuirks, minSound: vipMinSound, ops: opsHires, implemented: true,
+		id: "twoPageChip8", name: "2 Page Display CHIP-8 (COSMAC VIP)", ticks: 15, memSize: memSize4K,
+		maxWidth: twoPageSize, maxHeight: twoPageSize, planes: singlePlane,
+		quirks: vipQuirks, minSound: vipMinSound, ops: opsTwoPage, implemented: true,
 	},
 }
 

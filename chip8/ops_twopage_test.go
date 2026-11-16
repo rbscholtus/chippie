@@ -2,28 +2,28 @@ package chip8
 
 import "testing"
 
-// hiresMachine returns a hiresChip8 machine that has taken the 1260 start,
+// twoPageMachine returns a twoPageChip8 machine that has taken the 1260 start,
 // so it is in 64×64 mode at 0x2C0.
-func hiresMachine(t *testing.T, q func(*Quirks)) *Machine {
+func twoPageMachine(t *testing.T, q func(*Quirks)) *Machine {
 	t.Helper()
 
-	prof := DefaultProfile(HiresChip8)
+	prof := DefaultProfile(TwoPageChip8)
 	if q != nil {
 		q(&prof.Quirks)
 	}
 
 	m := New(prof)
-	mustLoad(t, m, program(hiresStartOp))
+	mustLoad(t, m, program(twoPageStartOp))
 	m.step()
 
-	if v := m.Display(); v.Width() != vipHiresSize || v.Height() != vipHiresSize || m.pc != hiresEntry {
+	if v := m.Display(); v.Width() != twoPageSize || v.Height() != twoPageSize || m.pc != twoPageEntry {
 		t.Fatalf("after 1260: %d×%d at %03X, want 64×64 at 2C0", v.Width(), v.Height(), m.pc)
 	}
 
 	return m
 }
 
-func TestHiresStart(t *testing.T) {
+func TestTwoPageStart(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -34,10 +34,10 @@ func TestHiresStart(t *testing.T) {
 		wantPC uint16
 		wantH  int
 	}{
-		{"1260 at 0x200 starts 64×64", HiresChip8, program(hiresStartOp), 1, hiresEntry, vipHiresSize},
-		{"1260 elsewhere is a jump", HiresChip8, program(0x1204, 0, hiresStartOp), 2, 0x260, loresHeight},
-		{"other first instruction stays 64×32", HiresChip8, program(0x00E0), 1, ProgramStart + 2, loresHeight},
-		{"originalChip8 jumps", OriginalChip8, program(hiresStartOp), 1, 0x260, loresHeight},
+		{"1260 at 0x200 starts 64×64", TwoPageChip8, program(twoPageStartOp), 1, twoPageEntry, twoPageSize},
+		{"1260 elsewhere is a jump", TwoPageChip8, program(0x1204, 0, twoPageStartOp), 2, 0x260, loresHeight},
+		{"other first instruction stays 64×32", TwoPageChip8, program(0x00E0), 1, ProgramStart + 2, loresHeight},
+		{"originalChip8 jumps", OriginalChip8, program(twoPageStartOp), 1, 0x260, loresHeight},
 	}
 
 	for _, tt := range tests {
@@ -63,10 +63,10 @@ func TestHiresStart(t *testing.T) {
 	}
 }
 
-func TestHiresResetGoesBackTo64x32(t *testing.T) {
+func TestTwoPageResetGoesBackTo64x32(t *testing.T) {
 	t.Parallel()
 
-	m := hiresMachine(t, nil)
+	m := twoPageMachine(t, nil)
 	mustLoad(t, m, program(0x00E0))
 
 	if v := m.Display(); v.Width() != loresWidth || v.Height() != loresHeight {
@@ -74,15 +74,15 @@ func TestHiresResetGoesBackTo64x32(t *testing.T) {
 	}
 }
 
-func TestHires0230ClearsWholeScreen(t *testing.T) {
+func TestTwoPage0230ClearsWholeScreen(t *testing.T) {
 	t.Parallel()
 
-	m := hiresMachine(t, nil)
+	m := twoPageMachine(t, nil)
 	for i := range m.disp.pix {
 		m.disp.pix[i] = 1
 	}
 
-	exec(m, hiresClearOp)
+	exec(m, twoPageClearOp)
 
 	if m.Halted() {
 		t.Fatal(m.State().Err)
@@ -90,8 +90,8 @@ func TestHires0230ClearsWholeScreen(t *testing.T) {
 
 	v := m.Display()
 
-	for y := range vipHiresSize {
-		for x := range vipHiresSize {
+	for y := range twoPageSize {
+		for x := range twoPageSize {
 			if v.Pixel(x, y) != 0 {
 				t.Fatalf("pixel (%d,%d) still lit after 0230", x, y)
 			}
@@ -99,12 +99,12 @@ func TestHires0230ClearsWholeScreen(t *testing.T) {
 	}
 }
 
-func TestHiresSpritesAtBottomEdge(t *testing.T) {
+func TestTwoPageSpritesAtBottomEdge(t *testing.T) {
 	t.Parallel()
 
 	// The font's "0" is 5 rows; drawn at row 62, two fit above row 64.
 	for _, wrap := range []bool{false, true} {
-		m := hiresMachine(t, func(q *Quirks) { q.Wrap = wrap })
+		m := twoPageMachine(t, func(q *Quirks) { q.Wrap = wrap })
 		m.i = FontAddr
 		m.v[1], m.v[2] = 0, 62
 		exec(m, 0xD125)
@@ -125,9 +125,9 @@ func TestHiresSpritesAtBottomEdge(t *testing.T) {
 	}
 
 	// A start row of 64 or more wraps to the top, as on every platform.
-	m := hiresMachine(t, nil)
+	m := twoPageMachine(t, nil)
 	m.i = FontAddr
-	m.v[1], m.v[2] = 0, vipHiresSize+2
+	m.v[1], m.v[2] = 0, twoPageSize+2
 	exec(m, 0xD125)
 
 	if m.Display().Pixel(0, 2) == 0 {

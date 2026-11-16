@@ -104,7 +104,7 @@ database's values. Settings also has the TV skin and the instruction trace.
 | Platform | Screen | Status |
 |---|---|---|
 | CHIP-8 (COSMAC VIP, 1977) | 64×32 | ✅ Playable |
-| Hires CHIP-8 (COSMAC VIP, 64×64 mode) | 64×64 | ✅ Playable: the 8 known ROMs |
+| 2 Page Display for CHIP-8 (COSMAC VIP, 1978; "Hires CHIP-8") | 64×64 | ✅ Playable: the 8 known ROMs |
 | Modern CHIP-8 | 64×32 | ✅ Playable |
 | CHIP-48 (HP48, 1990) | 64×32 | ✅ Playable |
 | SUPER-CHIP 1.0 and 1.1 (HP48, 1991) | 64×32, 128×64 | ✅ Playable, with an optional legacy HP48 mode |
@@ -147,12 +147,12 @@ chip-8-database and the test suite ([docs/upstream/](docs/upstream/README.md)).
 **Done:** the emulator core for seven platforms with screenshot tests, the
 browser app, the library and download sources, SUPER-CHIP, XO-CHIP, the 1970s
 TV with touch support, the upstream contributions (milestones M1–M8), and
-Hires CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
+the COSMAC VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (M10).
 
 **Next:**
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
-- Getting Hires CHIP-8 and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
+- Getting the 2 Page Display and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 

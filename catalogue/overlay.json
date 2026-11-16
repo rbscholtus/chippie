@@ -3,9 +3,10 @@
     {
       "upstream": "https://github.com/chip-8/chip-8-database/pull/34",
       "platform": {
-        "id": "hiresChip8",
-        "name": "Cosmac VIP Hires CHIP-8",
-        "description": "A 64x64 mode for CHIP-8 on the Cosmac VIP, using two pages of display memory. It runs on an unmodified VIP: each program starts with a jump (1260) over a short machine-code patch that switches the interpreter to 64x64, and the CHIP-8 program starts at 0x2C0. 0230 clears the 64x64 screen. Emulators can skip the patch: when the first instruction at 0x200 is 1260, switch to 64x64 and continue at 0x2C0. Not to be confused with Tom Swan's 64x128 HI-RES CHIP-8 (1980).",
+        "id": "twoPageChip8",
+        "name": "2 Page Display for CHIP-8",
+        "description": "Andy Modla and Jef Winsor's 64x64 mode for CHIP-8 on the Cosmac VIP, using two pages of display memory (VIPER volume 1 issue 3). It runs on an unmodified VIP: each program starts with a jump (1260) over a short machine-code patch that switches the interpreter to 64x64, and the CHIP-8 program starts at 0x2C0. 0230 clears the 64x64 screen. Emulators can skip the patch: when the first instruction at 0x200 is 1260, switch to 64x64 and continue at 0x2C0. Often called \"Hires CHIP-8\"; not to be confused with Tom Swan's 64x128 HI-RES CHIP-8 (1980).",
+        "release": "1978-09",
         "displayResolutions": [
           "64x64"
         ],
@@ -37,7 +38,7 @@
           "066e7a84efde433e4d937d8aa41518666955086c": {
             "file": "Astro Dodge Hires [Revival Studios, 2008].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ],
             "keys": {
               "up": 2,
@@ -63,7 +64,7 @@
           "70aa0e7f25f0f0fd6ec7c59e427bf1d03ee95617": {
             "file": "Hires Maze [David Winter, 199x].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -82,7 +83,7 @@
           "1ebcb2ec0be2ec9fa209d5c73be19b2d408399bf": {
             "file": "Hires Particle Demo [zeroZshadow, 2008].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -101,7 +102,7 @@
           "200b313e4d4c1970641142cc7ff578d7956b93da": {
             "file": "Hires Sierpinski [Sergey Naydenov, 2010].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -120,7 +121,7 @@
           "af98ee11adae28a6153cae8e4c16afa00f861907": {
             "file": "Hires Stars [Sergey Naydenov, 2010].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -139,7 +140,7 @@
           "8d56a781bf16acccb307177b80ff326f62aabbdc": {
             "file": "Hires Test [Tom Swan, 1979].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -159,7 +160,7 @@
           "71d06da9e605804d2099b808c02548ab2b3511b2": {
             "file": "Hires Worm V4 [RB-Revival Studios, 2007].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
@@ -178,7 +179,7 @@
           "b2c55b6aba3e2910036d5b5bc3956cf7493e0221": {
             "file": "Trip8 Hires Demo (2008) [Revival Studios].ch8",
             "platforms": [
-              "hiresChip8"
+              "twoPageChip8"
             ]
           }
         }
