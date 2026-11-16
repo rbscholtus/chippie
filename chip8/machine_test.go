@@ -41,7 +41,7 @@ func TestPlatformTable(t *testing.T) {
 		}
 	}
 
-	if got := Platforms(); len(got) != int(numPlatforms) || got[0] != OriginalChip8 || got[len(got)-1] != HiresChip8 {
+	if got := Platforms(); len(got) != int(numPlatforms) || got[0] != OriginalChip8 || got[len(got)-1] != TwoPageChip8 {
 		t.Errorf("Platforms() = %v", got)
 	}
 
@@ -53,7 +53,7 @@ func TestPlatformTable(t *testing.T) {
 		t.Error("out-of-range platform should be unknown and unimplemented")
 	}
 
-	for _, p := range []Platform{ModernChip8, OriginalChip8, HiresChip8} {
+	for _, p := range []Platform{ModernChip8, OriginalChip8, TwoPageChip8} {
 		if !p.Implemented() {
 			t.Errorf("%s should be implemented", p)
 		}
@@ -403,7 +403,7 @@ func TestVIPIgnoresSoundTimerOne(t *testing.T) {
 			continue
 		}
 
-		vip := p == OriginalChip8 || p == HybridVIP || p == Chip8X || p == HiresChip8
+		vip := p == OriginalChip8 || p == HybridVIP || p == Chip8X || p == TwoPageChip8
 
 		m := New(DefaultProfile(p))
 		m.v[1], m.v[2] = 1, 2

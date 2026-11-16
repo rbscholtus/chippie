@@ -79,7 +79,7 @@ func TestDisassemble(t *testing.T) {
 		0xF133, 0xF155, 0xF165, 0xF1FF, 0x0230,
 	}
 
-	for _, p := range []Platform{ModernChip8, OriginalChip8, HiresChip8} {
+	for _, p := range []Platform{ModernChip8, OriginalChip8, TwoPageChip8} {
 		entries := make([]TraceEntry, len(ops))
 		for i, op := range ops {
 			entries[i] = TraceEntry{PC: ProgramStart + 2*uint16(i), Op: op, I: 0x300, Frame: 1}

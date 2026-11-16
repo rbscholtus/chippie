@@ -172,7 +172,7 @@ chippie/
 │   ├── golden-import/          # test-suite pictures → golden frames
 │   └── skin-gen/               # TV master art + recipe → assets/tv/<skin>/ (§12.1)
 ├── chip8/                      # emulator core: stdlib only, no clock, no I/O
-│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_hires.go
+│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_twopage.go
 │   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
 │   ├── testdata/               # disassembly goldens
 │   └── *_test.go   suite_test.go   perf_test.go
@@ -307,16 +307,42 @@ value. Defaults come straight from that file:
 | `superchip` | 64×32, 128×64 | 30 | SCHIP 1.1. Modern behaviour unless the per-ROM legacy setting is on (§7) |
 | `megachip8` | up to 256×192 | 1000 | Not planned: no ROMs in the database ([roadmap](ROADMAP.md#not-planned)) |
 | `xochip` | 64×32, 128×64 | 100 | 2 planes, 64 KB memory, audio patterns |
-| `hiresChip8` (overlay) | 64×32, 64×64 | 15 | COSMAC VIP two-page 64×64 mode, VIP quirks. Not in the database: Chippie's overlay adds it (§10) |
+| `twoPageChip8` (overlay) | 64×32, 64×64 | 15 | COSMAC VIP 2 Page Display (64×64, 1978), VIP quirks. Not in the database: Chippie's overlay adds it (§10) |
 
-**Hires CHIP-8** (M10) is VIP CHIP-8 plus two rules. A hires ROM starts at
-0x200 with `1260`, a jump over a machine-code patch that switches the VIP
-interpreter to 64×64. The core doesn't run the patch: when `1260` is the
-instruction at 0x200, it switches to 64×64 and continues at 0x2C0, where the
-CHIP-8 program starts. `0230` (the patch's clear routine) clears the screen.
-Without `1260` a ROM runs exactly as on `originalChip8`, so the Timendus
-suite runs on it with the same goldens. The picture stays 2:1: a 64×64
-frame is stretched to fill it, with tall pixels.
+**2 Page Display for CHIP-8** (M10; Andy Modla and Jef Winsor,
+[VIPER](https://github.com/mattmikolay/viper/blob/master/volume1/issue3.pdf)
+1/3, September 1978, pp. 10–12; often called "Hires CHIP-8", and
+`hiresChip8` in Chippie until 2026-11-16) is VIP CHIP-8 with a patched
+interpreter. Every program includes the article's machine-code patch at
+0x200–0x249; `1260` at 0x200 jumps over it, and the CHIP-8 program starts at
+0x260. The known ROMs (kripod/chip8-roms' `hires/`) also patch the
+interpreter themselves, so they run on an unmodified VIP: their CHIP-8 code
+at 0x260 copies the article's interpreter changes into 0x003–0x1FB, calls
+machine code (`02AC`), clears the screen and falls through to the program at
+0x2C0.
+
+The platform says the ROM uses this patch, so the core can apply it instead
+of running 1802 code (`chip8/ops_twopage.go`):
+
+- **Start:** when the first instruction is `1260` and 0x202–0x249 hold the
+  article's patch, the screen becomes 64×64 and the program continues at
+  0x2C0 if 0x24A–0x2B2 hold the self-patching code (and 0x2BE `0230`), else
+  at 0x260. The byte match, not `1260` alone, decides: any CHIP-8 program
+  could start with a jump to 0x260.
+- **`0230`** (the patch's routine that clears both pages) clears the
+  screen, once the 2 Page Display has started; before, it's an unsupported
+  machine-code call as on `originalChip8`. `00E0` also clears the whole
+  64×64 screen: what the patched interpreter's `00E0` did isn't documented,
+  and the known ROMs use `0230`.
+- **Without the patch**, a ROM on this platform runs as on `originalChip8`
+  at 64×32 (an emulator fallback, so the Timendus suite runs on it with the
+  same goldens). `originalChip8` itself never detects the patch: it means
+  the unmodified interpreter.
+
+Tests: one test program, in the article's layout (at 0x260) and a
+self-patching ROM's (at 0x2C0), must draw the same golden; the article's own
+test program runs from 0x260. The picture stays 2:1: a 64×64 frame is stretched to
+fill it, with tall pixels.
 
 **Order of implementation:** `modernChip8` → `originalChip8` → `chip48` /
 `superchip1` / `superchip` → `xochip`. That covers about 98% of the ROMs in the

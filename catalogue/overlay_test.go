@@ -86,9 +86,9 @@ func TestOverlayAddsAndChanges(t *testing.T) {
 	}
 }
 
-// testPlatform is an overlay platform entry for hiresChip8, which the
+// testPlatform is an overlay platform entry for twoPageChip8, which the
 // snapshot itself doesn't have.
-const testPlatform = `{"upstream": "pending", "platform": {"id": "hiresChip8", "name": "Hires",
+const testPlatform = `{"upstream": "pending", "platform": {"id": "twoPageChip8", "name": "Hires",
 	"displayResolutions": ["64x64"], "defaultTickrate": 15, "quirks": {"vblank": true, "logic": true}}}`
 
 func TestOverlayAddsPlatform(t *testing.T) {
@@ -104,32 +104,32 @@ func TestOverlayAddsPlatform(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if db.Platforms["hiresChip8"] != nil {
-		t.Fatal("the snapshot has hiresChip8: this test needs another platform")
+	if db.Platforms["twoPageChip8"] != nil {
+		t.Fatal("the snapshot has twoPageChip8: this test needs another platform")
 	}
 
 	o := mustOverlay(t, `{"platforms": [`+testPlatform+`],
 		"add": [{"upstream": "pending", "program": {"title": "Hires Game",
-			"roms": {"`+newHash+`": {"file": "h.ch8", "platforms": ["hiresChip8"]}}}}]}`)
+			"roms": {"`+newHash+`": {"file": "h.ch8", "platforms": ["twoPageChip8"]}}}}]}`)
 
 	status, err := db.ApplyOverlay(o)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(status) != 2 || status[0].What != "add platform hiresChip8" || status[0].Done {
+	if len(status) != 2 || status[0].What != "add platform twoPageChip8" || status[0].Done {
 		t.Errorf("status %+v, want the platform first, not done", status)
 	}
 
 	r := db.Resolve(newHash, Overrides{})
-	if r.PlatformID != "hiresChip8" || r.Profile.Platform != chip8.HiresChip8 || r.Profile.TicksPerFrame != 15 ||
+	if r.PlatformID != "twoPageChip8" || r.Profile.Platform != chip8.TwoPageChip8 || r.Profile.TicksPerFrame != 15 ||
 		!r.Profile.Quirks.VBlank || !r.Profile.Quirks.Logic {
 		t.Errorf("resolved %+v", r)
 	}
 
 	// The user can switch another ROM to it, and back.
-	if r := db.Resolve(glitchGhost, Overrides{Platform: "hiresChip8"}); r.Profile.Platform != chip8.HiresChip8 {
-		t.Errorf("override: %s, want hiresChip8", r.Profile.Platform)
+	if r := db.Resolve(glitchGhost, Overrides{Platform: "twoPageChip8"}); r.Profile.Platform != chip8.TwoPageChip8 {
+		t.Errorf("override: %s, want twoPageChip8", r.Profile.Platform)
 	}
 
 	// Once upstream has the platform, the entry is done.
@@ -153,8 +153,8 @@ func TestOverlayRejects(t *testing.T) {
 		"platform chip8 doesn't know": `{"platforms": [{"upstream": "pending",
 			"platform": {"id": "nope", "name": "Nope", "defaultTickrate": 15}}]}`,
 		"platform without a name": `{"platforms": [{"upstream": "pending",
-			"platform": {"id": "hiresChip8", "defaultTickrate": 15}}]}`,
-		"platform without upstream": `{"platforms": [{"platform": {"id": "hiresChip8", "name": "H"}}]}`,
+			"platform": {"id": "twoPageChip8", "defaultTickrate": 15}}]}`,
+		"platform without upstream": `{"platforms": [{"platform": {"id": "twoPageChip8", "name": "H"}}]}`,
 	} {
 		if _, err := ParseOverlay([]byte(s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
@@ -175,7 +175,7 @@ func TestOverlayRejects(t *testing.T) {
 		"unknown platform": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"platforms": ["nope"]}}}}]}`,
 		"platform the overlay doesn't add": `{"add": [{"upstream": "pending", "program": {"title": "X",
-			"roms": {"` + newHash + `": {"platforms": ["hiresChip8"]}}}}]}`,
+			"roms": {"` + newHash + `": {"platforms": ["twoPageChip8"]}}}}]}`,
 		"unknown quirk": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"quirkyPlatforms": {"superchip": {"nope": true}}}}}}]}`,
 		"add to unknown": `{"add": [{"upstream": "pending", "to": "` + otherHash + `",
@@ -184,9 +184,9 @@ func TestOverlayRejects(t *testing.T) {
 		"bad rotation": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"screenRotation": 45}}}}]}`,
 		"platform with an unknown quirk": `{"platforms": [{"upstream": "pending", "platform":
-			{"id": "hiresChip8", "name": "H", "defaultTickrate": 15, "quirks": {"nope": true}}}]}`,
+			{"id": "twoPageChip8", "name": "H", "defaultTickrate": 15, "quirks": {"nope": true}}}]}`,
 		"platform without a tickrate": `{"platforms": [{"upstream": "pending", "platform":
-			{"id": "hiresChip8", "name": "H"}}]}`,
+			{"id": "twoPageChip8", "name": "H"}}]}`,
 	} {
 		if _, err := db.ApplyOverlay(mustOverlay(t, s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
@@ -227,8 +227,16 @@ func TestEmbeddedOverlay(t *testing.T) {
 	} {
 		checkPlayable(t, cat, sha1)
 
-		if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; p != chip8.HiresChip8 {
-			t.Errorf("%s: platform %s, want hiresChip8", sha1, p)
+		prof := cat.DB.Resolve(sha1, Overrides{}).Profile
+		if prof.Platform != chip8.TwoPageChip8 {
+			t.Errorf("%s: platform %s, want twoPageChip8", sha1, prof.Platform)
+		}
+
+		// Sergey Naydenov's compiled demos store back to the address they
+		// loaded from (A684 F065 7001 F055), so FX55/FX65 must leave I alone.
+		naydenov := sha1 == "200b313e4d4c1970641142cc7ff578d7956b93da" || sha1 == "af98ee11adae28a6153cae8e4c16afa00f861907"
+		if prof.Quirks.MemoryLeaveIUnchanged != naydenov {
+			t.Errorf("%s: memoryLeaveIUnchanged = %v, want %v", sha1, prof.Quirks.MemoryLeaveIUnchanged, naydenov)
 		}
 
 		if len(cat.Sources.ROMs[sha1]) == 0 {

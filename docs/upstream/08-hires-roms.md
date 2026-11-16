@@ -209,3 +209,49 @@ Appended at the end of `database/programs.json`:
   }
 ]
 ```
+
+## Follow-up: update for the 2 Page Display (2026-11-17)
+
+After tobiasvl's comment on chip-8-database issue #33 (see draft 07), one
+more commit on branch `add-hires-chip8`, synced from Chippie's overlay
+(Chippie PR #20):
+
+- `hiresChip8` → `twoPageChip8` in `platforms.json`, the schema and the
+  README; name "2 Page Display for CHIP-8", `release` 1978-09, and the new
+  description (how programs start, how to detect the patch).
+- Hires Test: authors Andy Modla and Jef Winsor, release 1978-09, and a
+  description saying where it comes from.
+- Hires Sierpinski and Hires Stars: `"platforms": []` and
+  `quirkyPlatforms` `twoPageChip8` with `memoryLeaveIUnchanged: true`.
+
+`npm test` (schema and formatting) passes.
+
+- [x] Commit approved for pushing (owner, 2026-11-17).
+- [x] Title and body below approved (owner, 2026-11-17).
+
+**Title:** Add the 2 Page Display for CHIP-8 platform and its 8 programs
+from kripod/chip8-roms
+
+**Body:**
+
+> Following #33, this adds the `twoPageChip8` platform, Andy Modla and Jef
+> Winsor's 2 Page Display for CHIP-8 (VIPER vol. 1 issue 3, September 1978),
+> and the 8 programs for it in kripod/chip8-roms' `hires/` folder. Each is
+> its own program, named as in kripod's file names, like the existing Super
+> Trip8 Demo and Super Particle Demo, which are separate from their lo-res
+> versions too.
+>
+> The platform is in `platforms.json`, the schema's platform list and the
+> README, so the database stays valid. Happy to split it if you'd rather
+> settle the platform first.
+>
+> Titles, authors and dates come from the file names and the folder's
+> `.txt` files; authors match the database's entries for the lo-res
+> versions. Two exceptions, explained in #33: Hires Test is credited to
+> Modla and Winsor, because it is the article's own test program, and
+> Hires Sierpinski and Hires Stars are under `quirkyPlatforms` with
+> `memoryLeaveIUnchanged`. Astro Dodge Hires has a `keys` hint from its
+> notes (2/4/6/8 to move, 5 to start). The programs are appended at the
+> end of `programs.json`, and `sha1-hashes.json` is extended to match.
+>
+> Checked by playing each ROM in Chippie (https://rbscholtus.github.io/chippie/).
