@@ -4,7 +4,7 @@
 
 Chippie plays other people's ROMs. M9 adds one of our own: an original
 XO-CHIP game written in Octo, built from source in this repository, and
-bundled with the emulator like the hosted ROMs (README §9).
+bundled with the emulator like the hosted ROMs (DESIGN §9).
 
 Decisions made so far (2026-11-15):
 
@@ -20,7 +20,7 @@ Decisions made so far (2026-11-15):
   game can also go into chip8Archive.
 - **Speed: 500 ticks per frame.**
 - **Two emulator features come with it:** arrow keys for ROMs with a `keys`
-  hint (README §20), and XO-CHIP flag registers saved between sessions, so
+  hint (an idea in ROADMAP), and XO-CHIP flag registers saved between sessions, so
   the best score survives a reload.
 
 Why this genre: simple to play (four keys, no aiming), hard to master
@@ -277,7 +277,7 @@ assets/roms/depot.ch8    the built ROM, committed and compiled into the app
 
 ### 3.1 Emulator features
 
-**Arrow keys (README §20's idea).** For ROMs whose `keys` hint names `up`,
+**Arrow keys (an idea from ROADMAP).** For ROMs whose `keys` hint names `up`,
 `down`, `left`, `right`, `a` or `b`, the arrow keys press the hinted key for
 that direction, Space presses `a` and Shift presses `b`, next to the usual
 `1234/QWER/ASDF/ZXCV` layout. Hints with 0x10 added (a second keypad) are
@@ -333,7 +333,7 @@ Each step ends with a playable or testable ROM.
 | 6 | Presentation | title and game-over screens, best score, palette, sound |
 | 7 | Arrow keys | §3.1, for every ROM with a `keys` hint |
 | 8 | Saved flags | §3.1; Depot's best score survives a reload |
-| 9 | Tuning and finish | speed table from play-testing, budget test, Playwright, README §9/§13/§19/§20, games README |
+| 9 | Tuning and finish | speed table from play-testing, budget test, Playwright, DESIGN §9/§13, ROADMAP, the user README, games README |
 
 ## 6. Open questions
 

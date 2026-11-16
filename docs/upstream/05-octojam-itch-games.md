@@ -5,7 +5,7 @@
   branch** (`add-chip8archive-2026`): both append to the end of
   `programs.json`, so this one numbers its programs 487–512 and asks for #30
   to be merged first.
-- **Status:** submitted 2026-11-15: [chip-8-database#31](https://github.com/chip-8/chip-8-database/pull/31).
+- **Status:** submitted 2026-11-15: [chip-8-database#31](https://github.com/chip-8/chip-8-database/pull/31); merged 2026-11-15, and its overlay entries deleted by the refresh (#18).
 - **Overlay entries:** the 26 Octojam "add" entries in `catalogue/overlay.json`;
   [`05-octojam/programs-append.json`](05-octojam/programs-append.json) and
   [`05-octojam/sha1-hashes-append.json`](05-octojam/sha1-hashes-append.json)

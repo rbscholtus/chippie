@@ -1,6 +1,6 @@
 // Package assets embeds the files compiled into the app: the bundled ROMs
 // and each TV skin's skin.json. The TV images themselves are fetched at
-// runtime (README §12.2), so they don't grow the WASM. Every file's origin
+// runtime (DESIGN §12.2), so they don't grow the WASM. Every file's origin
 // and licence is recorded in LICENSES.md.
 package assets
 

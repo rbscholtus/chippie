@@ -38,3 +38,4 @@
      1  24A  F155  I=300  LD [I], V1
      1  24C  F165  I=300  LD V1, [I]
      1  24E  F1FF  I=300  DATA 0xF1FF
+     1  250  0230  I=300  DATA 0x0230

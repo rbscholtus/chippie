@@ -1,7 +1,7 @@
 // Package catalogue holds the game metadata: chip-8-database (platforms,
 // quirks, programs, ROM hashes), merged with chip8Archive's own metadata,
 // plus the sources manifest that says where each ROM can be downloaded. It
-// resolves the profile a ROM runs with (README §7).
+// resolves the profile a ROM runs with (DESIGN §7).
 //
 // An embedded snapshot makes it work offline; Refresh fetches a newer
 // database in the background.
@@ -95,6 +95,8 @@ type (
 	rawPlatform struct {
 		ID                 string          `json:"id"`
 		Name               string          `json:"name"`
+		Description        string          `json:"description"`
+		Release            string          `json:"release"`
 		DefaultTickrate    int             `json:"defaultTickrate"`
 		DisplayResolutions []string        `json:"displayResolutions"`
 		Quirks             map[string]bool `json:"quirks"`
@@ -141,10 +143,7 @@ func Parse(f Files) (*DB, error) {
 	db := &DB{Platforms: make(map[string]*Platform, len(platforms)), roms: make(map[string]*ROM, len(hashes))}
 
 	for _, p := range platforms {
-		db.Platforms[p.ID] = &Platform{
-			ID: p.ID, Name: p.Name, Tickrate: p.DefaultTickrate,
-			Resolutions: p.DisplayResolutions, Quirks: p.Quirks,
-		}
+		db.Platforms[p.ID] = newPlatform(p)
 	}
 
 	db.Programs = make([]*Program, len(programs))
@@ -188,14 +187,8 @@ func validate(db *DB, quirks []rawQuirk, hashes map[string]int) error {
 	}
 
 	for _, p := range db.Platforms {
-		if p.ID == "" || p.Tickrate <= 0 {
-			return fmt.Errorf("%w: platform %q incomplete", ErrInvalid, p.ID)
-		}
-
-		for q := range p.Quirks {
-			if !known[q] {
-				return fmt.Errorf("%w: platform %s: unknown quirk %q", ErrInvalid, p.ID, q)
-			}
+		if err := checkPlatform(p, known); err != nil {
+			return err
 		}
 	}
 
@@ -217,6 +210,30 @@ func validate(db *DB, quirks []rawQuirk, hashes map[string]int) error {
 	}
 
 	return nil
+}
+
+// checkPlatform checks a platforms.json entry (the database's or the
+// overlay's): it has an id and a tick rate, and only known quirks.
+func checkPlatform(p *Platform, known map[string]bool) error {
+	if p.ID == "" || p.Tickrate <= 0 {
+		return fmt.Errorf("%w: platform %q incomplete", ErrInvalid, p.ID)
+	}
+
+	for q := range p.Quirks {
+		if !known[q] {
+			return fmt.Errorf("%w: platform %s: unknown quirk %q", ErrInvalid, p.ID, q)
+		}
+	}
+
+	return nil
+}
+
+// newPlatform builds a Platform from its platforms.json entry.
+func newPlatform(p rawPlatform) *Platform {
+	return &Platform{
+		ID: p.ID, Name: p.Name, Tickrate: p.DefaultTickrate,
+		Resolutions: p.DisplayResolutions, Quirks: p.Quirks,
+	}
 }
 
 // validRotation reports whether r is a screenRotation the schema allows.

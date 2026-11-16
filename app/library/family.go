@@ -23,7 +23,7 @@ var Filters = []Family{AllFamilies, Chip8Family, SuperChipFamily, XOChipFamily}
 // FamilyOf returns the platform's family.
 func FamilyOf(p chip8.Platform) Family {
 	switch p {
-	case chip8.OriginalChip8, chip8.HybridVIP, chip8.ModernChip8, chip8.Chip8X:
+	case chip8.OriginalChip8, chip8.HybridVIP, chip8.ModernChip8, chip8.Chip8X, chip8.HiresChip8:
 		return Chip8Family
 	case chip8.Chip48, chip8.SuperChip1, chip8.SuperChip:
 		return SuperChipFamily
@@ -109,10 +109,15 @@ func (f Family) searchWords() string {
 }
 
 // platformWords are extra search words for one platform, where its name
-// has a dash people leave out: "chip48" finds CHIP-48 games.
+// has a dash people leave out or they know it by its size: "chip48" finds
+// CHIP-48 games, "hires" or "64x64" Hires CHIP-8 games.
 func platformWords(p chip8.Platform) string {
 	if p == chip8.Chip48 {
 		return "chip48"
+	}
+
+	if p == chip8.HiresChip8 {
+		return "hires hi-res 64x64"
 	}
 
 	return ""

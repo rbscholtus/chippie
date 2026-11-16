@@ -3,7 +3,7 @@
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from branch `add-alternate-roms` of the owner's fork, based on `master`.
   It adds no programs, so it's independent of #30 and #31.
-- **Status:** submitted 2026-11-15: [chip-8-database#32](https://github.com/chip-8/chip-8-database/pull/32).
+- **Status:** submitted 2026-11-15: [chip-8-database#32](https://github.com/chip-8/chip-8-database/pull/32); merged 2026-11-15, and its overlay entries deleted by the refresh (#18).
 - **Overlay entries:** the four "add ROMs to" entries and the Delay Timer
   Test "change" in `catalogue/overlay.json`.
 

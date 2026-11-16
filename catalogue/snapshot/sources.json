@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2026-11-14T21:02:53Z",
+  "generated": "2026-11-15T01:26:02Z",
   "sources": {
     "3dvipermaze": {
       "name": "3D Viper Maze (Timendus)",
@@ -87,6 +87,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/programs/Division%20Test%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
+    "066e7a84efde433e4d937d8aa41518666955086c": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Astro%20Dodge%20Hires%20%5BRevival%20Studios%2C%202008%5D.ch8"
       }
     ],
     "06a6692c92eb8077329b6d4e59d55479d60574a8": [
@@ -279,6 +285,18 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/ghostEscape.ch8"
+      }
+    ],
+    "1ebcb2ec0be2ec9fa209d5c73be19b2d408399bf": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Particle%20Demo%20%5BzeroZshadow%2C%202008%5D.ch8"
+      }
+    ],
+    "200b313e4d4c1970641142cc7ff578d7956b93da": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Sierpinski%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
       }
     ],
     "237756a4014fb3aa82a29246a7cdd534f8dc2dbb": [
@@ -843,6 +861,12 @@
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/games/Blitz%20%5BDavid%20Winter%5D.ch8"
       }
     ],
+    "70aa0e7f25f0f0fd6ec7c59e427bf1d03ee95617": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Maze%20%5BDavid%20Winter%2C%20199x%5D.ch8"
+      }
+    ],
     "7143cb2e8c895eccbc1d768417c932bde8337b94": [
       {
         "source": "octojam-itch",
@@ -853,6 +877,12 @@
       {
         "source": "octojam-itch",
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/labyrinthine.ch8"
+      }
+    ],
+    "71d06da9e605804d2099b808c02548ab2b3511b2": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Worm%20V4%20%5BRB-Revival%20Studios%2C%202007%5D.ch8"
       }
     ],
     "726cb39afa7e17725af7fab37d153277d86bff77": [
@@ -1057,6 +1087,12 @@
       {
         "source": "kripod",
         "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/demos/Maze%20%28alt%29%20%5BDavid%20Winter%2C%20199x%5D.ch8"
+      }
+    ],
+    "8d56a781bf16acccb307177b80ff326f62aabbdc": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Test%20%5BTom%20Swan%2C%201979%5D.ch8"
       }
     ],
     "8deef9510369ac9581ab03b44cfdec95bbdbc4c2": [
@@ -1341,6 +1377,12 @@
         "url": "https://raw.githubusercontent.com/maxisimonazzi/chip8-emulator/7a805355bad0c0a8ca26caf74c17a9a968e04f5a/roms/octojam/halloween-blaster.ch8"
       }
     ],
+    "af98ee11adae28a6153cae8e4c16afa00f861907": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Hires%20Stars%20%5BSergey%20Naydenov%2C%202010%5D.ch8"
+      }
+    ],
     "afd9fee7565c54970b6bd7758aa8aa7843dd2e86": [
       {
         "source": "chip8archive",
@@ -1381,6 +1423,12 @@
       {
         "source": "chip8archive",
         "url": "https://raw.githubusercontent.com/JohnEarnest/chip8Archive/761e3ffc63f43e6a849e80714122feff2afca208/roms/pumpkindressup.ch8"
+      }
+    ],
+    "b2c55b6aba3e2910036d5b5bc3956cf7493e0221": [
+      {
+        "source": "kripod",
+        "url": "https://raw.githubusercontent.com/kripod/chip8-roms/c723a9ed1205a215c5b1e45e994eb54acc243c9e/hires/Trip8%20Hires%20Demo%20%282008%29%20%5BRevival%20Studios%5D.ch8"
       }
     ],
     "b2dacf6d85785d6c2315ce449912c8a8a5954e2e": [

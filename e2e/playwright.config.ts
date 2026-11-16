@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Serves ../web/dist (built by ../scripts/build.sh) and runs the smoke tests
-// in Chromium with software WebGL, as CI has no GPU (README §15.3).
+// in Chromium with software WebGL, as CI has no GPU (DESIGN §15.3).
 export default defineConfig({
   testDir: "./tests",
   timeout: 90_000,

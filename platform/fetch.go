@@ -14,4 +14,5 @@ var (
 // the WebAssembly binary; native builds use net/http.
 //
 // func Fetch(ctx context.Context, url string, limit int) ([]byte, error)
-// is implemented in fetch_js.go and fetch_other.go.
+// is implemented in fetch_js.go and fetch_other.go, with FetchWithHeaders:
+// the same, sending the request headers given.

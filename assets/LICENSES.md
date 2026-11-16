@@ -51,7 +51,7 @@ its own code, not these images.
 ### Walnut console (`assets/tv/classic/`)
 
 - **Generator:** Google Gemini image generation (the Gemini app), November
-  2026, from the cabinet prompt in README §12.3. Master:
+  2026, from the cabinet prompt in docs/tv-artwork.md. Master:
   `Gemini_Generated_Image_ixja8tixja8tixja.png` (2400×1792), kept outside the
   repository in `assets/source/`.
 - **Made by `cmd/skin-gen`** from that master and `assets/tv/classic/recipe.json`: the
@@ -65,7 +65,7 @@ its own code, not these images.
 ### Portable (`assets/tv/portable/`)
 
 - **Generator:** Google Gemini image generation (the Gemini app), November
-  2026, from the portable prompt in README §12.3. Master:
+  2026, from the portable prompt in docs/tv-artwork.md. Master:
   `Gemini_Generated_Image_j6ll0j6ll0j6ll0j.png` (2400×1792), kept outside the
   repository in `assets/source/`.
 - **Made by `cmd/skin-gen`** from that master and
@@ -75,7 +75,7 @@ its own code, not these images.
 ### Slim walnut (`assets/tv/slim/`)
 
 - **Generator:** Google Gemini image generation (the Gemini app), November
-  2026, from the slim prompt in README §12.3. Master:
+  2026, from the slim prompt in docs/tv-artwork.md. Master:
   `Gemini_Generated_Image_56jp856jp856jp85.png` (2400×1792), kept outside the
   repository in `assets/source/`.
 - **Made by `cmd/skin-gen`** from that master and

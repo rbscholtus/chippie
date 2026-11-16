@@ -13,7 +13,7 @@ const SourcesVersion = 1
 // HostedSource is the id of ROMs Chippie hosts itself; it is tried last.
 const HostedSource = "chippie"
 
-// Sources is web/sources.json (README §9.3): where each ROM can be
+// Sources is web/sources.json (DESIGN §9.3): where each ROM can be
 // downloaded.
 type Sources struct {
 	Version   int                   `json:"version"`
@@ -62,7 +62,7 @@ func ParseSources(data []byte) (*Sources, error) {
 }
 
 // URLs returns where a ROM can be downloaded, best first: original sources
-// in manifest order, Chippie's own hosted copies last (README §9.3).
+// in manifest order, Chippie's own hosted copies last (DESIGN §9.3).
 func (s *Sources) URLs(sha1 string) []Location {
 	locs := append([]Location(nil), s.ROMs[strings.ToLower(sha1)]...)
 	sort.SliceStable(locs, func(i, j int) bool {

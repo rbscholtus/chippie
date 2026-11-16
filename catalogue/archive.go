@@ -85,7 +85,7 @@ var archiveFamilies = map[string][]string{ //nolint:gochecknoglobals // read-onl
 
 // Conflict is a disagreement between chip8Archive and chip-8-database.
 // chip-8-database wins; conflicts are reported by catalogue-gen as
-// candidates for upstream fixes (README §10, §18).
+// candidates for upstream fixes (DESIGN §10).
 type Conflict struct {
 	SHA1    string
 	Title   string

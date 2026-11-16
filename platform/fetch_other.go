@@ -11,9 +11,18 @@ import (
 
 // Fetch downloads url with net/http. See fetch.go.
 func Fetch(ctx context.Context, url string, limit int) ([]byte, error) {
+	return FetchWithHeaders(ctx, url, limit, nil)
+}
+
+// FetchWithHeaders is Fetch, sending headers with the request.
+func FetchWithHeaders(ctx context.Context, url string, limit int, headers map[string]string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("fetch %s: %w", url, err)
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	resp, err := http.DefaultClient.Do(req)

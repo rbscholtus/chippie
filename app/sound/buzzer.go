@@ -44,7 +44,15 @@ type Buzzer struct {
 	phase int           // sample position within one wave period
 	level float32       // current envelope level, 0..1
 
-	patternPos float64 // bit position within the pattern, kept across updates
+	// patternPos is the bit position within the pattern. It is kept across
+	// updates and pattern loads, and goes back to the first bit when a new
+	// sound starts: XO-CHIP resets it only when the sound timer reaches 0.
+	patternPos float64
+	// starts counts the buzzer's off-to-on switches (written by Set);
+	// started is the count Read last acted on. A switch between two Reads
+	// still restarts the pattern.
+	starts  atomic.Uint32
+	started uint32
 
 	mu         sync.Mutex // guards the pattern, set by the game loop
 	hasPattern bool
@@ -52,8 +60,13 @@ type Buzzer struct {
 	step       float64 // pattern bits per output sample
 }
 
-// Set switches the tone on or off.
-func (b *Buzzer) Set(on bool) { b.on.Store(on) }
+// Set switches the tone on or off. Each switch on starts the pattern from its
+// first bit.
+func (b *Buzzer) Set(on bool) {
+	if was := b.on.Swap(on); on && !was {
+		b.starts.Add(1)
+	}
+}
 
 // SetPattern selects what plays while the buzzer is on: with has, the 128-bit
 // pattern (first sample in the top bit) at the pitch; otherwise the square
@@ -86,6 +99,11 @@ func (b *Buzzer) Read(p []byte) (int, error) {
 	target := float32(0)
 	if b.on.Load() {
 		target = 1
+	}
+
+	if s := b.starts.Load(); s != b.started {
+		b.started = s
+		b.patternPos = 0
 	}
 
 	b.mu.Lock()

@@ -22,7 +22,7 @@ type archive struct {
 	include func(file string) bool
 }
 
-// archives are the collections in README §9.1 that browsers can download
+// archives are the collections in DESIGN §9.1 that browsers can download
 // from (GitHub raw, CORS *). Zophar's packs and David Winter's page aren't:
 // the ROMs only found there are hosted by Chippie; see hostedArchive.
 var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
@@ -232,7 +232,7 @@ func sortedKeys(m map[string][]byte) []string {
 	return keys
 }
 
-// report renders the coverage report as Markdown (README §9.1).
+// report renders the coverage report as Markdown (DESIGN §9.1).
 func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string {
 	var b strings.Builder
 
@@ -250,7 +250,8 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		len(res.sources.ROMs), db.ROMCount())
 
 	b.WriteString("\n## Chippie's overlay (pending upstream)\n\n")
-	b.WriteString("Additions and corrections in `catalogue/overlay.json`; \"done\" ones can be deleted.\n\n")
+	b.WriteString("Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the " +
+		"\"done\" ones (upstream has them) from it as it writes this report.\n\n")
 
 	if len(res.overlay) == 0 {
 		b.WriteString("Empty.\n")
@@ -263,7 +264,7 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		}
 
 		if s.Done {
-			state = "**done: upstream has it** (" + s.Upstream + ")"
+			state = "**done: upstream has it, deleted from the overlay** (" + s.Upstream + ")"
 		}
 
 		fmt.Fprintf(&b, "- %s: %s\n", s.What, state)

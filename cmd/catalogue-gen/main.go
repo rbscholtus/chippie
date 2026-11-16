@@ -1,4 +1,4 @@
-// Command catalogue-gen refreshes the catalogue snapshot (README §9–10). It
+// Command catalogue-gen refreshes the catalogue snapshot (DESIGN §9–10). It
 // downloads chip-8-database and the ROM archives at pinned commits, hashes
 // every ROM, and writes into catalogue/snapshot/:
 //
@@ -8,13 +8,17 @@
 //	                                                           including web/hosted-roms
 //	pins.json                                                  the commits used
 //
-// and the coverage report to docs/coverage.md. It needs the network; the
-// refresh workflow runs it weekly with -update-pins.
+// and the coverage report to docs/coverage.md. It also deletes from
+// catalogue/overlay.json the entries upstream now has. It needs the network;
+// the refresh workflow runs it weekly with -update-pins.
 //
 // Usage, from the repository root:
 //
 //	go run ./cmd/catalogue-gen               # regenerate at the pinned commits
 //	go run ./cmd/catalogue-gen -update-pins  # follow each repository's branch or tag
+//
+// -update-pins uses the GitHub API; set GITHUB_TOKEN (e.g. to the output of
+// gh auth token) to avoid its anonymous rate limit.
 //
 // -summary writes a Markdown comparison with the previous snapshot (counts
 // and pins), which the refresh workflow shows on its run page and in its PR.
@@ -33,6 +37,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -63,13 +68,14 @@ func main() {
 	updatePins := flag.Bool("update-pins", false, "follow each repository's branch or tag instead of the pins")
 	hostedDir := flag.String("hosted", "web/hosted-roms", "directory of the ROMs Chippie hosts itself")
 	summaryPath := flag.String("summary", "", "write a before/after summary here (Markdown)")
+	overlayPath := flag.String("overlay", "catalogue/overlay.json", "Chippie's overlay; done entries are deleted")
 
 	flag.Parse()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	err := run(ctx, options{
 		dir: *snapshotDir, reportPath: *reportPath, hostedDir: *hostedDir,
-		summaryPath: *summaryPath, updatePins: *updatePins,
+		summaryPath: *summaryPath, overlayPath: *overlayPath, updatePins: *updatePins,
 	})
 
 	cancel()
@@ -81,8 +87,8 @@ func main() {
 
 // options are the command-line flags.
 type options struct {
-	dir, reportPath, hostedDir, summaryPath string
-	updatePins                              bool
+	dir, reportPath, hostedDir, summaryPath, overlayPath string
+	updatePins                                           bool
 }
 
 func run(ctx context.Context, o options) error {
@@ -110,7 +116,7 @@ func run(ctx context.Context, o options) error {
 	// is applied so its games get download locations too.
 	upstream := counts{programs: len(db.Programs), roms: db.ROMCount()}
 
-	overlay, err := applyOverlay(db)
+	overlay, err := applyOverlay(db, o.overlayPath)
 	if err != nil {
 		return err
 	}
@@ -125,12 +131,17 @@ func run(ctx context.Context, o options) error {
 	keepTimestamp(filepath.Join(dir, "sources.json"), &res.sources)
 
 	conflicts, err := writeOutputs(dir, o.reportPath, db, trees[0].files[programsFile], res, pins)
-	if err != nil || o.summaryPath == "" {
+	if err != nil {
+		return err
+	}
+
+	done := doneEntries(overlay)
+	if err := pruneOverlay(o.overlayPath, overlay, len(done)); err != nil || o.summaryPath == "" {
 		return err
 	}
 
 	upstream.downloadable, upstream.conflicts = len(res.sources.ROMs), conflicts
-	after := snapshotState{counts: upstream, pins: pins, overlayDone: doneEntries(overlay)}
+	after := snapshotState{counts: upstream, pins: pins, overlayDone: done, overlayLinks: doneLinks(overlay)}
 
 	if err := os.WriteFile(o.summaryPath, []byte(summary(before, hadBefore, after)), 0o600); err != nil {
 		return fmt.Errorf("write summary: %w", err)
@@ -164,8 +175,13 @@ func fetchTrees(ctx context.Context, pins map[string]string, hostedDir string) (
 
 // applyOverlay applies Chippie's overlay (catalogue/overlay.json) to the
 // freshly fetched database.
-func applyOverlay(db *catalogue.DB) ([]catalogue.OverlayStatus, error) {
-	o, err := catalogue.EmbeddedOverlay()
+func applyOverlay(db *catalogue.DB, path string) ([]catalogue.OverlayStatus, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read overlay: %w", err)
+	}
+
+	o, err := catalogue.ParseOverlay(data)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // ErrInvalid says what's wrong
 	}
@@ -176,6 +192,52 @@ func applyOverlay(db *catalogue.DB) ([]catalogue.OverlayStatus, error) {
 	}
 
 	return status, nil
+}
+
+// pruneOverlay deletes the done entries from the overlay at path; with
+// none done it leaves the file alone.
+func pruneOverlay(path string, status []catalogue.OverlayStatus, done int) error {
+	if done == 0 {
+		return nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read overlay: %w", err)
+	}
+
+	pruned, err := catalogue.PruneOverlay(data, status)
+	if err != nil {
+		return err //nolint:wrapcheck // ErrInvalid says what's wrong
+	}
+
+	//nolint:gosec // G703: path is the -overlay flag, given by whoever runs the generator
+	if err := os.WriteFile(path, pruned, 0o600); err != nil {
+		return fmt.Errorf("write overlay: %w", err)
+	}
+
+	log.Printf("deleted %d done entries from %s", done, path)
+
+	return nil
+}
+
+// doneLinks lists the upstream PRs and issues of the done entries, once
+// each, sorted: docs/upstream/README.md marks them merged by hand.
+func doneLinks(status []catalogue.OverlayStatus) []string {
+	var links []string
+
+	seen := map[string]bool{}
+
+	for _, s := range status {
+		if s.Done && !seen[s.Upstream] {
+			seen[s.Upstream] = true
+			links = append(links, s.Upstream)
+		}
+	}
+
+	sort.Strings(links)
+
+	return links
 }
 
 // doneEntries lists the overlay entries upstream has caught up with.
@@ -319,14 +381,21 @@ func repos() []string {
 }
 
 // resolvePins updates each pin to the current commit of its branch or tag.
+// It uses the GitHub API, with GITHUB_TOKEN if set: without it, the limit
+// is 60 requests an hour per IP address, which shared CI runners can use up.
 func resolvePins(ctx context.Context, pins map[string]string) error {
 	refs := map[string]string{databaseRepo: databaseRef}
 	for _, a := range archives {
 		refs[a.repo] = a.ref
 	}
 
+	headers := map[string]string{"Accept": "application/vnd.github+json"}
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		headers["Authorization"] = "Bearer " + token
+	}
+
 	for repo, ref := range refs {
-		data, err := platform.Fetch(ctx, "https://api.github.com/repos/"+repo+"/commits/"+ref, maxJSON)
+		data, err := platform.FetchWithHeaders(ctx, "https://api.github.com/repos/"+repo+"/commits/"+ref, maxJSON, headers)
 		if err != nil {
 			return fmt.Errorf("resolve %s@%s: %w", repo, ref, err)
 		}

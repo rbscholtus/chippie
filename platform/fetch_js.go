@@ -15,9 +15,23 @@ var errFetch = errors.New("platform: fetch failed")
 // Fetch downloads url with the browser's fetch(). Cancelling ctx aborts the
 // request. See fetch.go.
 func Fetch(ctx context.Context, url string, limit int) ([]byte, error) {
+	return FetchWithHeaders(ctx, url, limit, nil)
+}
+
+// FetchWithHeaders is Fetch, sending headers with the request.
+func FetchWithHeaders(ctx context.Context, url string, limit int, headers map[string]string) ([]byte, error) {
 	abort := js.Global().Get("AbortController").New()
 	opts := js.Global().Get("Object").New()
 	opts.Set("signal", abort.Get("signal"))
+
+	if len(headers) > 0 {
+		h := js.Global().Get("Object").New()
+		for k, v := range headers {
+			h.Set(k, v)
+		}
+
+		opts.Set("headers", h)
+	}
 
 	resp, err := await(ctx, abort, js.Global().Call("fetch", url, opts))
 	if err != nil {

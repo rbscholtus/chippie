@@ -1,7 +1,7 @@
 # Hosted ROMs
 
 These 18 ROMs can't be downloaded from a browser anywhere else, so Chippie hosts
-them (README §9.1). All are unmodified files, and each file's SHA-1 matches
+them (DESIGN §9.1). All are unmodified files, and each file's SHA-1 matches
 chip-8-database.
 
 **From [Zophar's Domain, CHIP-8 public-domain ROMs](https://www.zophar.net/pdroms/chip8.html)**

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/rbscholtus/chippie/chip8"
 )
 
 const (
@@ -84,6 +86,58 @@ func TestOverlayAddsAndChanges(t *testing.T) {
 	}
 }
 
+// testPlatform is an overlay platform entry for hiresChip8, which the
+// snapshot itself doesn't have.
+const testPlatform = `{"upstream": "pending", "platform": {"id": "hiresChip8", "name": "Hires",
+	"displayResolutions": ["64x64"], "defaultTickrate": 15, "quirks": {"vblank": true, "logic": true}}}`
+
+func TestOverlayAddsPlatform(t *testing.T) {
+	t.Parallel()
+
+	f, err := SnapshotFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := Parse(f) // without the embedded overlay
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if db.Platforms["hiresChip8"] != nil {
+		t.Fatal("the snapshot has hiresChip8: this test needs another platform")
+	}
+
+	o := mustOverlay(t, `{"platforms": [`+testPlatform+`],
+		"add": [{"upstream": "pending", "program": {"title": "Hires Game",
+			"roms": {"`+newHash+`": {"file": "h.ch8", "platforms": ["hiresChip8"]}}}}]}`)
+
+	status, err := db.ApplyOverlay(o)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(status) != 2 || status[0].What != "add platform hiresChip8" || status[0].Done {
+		t.Errorf("status %+v, want the platform first, not done", status)
+	}
+
+	r := db.Resolve(newHash, Overrides{})
+	if r.PlatformID != "hiresChip8" || r.Profile.Platform != chip8.HiresChip8 || r.Profile.TicksPerFrame != 15 ||
+		!r.Profile.Quirks.VBlank || !r.Profile.Quirks.Logic {
+		t.Errorf("resolved %+v", r)
+	}
+
+	// The user can switch another ROM to it, and back.
+	if r := db.Resolve(glitchGhost, Overrides{Platform: "hiresChip8"}); r.Profile.Platform != chip8.HiresChip8 {
+		t.Errorf("override: %s, want hiresChip8", r.Profile.Platform)
+	}
+
+	// Once upstream has the platform, the entry is done.
+	if status, err = db.ApplyOverlay(o); err != nil || !status[0].Done {
+		t.Errorf("applied twice: %v %+v", err, status)
+	}
+}
+
 func TestOverlayRejects(t *testing.T) {
 	t.Parallel()
 
@@ -96,17 +150,32 @@ func TestOverlayRejects(t *testing.T) {
 		"upper-case hash": `{"add": [{"upstream": "pending", "program": {"title": "X", "roms": {"` +
 			strings.ToUpper("abcdef") + newHash[6:] + `": {}}}}]}`,
 		"change no hash": `{"change": [{"upstream": "pending", "sha1": "x"}]}`,
+		"platform chip8 doesn't know": `{"platforms": [{"upstream": "pending",
+			"platform": {"id": "nope", "name": "Nope", "defaultTickrate": 15}}]}`,
+		"platform without a name": `{"platforms": [{"upstream": "pending",
+			"platform": {"id": "hiresChip8", "defaultTickrate": 15}}]}`,
+		"platform without upstream": `{"platforms": [{"platform": {"id": "hiresChip8", "name": "H"}}]}`,
 	} {
 		if _, err := ParseOverlay([]byte(s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
 		}
 	}
 
-	db := loadSnapshot(t).DB
+	f, err := SnapshotFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := Parse(f) // without the overlay's platforms
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	for name, s := range map[string]string{
 		"unknown platform": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"platforms": ["nope"]}}}}]}`,
+		"platform the overlay doesn't add": `{"add": [{"upstream": "pending", "program": {"title": "X",
+			"roms": {"` + newHash + `": {"platforms": ["hiresChip8"]}}}}]}`,
 		"unknown quirk": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"quirkyPlatforms": {"superchip": {"nope": true}}}}}}]}`,
 		"add to unknown": `{"add": [{"upstream": "pending", "to": "` + otherHash + `",
@@ -114,6 +183,10 @@ func TestOverlayRejects(t *testing.T) {
 		"change unknown": `{"change": [{"upstream": "pending", "sha1": "` + otherHash + `", "tickrate": 5}]}`,
 		"bad rotation": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"screenRotation": 45}}}}]}`,
+		"platform with an unknown quirk": `{"platforms": [{"upstream": "pending", "platform":
+			{"id": "hiresChip8", "name": "H", "defaultTickrate": 15, "quirks": {"nope": true}}}]}`,
+		"platform without a tickrate": `{"platforms": [{"upstream": "pending", "platform":
+			{"id": "hiresChip8", "name": "H"}}]}`,
 	} {
 		if _, err := db.ApplyOverlay(mustOverlay(t, s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
@@ -138,16 +211,46 @@ func TestEmbeddedOverlay(t *testing.T) {
 		"3d81c0462c722c2d8a79f6e1b571e9aa21d36b1f", // Tick
 		"08cff17fa88aaecb11dd439e2f9780f77831de02", // Mr Worm
 	} {
-		rom, ok := cat.DB.ROM(sha1)
-		if !ok {
-			t.Errorf("%s not in the catalogue", sha1)
+		checkPlayable(t, cat, sha1)
+	}
 
-			continue
+	// The hires ROMs, on the platform the overlay adds.
+	for _, sha1 := range []string{
+		"066e7a84efde433e4d937d8aa41518666955086c", // Astro Dodge Hires
+		"70aa0e7f25f0f0fd6ec7c59e427bf1d03ee95617", // Hires Maze
+		"1ebcb2ec0be2ec9fa209d5c73be19b2d408399bf", // Hires Particle Demo
+		"200b313e4d4c1970641142cc7ff578d7956b93da", // Hires Sierpinski
+		"af98ee11adae28a6153cae8e4c16afa00f861907", // Hires Stars
+		"8d56a781bf16acccb307177b80ff326f62aabbdc", // Hires Test
+		"71d06da9e605804d2099b808c02548ab2b3511b2", // Hires Worm V4
+		"b2c55b6aba3e2910036d5b5bc3956cf7493e0221", // Trip8 Hires Demo
+	} {
+		checkPlayable(t, cat, sha1)
+
+		if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; p != chip8.HiresChip8 {
+			t.Errorf("%s: platform %s, want hiresChip8", sha1, p)
 		}
 
-		if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; !p.Implemented() {
-			t.Errorf("%s: platform %s isn't playable", rom.Program.Title, p)
+		if len(cat.Sources.ROMs[sha1]) == 0 {
+			t.Errorf("%s: no download location in sources.json", sha1)
 		}
+	}
+}
+
+// checkPlayable checks that a ROM is in the catalogue and resolves to a
+// platform Chippie can play.
+func checkPlayable(t *testing.T, cat *Catalogue, sha1 string) {
+	t.Helper()
+
+	rom, ok := cat.DB.ROM(sha1)
+	if !ok {
+		t.Errorf("%s not in the catalogue", sha1)
+
+		return
+	}
+
+	if p := cat.DB.Resolve(sha1, Overrides{}).Profile.Platform; !p.Implemented() {
+		t.Errorf("%s: platform %s isn't playable", rom.Program.Title, p)
 	}
 }
 
@@ -191,4 +294,93 @@ func TestOverlayChangesProgramFields(t *testing.T) {
 	if status, _ = db.ApplyOverlay(o); !status[0].Done {
 		t.Error("applied twice: not reported done")
 	}
+}
+
+// TestPruneOverlayKeepsFormatting checks that pruning nothing gives back
+// overlay.json byte for byte, so a pruned file differs only by the entries
+// removed.
+func TestPruneOverlayKeepsFormatting(t *testing.T) {
+	t.Parallel()
+
+	got, err := PruneOverlay(overlayJSON, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(got) != string(overlayJSON) {
+		t.Error("PruneOverlay changed overlay.json's formatting; keep it indented like json.MarshalIndent")
+	}
+}
+
+// TestPruneOverlay removes the done entries, including a change applied
+// after the additions (so its status comes out of order).
+func TestPruneOverlay(t *testing.T) {
+	t.Parallel()
+
+	const dinoRun = "1a7a2138161b06e083722f978f8cbaaa1ad5344d" // upstream has it
+
+	data := []byte(`{
+  "add": [
+    {"upstream": "` + upstream + `", "program": {"title": "Dino Run",
+      "roms": {"` + dinoRun + `": {"file": "dinorun.ch8", "platforms": ["originalChip8"]}}}},
+    {"upstream": "pending", "program": {"title": "New Game",
+      "roms": {"` + newHash + `": {"file": "n.ch8", "platforms": ["originalChip8"]}}}}
+  ],
+  "change": [
+    {"upstream": "` + upstream + `", "sha1": "` + dinoRun + `", "title": "Dino Run"},
+    {"upstream": "pending", "sha1": "` + newHash + `", "tickrate": 30},
+    {"upstream": "pending", "sha1": "` + newHash + `", "tickrate": 30}
+  ]
+}`)
+
+	db := snapshotDB(t)
+
+	status, err := db.ApplyOverlay(mustOverlay(t, string(data)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pruned, err := PruneOverlay(data, status)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	o := mustOverlay(t, string(pruned))
+
+	if len(o.Platforms) != 0 || len(o.Add) != 1 || o.Add[0].Program.Title != "New Game" ||
+		len(o.Change) != 1 || o.Change[0].SHA1 != newHash {
+		t.Fatalf("pruned overlay = %s, want only New Game and one change to it", pruned)
+	}
+
+	if !strings.Contains(string(pruned), `"platforms": []`) {
+		t.Errorf("an empty section should stay [], got:\n%s", pruned)
+	}
+
+	again, err := snapshotDB(t).ApplyOverlay(o)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, s := range again {
+		if s.Done {
+			t.Errorf("%s still done after pruning", s.What)
+		}
+	}
+}
+
+// snapshotDB parses the committed snapshot without the embedded overlay.
+func snapshotDB(t *testing.T) *DB {
+	t.Helper()
+
+	f, err := SnapshotFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := Parse(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return db
 }

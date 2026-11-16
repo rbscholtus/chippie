@@ -5,7 +5,7 @@ package main
 // Src0: the phosphor buffer (upscaled picture with afterglow), the same
 // size as the area drawn. Coordinates are in source pixels
 // (srcPos - imageSrc0Origin()), never imageDstSize(), which is the whole
-// destination image (README §3).
+// destination image (DESIGN §3).
 
 var Time float
 var Power float // 0 = off, 1 = on; animates the power-on/off collapse

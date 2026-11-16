@@ -10,7 +10,7 @@ import (
 )
 
 // The remote control: a 4×4 hex keypad for touch screens, in the COSMAC
-// VIP's layout, drawn in code (README §13). Every finger counts, so two
+// VIP's layout, drawn in code (DESIGN §13). Every finger counts, so two
 // keys can be held at once.
 
 // remoteKeys is the keypad, row by row: the hex key at each position.

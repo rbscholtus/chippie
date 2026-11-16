@@ -42,6 +42,8 @@ func TestOpcodesExistPerPlatform(t *testing.T) {
 		{0xF030, map[Platform]bool{ModernChip8: false, Chip48: false, SuperChip1: true, SuperChip: true}},
 		{0xF075, map[Platform]bool{OriginalChip8: false, Chip48: false, SuperChip1: true, SuperChip: true}},
 		{0x00DE, map[Platform]bool{SuperChip: false}},
+		{0x0230, map[Platform]bool{OriginalChip8: false, ModernChip8: false, XOChip: false, HiresChip8: true}},
+		{0x00FF, map[Platform]bool{HiresChip8: false}},
 	}
 
 	for _, tt := range tests {
@@ -325,5 +327,38 @@ func TestFlagRegisters(t *testing.T) {
 
 	if m.v[0] != 0 {
 		t.Error("flags survived Reset")
+	}
+}
+
+// TestFX29BigFontOnSuperChip1 checks SUPER-CHIP 1.0's FX29: VX 10–19 points
+// at the big font. From 1.1 on (and on XO-CHIP) FX29 is the small font only.
+func TestFX29BigFontOnSuperChip1(t *testing.T) {
+	t.Parallel()
+
+	small := func(d uint16) uint16 { return FontAddr + d*smallFontHeight }
+	big := func(d uint16) uint16 { return BigFontAddr + d*bigFontHeight }
+
+	tests := []struct {
+		p    Platform
+		v    byte
+		want uint16
+	}{
+		{SuperChip1, 0x05, small(5)},
+		{SuperChip1, 0x15, big(5)},
+		{SuperChip1, 0x19, big(9)},
+		{SuperChip1, 0x25, small(5)},
+		{SuperChip, 0x15, small(5)},
+		{XOChip, 0x15, small(5)},
+		{ModernChip8, 0x15, small(5)},
+	}
+
+	for _, tt := range tests {
+		m := New(DefaultProfile(tt.p))
+		m.v[2] = tt.v
+		exec(m, 0xF229)
+
+		if m.i != tt.want {
+			t.Errorf("%s FX29 with %02X: I=%03X, want %03X", tt.p, tt.v, m.i, tt.want)
+		}
 	}
 }
