@@ -109,3 +109,60 @@ which is 64×128 and needs a modified interpreter.
 > its library for "hires".
 >
 > If you agree, I'll open a PR adding the platform and the 8 programs.
+
+## Follow-up: reply to tobiasvl (2026-11-17)
+
+tobiasvl [commented](https://github.com/chip-8/chip-8-database/issues/33#issuecomment-6899378929)
+on 2026-11-15: call it "2 Page Display for CHIP-8" (Modla and Winsor, VIPER
+1/3, September 1978); `1260` jumps to 0x260, not 0x2C0; detect the mode by
+the patch's bytes, not `1260` alone. All three checked against the
+[VIPER scan](https://github.com/mattmikolay/viper/blob/master/volume1/issue3.pdf)
+(pp. 10–12) and implemented in Chippie PR #20; chip-8-database PR #34 is
+updated to match (draft 08).
+
+- [x] Facts checked: the patch at 0x200–0x249 matches the article's listing
+  byte for byte, in all 8 ROMs; Hires Test is the article's test program,
+  moved by 0x60; the two Naydenov demos need `memoryLeaveIUnchanged`.
+- [ ] "PIPS for VIPs": from tobiasvl's extensions page, not checked in the
+  book itself.
+- [ ] Text below approved.
+
+**Comment on chip-8-database issue #33:**
+
+> Thanks, that was very helpful: you were right on all three points. I read
+> the article in the [VIPER scan](https://github.com/mattmikolay/viper/blob/master/volume1/issue3.pdf)
+> (pp. 10–12) and have updated #34 to match.
+>
+> **Name and date.** The platform is now `twoPageChip8`, "2 Page Display for
+> CHIP-8", with `"release": "1978-09"`, crediting Andy Modla and Jef Winsor.
+>
+> **0x260.** I had this wrong. The article's programs start at 0x260, after
+> the patch at 0x200–0x249 that every program must include. The ROMs in
+> kripod's `hires/` folder go one step further so that they run on an
+> unmodified VIP: their CHIP-8 code at 0x260 copies the article's
+> interpreter changes into 0x003–0x1FB (`Fx55` stores of data kept at
+> 0x24A), calls `02AC`, clears the screen with `0230` at 0x2BE, and only
+> then reaches the program proper at 0x2C0. The description now explains
+> both.
+>
+> **Detection.** Agreed. The suggested rule is now: if 0x200 holds `1260`
+> and 0x202–0x249 hold the article's patch byte for byte, switch to 64×64
+> and continue at 0x2C0 after the self-patching code, else at 0x260; then
+> treat `0230` as clearing the screen. All 8 ROMs have exactly the
+> article's bytes there. Chippie now works this way
+> ([`chip8/ops_twopage.go`](https://github.com/rbscholtus/chippie/blob/main/chip8/ops_twopage.go)).
+>
+> Two more things came up while checking:
+>
+> - **Hires Test** is the article's own test program, byte for byte, moved
+>   from 0x260 to 0x2C0. I've credited it to Modla and Winsor (1978-09) and
+>   kept kripod's attribution to Tom Swan in its description.
+> - **Hires Sierpinski and Hires Stars** got stuck on the VIP's quirks:
+>   Sergey Naydenov's compiler stores back to the address it just loaded
+>   from (`A684 F065 7001 F055`), which assumes `Fx65` leaves `I` alone. The
+>   lo-res Stars is already listed as `superchip`, probably for the same
+>   reason. Both are now under `quirkyPlatforms`, `twoPageChip8` with
+>   `memoryLeaveIUnchanged: true`.
+
+**Also:** retitle the issue to "Add a platform for the COSMAC VIP's 2 Page
+Display for CHIP-8 (64×64)".
