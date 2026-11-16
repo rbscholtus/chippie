@@ -23,8 +23,9 @@ func Disassemble(p Platform, op uint16) string { //nolint:funlen // one case per
 			return s
 		}
 	case 0x1:
-		// On twoPageChip8, 1260 at 0x200 starts the 64×64 mode instead, but
-		// the disassembler doesn't know the address: it shows the jump.
+		// On twoPageChip8, 1260 at 0x200 before the 2 Page Display patch
+		// starts the 64×64 mode (ops_twopage.go), but the disassembler sees
+		// one instruction: it shows the jump.
 		return fmt.Sprintf("JP 0x%03X", nnn)
 	case 0x2:
 		return fmt.Sprintf("CALL 0x%03X", nnn)

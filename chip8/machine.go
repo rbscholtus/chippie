@@ -60,13 +60,14 @@ type Machine struct {
 	waitKey  int
 	lastKeys [NumKeys]bool
 
-	disp  display
-	rng   rng
-	ops   opSet              // the platform's optional instruction groups
-	minST byte               // lowest sound timer value that sounds (platformInfo.minSound)
-	hires bool               // SUPER-CHIP extended screen mode
-	plane byte               // bit-planes that drawing, clearing and scrolling affect
-	rpl   [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
+	disp    display
+	rng     rng
+	ops     opSet              // the platform's optional instruction groups
+	minST   byte               // lowest sound timer value that sounds (platformInfo.minSound)
+	hires   bool               // SUPER-CHIP extended screen mode
+	twoPage bool               // the 2 Page Display has started (ops_twopage.go)
+	plane   byte               // bit-planes that drawing, clearing and scrolling affect
+	rpl     [numRegisters]byte // FX75/FX85 flag storage (the HP48's RPL flags)
 
 	// XO-CHIP audio.
 	pattern       [patternBytes]byte // 128 one-bit samples, loaded by F002
@@ -120,6 +121,7 @@ func (m *Machine) Reset(p Profile) {
 	m.ops = info.ops
 	m.minST = max(info.minSound, 1)
 	m.hires = false
+	m.twoPage = false
 	m.plane = 1
 	m.rpl = [numRegisters]byte{}
 	m.pattern, m.patternLoaded, m.pitch = [patternBytes]byte{}, false, defaultPitch
