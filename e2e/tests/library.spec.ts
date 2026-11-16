@@ -36,6 +36,34 @@ test("Chippie's own game, Depot, is in the library and plays offline", async ({ 
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 });
 
+test("Space and the arrow keys play a game with a keys hint (Depot)", async ({ page }) => {
+  await offline(page);
+  await openLibrary(page);
+  await search(page, "depot");
+  await page.keyboard.press("Enter");
+  await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+
+  // Depot's 128×64 screen: (0, 2) is always background. On the title the
+  // hatch wall's row (y 8) is dark at the left edge; in a game it's wall.
+  // On the dock, the courier's middle row (y 56) covers x 60-64.
+  const pixel = async (x: number, y: number) => {
+    const g = await sampleScreen(page, 128, 64);
+    return g.rgb[y * 128 + x].join();
+  };
+  const background = await pixel(0, 2);
+  expect(await pixel(2, 8)).toBe(background);
+
+  await page.keyboard.down("Space"); // Depot's "a" is its start key, 6
+  await expect.poll(() => pixel(2, 8), { intervals: [200] }).not.toBe(background);
+  await page.keyboard.up("Space");
+  await expect.poll(() => pixel(62, 56), { intervals: [200] }).not.toBe(background);
+
+  await page.keyboard.down("ArrowLeft"); // left is 7: one hop of 4 px
+  await page.waitForTimeout(100);
+  await page.keyboard.up("ArrowLeft");
+  await expect.poll(() => pixel(62, 56), { intervals: [200] }).toBe(background);
+});
+
 test("a coming-soon game can't be started", async ({ page }) => {
   await offline(page);
   await openLibrary(page);

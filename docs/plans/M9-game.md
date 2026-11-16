@@ -292,6 +292,9 @@ assets/roms/depot.ch8    the built ROM, committed and compiled into the app
 that direction, Space presses `a` and Shift presses `b`, next to the usual
 `1234/QWER/ASDF/ZXCV` layout. Hints with 0x10 added (a second keypad) are
 ignored for now. Lives in `app/input`, with unit tests and a Playwright check.
+As built (step 7): `input.Extras`, made from the hint when a game starts;
+the keys line adds "(or arrows, Space)". 55 database ROMs have a hint, 39
+with directions.
 
 **Saved flag registers.**
 

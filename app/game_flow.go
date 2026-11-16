@@ -125,6 +125,7 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 	g.renderer.SetPicture(pictureIn(g.tv.lay.tube, e.Rotation))
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
+	g.extras = input.NewExtras(e.Keys)
 	g.syncSpeedKnob()
 	g.message = ""
 	g.state = stateRunning
@@ -195,7 +196,7 @@ func (g *Game) runFrame() {
 		return
 	}
 
-	input.Poll(g.machine, g.remote.held)
+	input.Poll(g.machine, g.remote.held|g.extras.Held(ebiten.IsKeyPressed))
 	g.machine.RunFrame()
 
 	snd := g.machine.Sound()

@@ -13,6 +13,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/rbscholtus/chippie/app/crt"
+	"github.com/rbscholtus/chippie/app/input"
 	"github.com/rbscholtus/chippie/app/library"
 	"github.com/rbscholtus/chippie/app/roms"
 	"github.com/rbscholtus/chippie/app/skin"
@@ -71,6 +72,7 @@ type Game struct {
 	current    library.Entry
 	currentROM []byte
 	hasROM     bool
+	extras     input.Extras // arrows, Space and Shift for current's keys hint
 
 	renderer *crt.Renderer
 	sound    sound.Output

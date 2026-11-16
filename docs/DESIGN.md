@@ -741,7 +741,11 @@ The prompts used for each cabinet, and tips for making new skins, are in
 - Read in `Update` with `ebiten.IsKeyPressed` and passed to
   `machine.SetKey` before `RunFrame`.
 - If the database has a `keys` hint for a ROM, the remote highlights only
-  those keys.
+  those keys, and extra keys work next to the usual layout: the arrow keys
+  press the hinted `up`/`down`/`left`/`right` keys, Space presses `a` and
+  Shift `b` (`input.Extras`). Hints for a second keypad (0x10 and up) and
+  player 2 get no extra keys. The keys line says which extras work, e.g.
+  "Keys: ↑ W · ↓ S · A E (or arrows, Space)".
 - `Fx0A` follows the original behaviour: it waits for a key to be pressed and
   then released. Timers keep counting down while it waits.
 

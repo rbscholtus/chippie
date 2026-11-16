@@ -73,7 +73,9 @@ Z X C V         A 0 B F
 
 Under the TV, Chippie shows which keys the running game uses. Where
 chip-8-database knows a game's controls, it lists them (and the on-screen
-remote highlights them). Otherwise Chippie watches the game: every key it
+remote highlights them), and the arrow keys, Space and Shift work too: the
+arrows for the game's directions, Space and Shift for its two buttons.
+Otherwise Chippie watches the game: every key it
 checks is added to a "Keys it reads" line, so after a few seconds of play
 you can see its controls. A game that waits for any key says so.
 
@@ -153,7 +155,6 @@ Hires CHIP-8, the COSMAC VIP's 64×64 mode, with its 8 known ROMs (M10).
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
 - Getting Hires CHIP-8 and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
-- Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 
 The full list, with open questions, is in [docs/ROADMAP.md](docs/ROADMAP.md).

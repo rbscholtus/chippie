@@ -97,11 +97,10 @@ To be settled while building, not before:
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.
 
-- **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
-  entry has a `keys` hint (27 of the 204 downloadable ones), also map the
-  arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
-  usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
-  keypad; show those properly instead of "?".
+- **Second-keypad hints.** Arrow keys, Space and Shift for games with a
+  `keys` hint were done in M9 (DESIGN §13). Hints with 0x10 added mean a
+  second keypad: show those properly instead of "?", if any turn up (none
+  in the database as of 2026-11-17).
 - **Favourite games.** Mark a game as a favourite (e.g. a star in the
   details), stored per device like the ROM cache, and list favourites first
   in the library drawer (or behind a "Favourites" filter) so they start in
