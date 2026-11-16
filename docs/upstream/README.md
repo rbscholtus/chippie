@@ -13,12 +13,12 @@ here (and the drafts' status lines) in that PR.
 
 | # | Draft | Where | Kind | Status |
 |---|---|---|---|---|
-| 01 | [Add Dino Run, Mato8 and Tick](01-chip8archive-new-programs.md) | chip-8-database | PR | [#30](https://github.com/chip-8/chip-8-database/pull/30), open |
+| 01 | [Add Dino Run, Mato8 and Tick](01-chip8archive-new-programs.md) | chip-8-database | PR | [#30](https://github.com/chip-8/chip-8-database/pull/30), merged 2026-11-15 |
 | 02 | [Update script fails without `options`](02-update-script-missing-options.md) | chip-8-database | issue | [#29](https://github.com/chip-8/chip-8-database/issues/29), open |
-| 03 | [Support Mr Worm (#28)](03-comment-pr28-mr-worm.md) | chip-8-database#28 | comment | [posted](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988) |
+| 03 | [Support Mr Worm (#28)](03-comment-pr28-mr-worm.md) | chip-8-database#28 | comment | [posted](https://github.com/chip-8/chip-8-database/pull/28#issuecomment-6881844988); #28 merged 2026-11-15 |
 | 04 | [Two pixels in the scrolling pictures](04-test-suite-scrolling-pictures.md) | Timendus/chip8-test-suite | issue | [#38](https://github.com/Timendus/chip8-test-suite/issues/38), open |
-| 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), open |
-| 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), open |
+| 05 | [Add 26 Octojam games](05-octojam-itch-games.md) | chip-8-database | PR (on #30) | [#31](https://github.com/chip-8/chip-8-database/pull/31), merged 2026-11-15 |
+| 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), merged 2026-11-15 |
 | 07 | [A Hires CHIP-8 (64×64) platform](07-hires-platform.md) | chip-8-database | issue | [#33](https://github.com/chip-8/chip-8-database/issues/33), open |
 | 08 | [Add the 8 Hires CHIP-8 programs](08-hires-roms.md) | chip-8-database | PR (with the platform) | [#34](https://github.com/chip-8/chip-8-database/pull/34), open |
 
