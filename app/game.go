@@ -333,16 +333,30 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 }
 
-// keysHint is the running game's keys from the database, as a bit per hex
-// key, for the remote to light up.
+// keysHint is the keys the remote lights up for the running game, a bit
+// per hex key (remoteLit).
 func (g *Game) keysHint() uint16 {
+	read, _ := g.machine.KeysRead()
+
+	return remoteLit(g.current.Keys, read)
+}
+
+// remoteLit chooses the keys the remote lights: the database's keys hint
+// if the game has one, otherwise the keys the game has checked so far
+// (read, from Machine.KeysRead), which fill in as it plays. A game that
+// only waits for any key reads none, so nothing is lit.
+func remoteLit(hints map[string]int, read uint16) uint16 {
 	var mask uint16
 
-	for _, hex := range g.current.Keys {
-		if hex >= 0 && hex < 16 {
+	for _, hex := range hints {
+		if hex >= 0 && hex < chip8.NumKeys {
 			mask |= 1 << hex
 		}
 	}
 
-	return mask
+	if mask != 0 {
+		return mask
+	}
+
+	return read
 }

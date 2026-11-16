@@ -778,8 +778,13 @@ The prompts used for each cabinet, and tips for making new skins, are in
   keypad appears below the TV in portrait, or beside it in landscape.
 - Multi-touch is supported (`ebiten.AppendTouchIDs`), so two keys can be held
   at once.
-- Keys in the database's `keys` hint are lighter. The `touchInputMode` hint
-  (e.g. a gamepad layout) isn't used yet.
+- Keys in the database's `keys` hint are lighter. Without a hint (or with
+  only second-keypad keys), the keys the game has checked so far are
+  lighter instead (`Machine.KeysRead`, as on the "Keys it reads" line):
+  they light up as the game reads them, and stay lit until the ROM
+  restarts. A game that only waits for any key lights none
+  (`remoteLit` in `app/game.go`). The `touchInputMode` hint (e.g. a
+  gamepad layout) isn't used yet.
 
 **Text input:**
 
