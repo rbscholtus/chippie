@@ -1,8 +1,14 @@
 name: Refresh catalogue
 
 # Weekly: refresh the chip-8-database snapshot and sources.json from the
-# latest commits of each repository. The run page shows a before/after
-# summary; a PR with the same summary is opened if the snapshot changed.
+# latest commits of each repository, and delete the overlay entries upstream
+# now has. The run page shows a before/after summary; a PR with the same
+# summary is opened if the snapshot changed.
+#
+# The PR is opened with the REFRESH_TOKEN secret (a fine-grained token with
+# Contents and Pull requests read/write on this repository), so CI runs on
+# it: GitHub runs no workflows for a PR opened with github.token, which is
+# the fallback while the secret isn't set.
 
 on:
   schedule:
@@ -18,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.REFRESH_TOKEN || github.token }}
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -27,13 +35,13 @@ jobs:
         run: go test ./catalogue/
       - name: Report, and open a PR if the snapshot changed
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.REFRESH_TOKEN || github.token }}
         run: |
           summary="$RUNNER_TEMP/summary.md"
-          # Only the snapshot counts: a coverage.md change on its own (e.g. a
-          # wording change in the generator) is not worth a PR.
-          if [ -z "$(git status --porcelain -- catalogue/snapshot)" ]; then
-            printf '\nNo changes to the snapshot, so no PR.\n' >> "$summary"
+          # Only the snapshot and the overlay count: a coverage.md change on
+          # its own (e.g. a wording change in the generator) is not worth a PR.
+          if [ -z "$(git status --porcelain -- catalogue/snapshot catalogue/overlay.json)" ]; then
+            printf '\nNo changes to the snapshot or the overlay, so no PR.\n' >> "$summary"
             cat "$summary" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
@@ -43,7 +51,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add catalogue/snapshot docs/coverage.md
+          git add catalogue/snapshot catalogue/overlay.json docs/coverage.md
           git commit -m "chore(catalogue): refresh snapshot and sources"
           git push -u origin "$branch"
           gh pr create --title "chore(catalogue): refresh snapshot and sources" --body-file "$summary"

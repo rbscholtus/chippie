@@ -295,3 +295,92 @@ func TestOverlayChangesProgramFields(t *testing.T) {
 		t.Error("applied twice: not reported done")
 	}
 }
+
+// TestPruneOverlayKeepsFormatting checks that pruning nothing gives back
+// overlay.json byte for byte, so a pruned file differs only by the entries
+// removed.
+func TestPruneOverlayKeepsFormatting(t *testing.T) {
+	t.Parallel()
+
+	got, err := PruneOverlay(overlayJSON, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(got) != string(overlayJSON) {
+		t.Error("PruneOverlay changed overlay.json's formatting; keep it indented like json.MarshalIndent")
+	}
+}
+
+// TestPruneOverlay removes the done entries, including a change applied
+// after the additions (so its status comes out of order).
+func TestPruneOverlay(t *testing.T) {
+	t.Parallel()
+
+	const dinoRun = "1a7a2138161b06e083722f978f8cbaaa1ad5344d" // upstream has it
+
+	data := []byte(`{
+  "add": [
+    {"upstream": "` + upstream + `", "program": {"title": "Dino Run",
+      "roms": {"` + dinoRun + `": {"file": "dinorun.ch8", "platforms": ["originalChip8"]}}}},
+    {"upstream": "pending", "program": {"title": "New Game",
+      "roms": {"` + newHash + `": {"file": "n.ch8", "platforms": ["originalChip8"]}}}}
+  ],
+  "change": [
+    {"upstream": "` + upstream + `", "sha1": "` + dinoRun + `", "title": "Dino Run"},
+    {"upstream": "pending", "sha1": "` + newHash + `", "tickrate": 30},
+    {"upstream": "pending", "sha1": "` + newHash + `", "tickrate": 30}
+  ]
+}`)
+
+	db := snapshotDB(t)
+
+	status, err := db.ApplyOverlay(mustOverlay(t, string(data)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pruned, err := PruneOverlay(data, status)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	o := mustOverlay(t, string(pruned))
+
+	if len(o.Platforms) != 0 || len(o.Add) != 1 || o.Add[0].Program.Title != "New Game" ||
+		len(o.Change) != 1 || o.Change[0].SHA1 != newHash {
+		t.Fatalf("pruned overlay = %s, want only New Game and one change to it", pruned)
+	}
+
+	if !strings.Contains(string(pruned), `"platforms": []`) {
+		t.Errorf("an empty section should stay [], got:\n%s", pruned)
+	}
+
+	again, err := snapshotDB(t).ApplyOverlay(o)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, s := range again {
+		if s.Done {
+			t.Errorf("%s still done after pruning", s.What)
+		}
+	}
+}
+
+// snapshotDB parses the committed snapshot without the embedded overlay.
+func snapshotDB(t *testing.T) *DB {
+	t.Helper()
+
+	f, err := SnapshotFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := Parse(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return db
+}
