@@ -1,6 +1,8 @@
 package catalogue
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -86,27 +88,88 @@ func TestOverlayAddsAndChanges(t *testing.T) {
 	}
 }
 
-// testPlatform is an overlay platform entry for twoPageChip8, which the
-// snapshot itself doesn't have.
+// testPlatform is an overlay platform entry for twoPageChip8, which
+// dbWithoutTwoPage's database doesn't have.
 const testPlatform = `{"upstream": "pending", "platform": {"id": "twoPageChip8", "name": "Hires",
 	"displayResolutions": ["64x64"], "defaultTickrate": 15, "quirks": {"vblank": true, "logic": true}}}`
 
-func TestOverlayAddsPlatform(t *testing.T) {
-	t.Parallel()
+// dbWithoutTwoPage parses the snapshot, without the embedded overlay, as
+// if upstream didn't have twoPageChip8 and its programs. Every platform
+// Chippie knows is in chip-8-database, so the overlay tests that add one
+// take this one out, whatever upstream has merged.
+func dbWithoutTwoPage(t *testing.T) *DB {
+	t.Helper()
+
+	const id = "twoPageChip8"
 
 	f, err := SnapshotFiles()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	db, err := Parse(f) // without the embedded overlay
+	var platforms, programs []json.RawMessage
+	if err := json.Unmarshal(f.Platforms, &platforms); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := json.Unmarshal(f.Programs, &programs); err != nil {
+		t.Fatal(err)
+	}
+
+	var keptPlatforms, keptPrograms []json.RawMessage
+
+	for _, p := range platforms {
+		if !bytes.Contains(p, []byte(`"`+id+`"`)) {
+			keptPlatforms = append(keptPlatforms, p)
+		}
+	}
+
+	hashes := map[string]int{}
+
+	for _, p := range programs {
+		if bytes.Contains(p, []byte(`"`+id+`"`)) {
+			continue
+		}
+
+		var prog struct {
+			ROMs map[string]json.RawMessage `json:"roms"`
+		}
+		if err := json.Unmarshal(p, &prog); err != nil {
+			t.Fatal(err)
+		}
+
+		for h := range prog.ROMs {
+			hashes[h] = len(keptPrograms)
+		}
+
+		keptPrograms = append(keptPrograms, p)
+	}
+
+	for _, part := range []struct {
+		v   any
+		dst *[]byte
+	}{{keptPlatforms, &f.Platforms}, {keptPrograms, &f.Programs}, {hashes, &f.Hashes}} {
+		if *part.dst, err = json.Marshal(part.v); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	db, err := Parse(f)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if db.Platforms["twoPageChip8"] != nil {
-		t.Fatal("the snapshot has twoPageChip8: this test needs another platform")
+	if db.Platforms[id] != nil {
+		t.Fatal("dbWithoutTwoPage still has " + id)
 	}
+
+	return db
+}
+
+func TestOverlayAddsPlatform(t *testing.T) {
+	t.Parallel()
+
+	db := dbWithoutTwoPage(t)
 
 	o := mustOverlay(t, `{"platforms": [`+testPlatform+`],
 		"add": [{"upstream": "pending", "program": {"title": "Hires Game",
@@ -161,16 +224,6 @@ func TestOverlayRejects(t *testing.T) {
 		}
 	}
 
-	f, err := SnapshotFiles()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	db, err := Parse(f) // without the overlay's platforms
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	for name, s := range map[string]string{
 		"unknown platform": `{"add": [{"upstream": "pending", "program": {"title": "X",
 			"roms": {"` + newHash + `": {"platforms": ["nope"]}}}}]}`,
@@ -188,21 +241,30 @@ func TestOverlayRejects(t *testing.T) {
 		"platform without a tickrate": `{"platforms": [{"upstream": "pending", "platform":
 			{"id": "twoPageChip8", "name": "H"}}]}`,
 	} {
-		if _, err := db.ApplyOverlay(mustOverlay(t, s)); !errors.Is(err, ErrInvalid) {
+		// A fresh database each time: an entry that wrongly applied would
+		// add newHash, and the next case would skip it as done.
+		if _, err := dbWithoutTwoPage(t).ApplyOverlay(mustOverlay(t, s)); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
 		}
 	}
 }
 
-// TestEmbeddedOverlay checks Chippie's own overlay: it applies cleanly and
-// its games resolve to a platform Chippie can play.
+// TestEmbeddedOverlay checks Chippie's own overlay: it applies cleanly,
+// every entry reports a status (an empty overlay, once upstream has
+// everything, is fine), and the games it added, which upstream may have
+// by now, resolve to a platform Chippie can play.
 func TestEmbeddedOverlay(t *testing.T) {
 	t.Parallel()
 
 	cat := loadSnapshot(t)
 
-	if len(cat.Overlay) == 0 {
-		t.Fatal("the embedded overlay did nothing")
+	o, err := EmbeddedOverlay()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if n := len(o.Platforms) + len(o.Add) + len(o.Change); len(cat.Overlay) != n {
+		t.Fatalf("%d statuses for %d overlay entries", len(cat.Overlay), n)
 	}
 
 	for _, sha1 := range []string{
@@ -214,7 +276,7 @@ func TestEmbeddedOverlay(t *testing.T) {
 		checkPlayable(t, cat, sha1)
 	}
 
-	// The hires ROMs, on the platform the overlay adds.
+	// The 2 Page Display ROMs, on twoPageChip8 (from the overlay or upstream).
 	for _, sha1 := range []string{
 		"066e7a84efde433e4d937d8aa41518666955086c", // Astro Dodge Hires
 		"70aa0e7f25f0f0fd6ec7c59e427bf1d03ee95617", // Hires Maze
