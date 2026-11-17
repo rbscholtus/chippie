@@ -4,7 +4,8 @@
   from a branch of the owner's fork, after the platform issue (draft 07)
   is agreed. It can add the platform too, if the maintainers prefer one PR.
 - **Status:** posted 2026-11-16 as
-  [#34](https://github.com/chip-8/chip-8-database/pull/34), open. It also
+  [#34](https://github.com/chip-8/chip-8-database/pull/34); merged by
+  tobiasvl on 2026-11-16 (UTC), with the follow-up commit below. It also
   adds the platform (`platforms.json`, the schema's platform list and the
   README's), because the schema only accepts known platform ids; one
   sentence saying so was added to the body, as agreed. Branch
@@ -213,7 +214,8 @@ Appended at the end of `database/programs.json`:
 ## Follow-up: update for the 2 Page Display (2026-11-17)
 
 - **Status:** pushed 2026-11-17 as commit `16f44dc` on `add-hires-chip8`;
-  chip-8-database PR #34's title and body updated as below.
+  chip-8-database PR #34's title and body updated as below. Merged with it;
+  the refresh in Chippie PR #26 deleted the 9 overlay entries.
 
 After tobiasvl's comment on chip-8-database issue #33 (see draft 07), one
 more commit on branch `add-hires-chip8`, synced from Chippie's overlay
