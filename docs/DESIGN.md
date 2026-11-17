@@ -593,7 +593,10 @@ from `overlay.json`, so the weekly refresh PR carries the cleanup (a change
 counts as done only when upstream has every field it sets; an addition, when
 upstream has its ROMs). The PR's summary lists the upstream PRs concerned:
 marking them merged in [upstream/README.md](upstream/README.md) stays a manual
-step. The goal is an empty overlay: everything upstream.
+step. The PR also regenerates `docs/coverage.md`; after editing
+`overlay.json` by hand, run `catalogue-gen` (or wait for the refresh) to
+regenerate it. The goal is an empty overlay: everything upstream (first
+reached on 2026-11-17).
 
 ## 11. Presentation: the 1970s TV
 

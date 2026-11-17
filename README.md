@@ -153,7 +153,6 @@ the COSMAC VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (
 **Next:**
 
 - **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
-- Getting the 2 Page Display and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Arrow keys for games whose controls are known.
 - Favourite games, and one library entry per program.
 

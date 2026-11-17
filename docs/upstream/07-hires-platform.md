@@ -2,7 +2,8 @@
 
 - **Where:** issue on [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database).
 - **Status:** posted 2026-11-16 as
-  [#33](https://github.com/chip-8/chip-8-database/issues/33), open. The
+  [#33](https://github.com/chip-8/chip-8-database/issues/33); closed as
+  completed by tobiasvl on 2026-11-16 (UTC), when he merged PR #34. The
   owner chose to post it, and 08, without waiting for #29–#32. Its last
   line was changed to point to the PR (#34), as agreed.
 - **Overlay entry:** the `hiresChip8` entry under `platforms` in
