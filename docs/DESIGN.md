@@ -946,6 +946,16 @@ recording, the framebuffer → texture copy (`WritePixels` from a reused byte
 slice), and shader uniforms (reuse the `map[string]any` and slices; don't
 build new ones each frame).
 
+**Background work under WebAssembly:** Go has one thread there and doesn't
+preempt, so a goroutine doesn't keep the TV responsive by itself: while it
+computes, `Update` and `Draw` wait. Long jobs (decoding the TV's art, `loadArt`
+in `app/tv.go`) work in steps with a short `time.Sleep` between them, which
+hands control back to the page (`runtime.Gosched` doesn't). Images for
+Ebitengine are built as premultiplied `*image.RGBA`, which
+`ebiten.NewImageFromImage` uploads as they are; any other type is converted
+pixel by pixel on the game goroutine. Before this, switching skins on an
+iPhone froze the menus for 4–6 s.
+
 **Performance tests, in `chip8/perf_test.go` and `app/crt/perf_test.go`:**
 
 | Test | Kind | Fails CI? |
