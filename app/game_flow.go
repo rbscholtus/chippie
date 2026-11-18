@@ -188,7 +188,7 @@ func (g *Game) saveOverrides(p chip8.Profile) {
 
 // runFrame runs one emulated frame, unless the game should pause.
 func (g *Game) runFrame() {
-	if !shouldRun(g.state, ebiten.IsFocused(), g.machine.Halted()) {
+	if !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
 		input.Release(g.machine)
 		g.sound.SetBuzzer(false)
 

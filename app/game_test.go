@@ -277,11 +277,11 @@ func TestShouldRun(t *testing.T) {
 
 	tests := []struct {
 		s               state
-		focused, halted bool
+		inFront, halted bool
 		want            bool
 	}{
 		{stateRunning, true, false, true},
-		{stateRunning, false, false, false}, // tab hidden or window unfocused
+		{stateRunning, false, false, false}, // tab hidden (natively: window unfocused)
 		{stateRunning, true, true, false},   // halted on an error
 		{statePicker, true, false, false},   // picker open: paused
 		{stateLoading, true, false, false},
@@ -289,8 +289,8 @@ func TestShouldRun(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := shouldRun(tt.s, tt.focused, tt.halted); got != tt.want {
-			t.Errorf("shouldRun(%d, focused=%v, halted=%v) = %v", tt.s, tt.focused, tt.halted, got)
+		if got := shouldRun(tt.s, tt.inFront, tt.halted); got != tt.want {
+			t.Errorf("shouldRun(%d, inFront=%v, halted=%v) = %v", tt.s, tt.inFront, tt.halted, got)
 		}
 	}
 }
