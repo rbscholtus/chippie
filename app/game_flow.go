@@ -387,6 +387,15 @@ func (g *Game) updatePicker(in pointerInput) error {
 
 	g.search.ime = g.ui.touch
 
+	// Focus the field on the press, not the tap: in the browser the input
+	// method's session starts only in a later touchend or mouseup (iOS
+	// Safari opens the keyboard only inside a user gesture), so the
+	// session must be asked for before this tap's touchend arrives, or the
+	// keyboard opens only on the next tap.
+	if in.pressed && in.pos.In(g.ui.layout.search) {
+		g.search.focus()
+	}
+
 	if err := g.search.update(); err != nil {
 		return err
 	}

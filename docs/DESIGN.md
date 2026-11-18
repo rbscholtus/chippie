@@ -801,6 +801,11 @@ The prompts used for each cabinet, and tips for making new skins, are in
   keyboard, and the search includes words still being composed. With a
   physical keyboard it reads typed characters directly, because the input
   method's asynchronous session can lose the first keys typed after focusing.
+- The field takes the focus when a finger **presses** it, not when the tap
+  ends. In the browser, Ebitengine starts the session in the next
+  `touchend`/`mouseup`, because iOS Safari opens the keyboard only inside
+  a user gesture. Focusing on the tap's end missed that tap's `touchend`,
+  so the keyboard came up only on a second tap.
 
 **Audio (`app/sound`):**
 
