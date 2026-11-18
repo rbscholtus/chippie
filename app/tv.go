@@ -10,6 +10,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -154,25 +155,39 @@ type tvArt struct {
 	sprites  map[string]*ebiten.Image
 }
 
-// artResult is a decoded set of images, from the loading goroutine.
+// artResult is a decoded set of images, from the loading goroutine. They
+// are premultiplied *image.RGBA, which Ebitengine uploads as they are;
+// any other type it converts pixel by pixel on the game goroutine.
 type artResult struct {
 	dir      string // the skin they are for
 	scale    int
-	cabinet  image.Image
-	backdrop image.Image
-	sprites  map[string]image.Image
+	cabinet  *image.RGBA
+	backdrop *image.RGBA
+	sprites  map[string]*image.RGBA
 	err      error
 }
+
+// artBandRows is how many rows of the cabinet are prepared between two
+// pauses (artPause).
+const artBandRows = 128
+
+// artPause lets the browser draw a frame between two steps of loading art.
+// Under WebAssembly Go has one thread and doesn't preempt: a goroutine
+// that is busy decoding holds up Update and Draw until it blocks, and only
+// a sleep (not runtime.Gosched) hands control back to the page so the
+// next animation frame can run.
+func artPause() { time.Sleep(time.Millisecond) }
 
 // loadArt fetches and decodes a skin's images (from its folder dir) at
 // scale n in a goroutine. The cabinet comes as a JPEG and a separate
 // greyscale mask, combined here into one image that is transparent where
-// the tube shows through.
+// the tube shows through. It pauses between steps, so the menus stay
+// responsive while it works (artPause).
 func loadArt(fetch ArtFetcher, dir string, sk *skin.Skin, n int) <-chan artResult {
 	out := make(chan artResult, 1) // buffered: a result nobody wants doesn't block
 
 	go func() {
-		res := artResult{dir: dir, scale: n, sprites: map[string]image.Image{}}
+		res := artResult{dir: dir, scale: n, sprites: map[string]*image.RGBA{}}
 		ctx := context.Background()
 
 		get := func(name string, decode func([]byte) (image.Image, error)) (image.Image, error) {
@@ -186,12 +201,19 @@ func loadArt(fetch ArtFetcher, dir string, sk *skin.Skin, n int) <-chan artResul
 				return nil, fmt.Errorf("decode %s: %w", name, err)
 			}
 
+			artPause()
+
 			return m, nil
 		}
 
-		var err error
+		var (
+			m   image.Image
+			err error
+		)
 
-		res.backdrop, err = get(sk.Backdrop, decodeJPEG)
+		if m, err = get(sk.Backdrop, decodeJPEG); err == nil {
+			res.backdrop = toRGBA(m)
+		}
 
 		var cab image.Image
 		if err == nil {
@@ -201,7 +223,7 @@ func loadArt(fetch ArtFetcher, dir string, sk *skin.Skin, n int) <-chan artResul
 		if err == nil {
 			var mask image.Image
 			if mask, err = get(skin.FileName(sk.Mask, n, "png"), decodePNG); err == nil {
-				res.cabinet = withMask(cab, mask)
+				res.cabinet = withMask(cab, mask, artBandRows, artPause)
 			}
 		}
 
@@ -210,7 +232,9 @@ func loadArt(fetch ArtFetcher, dir string, sk *skin.Skin, n int) <-chan artResul
 				break
 			}
 
-			res.sprites[c.Image], err = get(skin.FileName(c.Image, n, "png"), decodePNG)
+			if m, err = get(skin.FileName(c.Image, n, "png"), decodePNG); err == nil {
+				res.sprites[c.Image] = toRGBA(m)
+			}
 		}
 
 		res.err = err
@@ -228,22 +252,60 @@ func decodePNG(b []byte) (image.Image, error) {
 	return png.Decode(bytes.NewReader(b)) //nolint:wrapcheck // get adds context
 }
 
-// withMask returns img with its alpha taken from mask's brightness.
-func withMask(img, mask image.Image) *image.NRGBA {
+// toRGBA returns m as a premultiplied *image.RGBA with its origin at 0,0.
+func toRGBA(m image.Image) *image.RGBA {
+	if rgba, ok := m.(*image.RGBA); ok && rgba.Rect.Min == (image.Point{}) {
+		return rgba
+	}
+
+	b := m.Bounds()
+	out := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(out, out.Bounds(), m, b.Min, draw.Src)
+
+	return out
+}
+
+// withMask returns img, premultiplied, with its alpha taken from mask's
+// brightness; outside the mask it stays opaque. It works in bands of rows,
+// calling pause between them.
+func withMask(img, mask image.Image, bandRows int, pause func()) *image.RGBA {
 	b := img.Bounds()
-	out := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	draw.Draw(out, out.Bounds(), img, b.Min, draw.Src)
+	out := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 
-	mb := mask.Bounds()
+	gray, ok := mask.(*image.Gray)
+	if !ok {
+		gray = image.NewGray(mask.Bounds())
+		draw.Draw(gray, gray.Bounds(), mask, mask.Bounds().Min, draw.Src)
+	}
 
-	for y := range min(b.Dy(), mb.Dy()) {
-		for x := range min(b.Dx(), mb.Dx()) {
-			r, _, _, _ := color.GrayModel.Convert(mask.At(mb.Min.X+x, mb.Min.Y+y)).RGBA()
-			out.Pix[out.PixOffset(x, y)+3] = uint8(r >> 8) //nolint:gosec // G115: 16-bit colour to 8
+	w, h := min(b.Dx(), gray.Rect.Dx()), min(b.Dy(), gray.Rect.Dy())
+
+	for y0 := 0; y0 < b.Dy(); y0 += bandRows {
+		y1 := min(y0+bandRows, b.Dy())
+		draw.Draw(out, image.Rect(0, y0, b.Dx(), y1), img, b.Min.Add(image.Pt(0, y0)), draw.Src)
+
+		for y := y0; y < min(y1, h); y++ {
+			row := out.Pix[y*out.Stride : y*out.Stride+4*w]
+			alpha := gray.Pix[y*gray.Stride : y*gray.Stride+w]
+
+			for x, a := range alpha {
+				p := row[4*x : 4*x+4 : 4*x+4]
+				p[0] = premultiply(p[0], a)
+				p[1] = premultiply(p[1], a)
+				p[2] = premultiply(p[2], a)
+				p[3] = a
+			}
 		}
+
+		pause()
 	}
 
 	return out
+}
+
+// premultiply scales an 8-bit colour channel by an 8-bit alpha, rounded.
+func premultiply(c, a uint8) uint8 {
+	return uint8((uint32(c)*uint32(a) + 127) / 255) //nolint:gosec // G115: at most 255
 }
 
 // tv is the TV set: its skin, layout, art and the controls' positions.

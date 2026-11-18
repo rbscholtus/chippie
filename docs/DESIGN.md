@@ -453,7 +453,12 @@ are tuned so games feel right.
   it's ever noticeable, `ebiten.SetTPS(ebiten.SyncWithFPS)` can lock updates
   to the refresh when it's a multiple of ~60 Hz.
 - **Pausing:** the TV pauses when the tab is hidden, when it's switched off,
-  and while the library or settings are open.
+  and while the library or settings are open. In the browser it keeps
+  running when the page is visible but another window has the focus:
+  `ebiten.IsFocused()` also asks `document.hasFocus()`, which iOS Safari
+  can report as false while the page is in front, and games stopped a few
+  seconds after they started (`platform.InFront`). Natively, it pauses
+  when the window loses focus.
 
 ## 9. Game library
 
@@ -796,6 +801,11 @@ The prompts used for each cabinet, and tips for making new skins, are in
   keyboard, and the search includes words still being composed. With a
   physical keyboard it reads typed characters directly, because the input
   method's asynchronous session can lose the first keys typed after focusing.
+- The field takes the focus when a finger **presses** it, not when the tap
+  ends. In the browser, Ebitengine starts the session in the next
+  `touchend`/`mouseup`, because iOS Safari opens the keyboard only inside
+  a user gesture. Focusing on the tap's end missed that tap's `touchend`,
+  so the keyboard came up only on a second tap.
 
 **Audio (`app/sound`):**
 
@@ -824,7 +834,7 @@ with desktop stubs so `go run ./cmd/chippie` works natively:
 | "Load ROM from device" | A hidden `<input type="file">` created from Go. Its `change` event reads the file with `arrayBuffer()` and sends the bytes on a channel. This is the async case that was hard in the Rust version; goroutines make it a few lines. |
 | Drag-and-drop ROMs | `ebiten.DroppedFiles()`, no JS needed |
 | Network | `platform.Fetch`: `fetch()` through `syscall/js` (Go's `net/http` would add ~1.7 MB gzip); `net/http` natively |
-| Tab hidden | `ebiten.IsFocused()`, to pause |
+| Tab hidden | `platform.InFront`: `document.hidden`, to pause (not `ebiten.IsFocused()`, see §8) |
 
 **Rule:** no call into `platform/` ever blocks `Update` or `Draw`. Every
 browser call either returns immediately or runs in a goroutine and reports
@@ -935,6 +945,16 @@ now. Download buffers are the likely first candidate if it's ever needed.
 recording, the framebuffer → texture copy (`WritePixels` from a reused byte
 slice), and shader uniforms (reuse the `map[string]any` and slices; don't
 build new ones each frame).
+
+**Background work under WebAssembly:** Go has one thread there and doesn't
+preempt, so a goroutine doesn't keep the TV responsive by itself: while it
+computes, `Update` and `Draw` wait. Long jobs (decoding the TV's art, `loadArt`
+in `app/tv.go`) work in steps with a short `time.Sleep` between them, which
+hands control back to the page (`runtime.Gosched` doesn't). Images for
+Ebitengine are built as premultiplied `*image.RGBA`, which
+`ebiten.NewImageFromImage` uploads as they are; any other type is converted
+pixel by pixel on the game goroutine. Before this, switching skins on an
+iPhone froze the menus for 4–6 s.
 
 **Performance tests, in `chip8/perf_test.go` and `app/crt/perf_test.go`:**
 

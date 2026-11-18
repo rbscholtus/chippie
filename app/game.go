@@ -298,9 +298,10 @@ func (g *Game) Update() error {
 }
 
 // shouldRun reports whether the emulator runs this tick: only while a ROM
-// runs, the window has focus and the machine hasn't halted.
-func shouldRun(s state, focused, halted bool) bool {
-	return s == stateRunning && focused && !halted
+// runs, the app is in front (platform.InFront) and the machine hasn't
+// halted.
+func shouldRun(s state, inFront, halted bool) bool {
+	return s == stateRunning && inFront && !halted
 }
 
 // Layout returns the real pixel size (outside size × device scale), so the
