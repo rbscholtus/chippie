@@ -76,6 +76,54 @@ type settings struct {
 	trace       bool
 	skins       []string // the skins' names, for the TV row
 	skin        int      // index into skins
+
+	// Scrolling, in pixels, as in the picker: offset is how far the rows
+	// are scrolled, viewH the height they're shown in. On a small screen
+	// the rows don't all fit, and Back must still be reachable.
+	offset float64
+	viewH  float64
+	rowH   float64
+}
+
+// setView sets the height the rows are shown in and each row's height.
+func (s *settings) setView(viewH, rowH float64) {
+	s.viewH, s.rowH = viewH, max(rowH, 1)
+	s.scroll(0)
+}
+
+// maxOffset is the furthest the rows can scroll.
+func (s *settings) maxOffset() float64 {
+	return max(0, float64(len(s.rows))*s.rowH-s.viewH)
+}
+
+// scroll moves the rows by dy pixels, within the ends.
+func (s *settings) scroll(dy float64) {
+	s.offset = min(max(s.offset+dy, 0), s.maxOffset())
+}
+
+// ensureVisible scrolls just enough to show the selected row.
+func (s *settings) ensureVisible() {
+	top := float64(s.selected) * s.rowH
+
+	switch {
+	case top < s.offset:
+		s.offset = top
+	case top+s.rowH > s.offset+s.viewH:
+		s.offset = top + s.rowH - s.viewH
+	}
+
+	s.scroll(0)
+}
+
+// rowAt returns the row at y pixels below the top of the view.
+func (s *settings) rowAt(y float64) (int, bool) {
+	if y < 0 || y >= s.viewH {
+		return 0, false
+	}
+
+	i := int((y + s.offset) / s.rowH)
+
+	return i, i >= 0 && i < len(s.rows)
 }
 
 // setSkins offers the TV skins (by name), cur being the one shown. With
@@ -119,12 +167,14 @@ func (s *settings) buildRows() {
 
 	s.rows = append(s.rows, settingRow{kind: settingBack})
 	s.selected = min(s.selected, len(s.rows)-1)
+	s.scroll(0) // fewer rows may scroll less far
 }
 
-// move changes the selected row, wrapping at the ends.
+// move changes the selected row, wrapping at the ends, and scrolls to it.
 func (s *settings) move(delta int) {
 	n := len(s.rows)
 	s.selected = ((s.selected+delta)%n + n) % n
+	s.ensureVisible()
 }
 
 // change acts on row i: dir -1 or +1 steps a value down or up, 0 toggles
