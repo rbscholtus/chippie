@@ -188,7 +188,7 @@ func (g *Game) saveOverrides(p chip8.Profile) {
 
 // runFrame runs one emulated frame, unless the game should pause.
 func (g *Game) runFrame() {
-	if !shouldRun(g.state, ebiten.IsFocused(), g.machine.Halted()) {
+	if !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
 		input.Release(g.machine)
 		g.sound.SetBuzzer(false)
 
@@ -387,6 +387,15 @@ func (g *Game) updatePicker(in pointerInput) error {
 
 	g.search.ime = g.ui.touch
 
+	// Focus the field on the press, not the tap: in the browser the input
+	// method's session starts only in a later touchend or mouseup (iOS
+	// Safari opens the keyboard only inside a user gesture), so the
+	// session must be asked for before this tap's touchend arrives, or the
+	// keyboard opens only on the next tap.
+	if in.pressed && in.pos.In(g.ui.layout.search) {
+		g.search.focus()
+	}
+
 	if err := g.search.update(); err != nil {
 		return err
 	}
@@ -485,6 +494,7 @@ func (g *Game) openSettings() {
 	cur.Seed, own.Seed = 0, 0
 
 	g.settings = newSettings(cur, own, forPlatform, g.machine.Trace() != nil)
+	g.settings.setView(float64(g.ui.layout.content.Dy()), g.ui.layout.rowH)
 
 	names := make([]string, len(g.skins))
 	for i, s := range g.skins {
@@ -516,19 +526,27 @@ func (g *Game) updateSettings(in pointerInput) {
 		g.applySetting(s.change(s.selected, 0))
 	}
 
+	l := g.ui.layout
+
+	// Drag and wheel scroll the rows, when they don't all fit.
+	s.scroll(-float64(in.dy))
+
+	if _, wy := ebiten.Wheel(); wy != 0 {
+		s.scroll(-wy * l.rowH)
+	}
+
 	if !in.tapped {
 		return
 	}
 
-	l := g.ui.layout
 	if !in.tapAt.In(l.content) {
 		g.state = stateRunning // tapped outside the panel: close it
 
 		return
 	}
 
-	i := int(float64(in.tapAt.Y-l.content.Min.Y) / l.rowH)
-	if i < 0 || i >= len(s.rows) {
+	i, ok := s.rowAt(float64(in.tapAt.Y - l.content.Min.Y))
+	if !ok {
 		return
 	}
 
@@ -672,6 +690,11 @@ func (g *Game) relayout() {
 	g.remote.layout(l.remote)
 	g.ui.resize(window, l.below, g.scale)
 	g.picker.setView(float64(g.ui.layout.list.Dy()), g.ui.layout.rowH)
+
+	if g.settings != nil {
+		g.settings.setView(float64(g.ui.layout.content.Dy()), g.ui.layout.rowH)
+	}
+
 	g.search.bounds, g.search.face, g.search.pad = g.ui.layout.search, g.ui.face, int(panelPad*g.scale/2)
 	g.publishLayout()
 }

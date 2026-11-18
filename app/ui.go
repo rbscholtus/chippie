@@ -439,10 +439,17 @@ func (u *ui) drawSettings(dst *ebiten.Image, g *Game) {
 	textOffset := (l.rowH - u.lineHeight()) / 2
 	x, right := float64(l.content.Min.X), float64(l.content.Max.X)
 
+	// Rows scroll (settings.offset) and are clipped to the panel, so one
+	// half scrolled out doesn't spill over the title or the hint.
+	rows, ok := dst.SubImage(l.content).(*ebiten.Image)
+	if !ok {
+		return
+	}
+
 	for i := range s.rows {
-		y := float64(l.content.Min.Y) + float64(i)*l.rowH
-		if y+l.rowH > float64(l.content.Max.Y) {
-			break
+		y := float64(l.content.Min.Y) + float64(i)*l.rowH - s.offset
+		if y+l.rowH <= float64(l.content.Min.Y) || y >= float64(l.content.Max.Y) {
+			continue
 		}
 
 		lbl := s.label(i)
@@ -450,7 +457,7 @@ func (u *ui) drawSettings(dst *ebiten.Image, g *Game) {
 		col := inkColour
 
 		if i == s.selected && !u.touch {
-			vector.FillRect(dst, float32(x), float32(y), float32(right-x), float32(l.rowH), selectedColour, false)
+			vector.FillRect(rows, float32(x), float32(y), float32(right-x), float32(l.rowH), selectedColour, false)
 
 			col = accentColour
 		}
@@ -464,17 +471,17 @@ func (u *ui) drawSettings(dst *ebiten.Image, g *Game) {
 		}
 
 		vw, _ := text.Measure(value, u.face, 0)
-		u.text(dst, u.fit(name, right-x-vw-panelPad*u.scale), x, y+textOffset, col)
+		u.text(rows, u.fit(name, right-x-vw-panelPad*u.scale), x, y+textOffset, col)
 
 		vc := mutedColour
 		if changed {
 			vc = accentColour
 		}
 
-		u.text(dst, value, right-vw, y+textOffset, vc)
+		u.text(rows, value, right-vw, y+textOffset, vc)
 	}
 
-	u.drawTrace(dst, g, float64(l.content.Min.Y)+float64(len(s.rows))*l.rowH+u.lineHeight()/2)
+	u.drawTrace(dst, g, float64(l.content.Min.Y)+float64(len(s.rows))*l.rowH-s.offset+u.lineHeight()/2)
 }
 
 // drawTrace shows the last instructions when tracing is on, below the
