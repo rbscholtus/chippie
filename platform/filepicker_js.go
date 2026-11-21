@@ -68,5 +68,10 @@ func PickFile() <-chan PickedFile {
 	return ch
 }
 
-// CanPickFiles reports whether PickFile works in this build.
-func CanPickFiles() bool { return true }
+// CanPickFiles reports whether the app offers PickFile: not on phones and
+// tablets (a coarse primary pointer). There the browser opens the file
+// chooser only inside the tap itself, while the app acts on a tap a frame
+// later, and ROM files are rarely kept on a phone anyway.
+func CanPickFiles() bool {
+	return !js.Global().Call("matchMedia", "(pointer: coarse)").Get("matches").Bool()
+}

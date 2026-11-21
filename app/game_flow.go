@@ -662,6 +662,22 @@ func (g *Game) switchOn() {
 	g.openPicker()
 }
 
+// switchOnAt switches the TV on from a press or key. A press on the
+// status line's "< ROM list" or "Settings >" opens that too.
+func (g *Game) switchOnAt(in pointerInput) {
+	g.switchOn()
+
+	l := g.ui.layout
+
+	switch {
+	case !in.pressed:
+	case in.pos.In(l.statusLeft) && g.state != statePicker:
+		g.openPicker()
+	case in.pos.In(l.statusRight) && g.hasROM:
+		g.openSettings()
+	}
+}
+
 // setSkin switches the TV to skin i and saves the choice.
 func (g *Game) setSkin(i int) {
 	if i < 0 || i >= len(g.skins) || i == g.skin {
@@ -696,6 +712,7 @@ func (g *Game) relayout() {
 	}
 
 	g.search.bounds, g.search.face, g.search.pad = g.ui.layout.search, g.ui.face, int(panelPad*g.scale/2)
+	g.search.cssScale = g.scale
 	g.publishLayout()
 }
 

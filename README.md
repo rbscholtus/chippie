@@ -87,7 +87,7 @@ key says so.
 - **Filter** by platform with the chips under the search field.
 - Games for platforms Chippie can't run yet are listed under **Coming soon**.
 - **Load your own ROM** with "Load a ROM from this device", or drag a file
-  onto the page.
+  onto the page (on a computer; phones and tablets don't offer it).
 - **Kept up to date:** each time it starts, Chippie fetches the latest
   chip-8-database in the background, so game details and recommended
   settings stay current. A weekly job refreshes the built-in copy of the

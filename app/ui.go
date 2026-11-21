@@ -157,7 +157,13 @@ func (u *ui) draw(dst *ebiten.Image, g *Game) {
 
 	switch g.state {
 	case stateOff:
-		u.centred(dst, screen, "Tap, click or press a key to switch on", inkColour)
+		msg := "Tap, click or press a key to switch on"
+		if u.touch {
+			msg = "Tap to switch on"
+		}
+
+		u.centred(dst, screen, msg, inkColour)
+		u.drawStatusTaps(dst, u.statusArea(g), g.hasROM)
 	case statePicker:
 		u.drawPicker(dst, g)
 	case stateSettings:
@@ -165,8 +171,7 @@ func (u *ui) draw(dst *ebiten.Image, g *Game) {
 	case stateLoading:
 		u.centred(dst, screen, "Tuning in "+g.loadingEntry.Title+"…", inkColour)
 	case stateRunning:
-		cab := g.tv.lay.cabinet
-		u.drawRunningStatus(dst, g, image.Rect(cab.Min.X, u.layout.below.Min.Y, cab.Max.X, u.layout.below.Max.Y))
+		u.drawRunningStatus(dst, g, u.statusArea(g))
 	}
 
 	if g.state == statePicker || g.state == stateSettings {
@@ -210,6 +215,28 @@ func (u *ui) statusPalette() textPalette {
 	return textPalette{ink: inkColour, muted: mutedColour, accent: accentColour, error: errorColour}
 }
 
+// statusArea is where the status lines go: under the TV, as wide as the
+// cabinet.
+func (u *ui) statusArea(g *Game) image.Rectangle {
+	cab := g.tv.lay.cabinet
+
+	return image.Rect(cab.Min.X, u.layout.below.Min.Y, cab.Max.X, u.layout.below.Max.Y)
+}
+
+// drawStatusTaps draws the status line's two taps in area: "< ROM list" on
+// the left, and "Settings >" on the right if settings.
+func (u *ui) drawStatusTaps(dst *ebiten.Image, area image.Rectangle, settings bool) {
+	pal := u.statusPalette()
+	y := float64(area.Min.Y) + u.lineHeight()/2
+
+	u.text(dst, "< ROM list", float64(area.Min.X), y, pal.accent)
+
+	if settings {
+		w, _ := text.Measure("Settings >", u.face, 0)
+		u.text(dst, "Settings >", float64(area.Max.X)-w, y, pal.accent)
+	}
+}
+
 // drawRunningStatus draws the lines under the TV (in area): "ROM list" on
 // the left, the title (or a message) in the middle, "Settings" on the
 // right; then the game's keys.
@@ -218,10 +245,8 @@ func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, area image.Rectangle)
 	y := float64(area.Min.Y) + u.lineHeight()/2
 	left, right := float64(area.Min.X), float64(area.Max.X)
 
-	u.text(dst, "< ROM list", left, y, pal.accent)
-
+	u.drawStatusTaps(dst, area, true)
 	w, _ := text.Measure("Settings >", u.face, 0)
-	u.text(dst, "Settings >", right-w, y, pal.accent)
 
 	mid, col := g.current.Title, pal.muted
 	if g.message != "" {

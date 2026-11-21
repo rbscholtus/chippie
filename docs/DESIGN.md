@@ -622,8 +622,8 @@ light grey studio background that fills the page.
 | Speed knob (UHF fine tuning) | Instructions per frame, the settings panel's speed steps; saved per ROM | `[` / `]` |
 | Volume knob | Buzzer and XO-CHIP audio volume, 0 = mute; saved | `-` / `=` |
 | Tint knob | ROM colours → white → amber → green → Octo; saved per ROM | T |
-| "< ROM list" under the TV | Opens the game library | Esc |
-| "Settings >" under the TV | Settings: platform, quirks, trace log | F2 |
+| "< ROM list" under the TV | Opens the game library; shown while the TV is off too, and a tap there switches on into the library | Esc |
+| "Settings >" under the TV | Settings: platform, quirks, trace log; while the TV is off, shown once a game is loaded, and a tap there switches on into Settings | F2 |
 
 - **Knobs are separate sprites** cut from the cabinet (`cmd/skin-gen`), drawn
   over it and rotated by code. Click or tap: one step (left half down, right
@@ -645,7 +645,8 @@ light grey studio background that fills the page.
 
 - Covers the window. A search field (title, author, year, platform; every
   word must match; short words like `xo`, `schip`, `chip8` and `chip48`
-  find a platform), "Load a ROM from this device", then the ROMs in two groups:
+  find a platform), "Load a ROM from this device" (not on phones and
+  tablets, see §14), then the ROMs in two groups:
   PLAY and COMING SOON (platforms still to come), each A–Z.
 - **Platform filter:** a row of chips under the search field (All · CHIP-8 ·
   SUPER-CHIP · XO-CHIP, with how many games each has for the current
@@ -806,6 +807,47 @@ The prompts used for each cabinet, and tips for making new skins, are in
   `touchend`/`mouseup`, because iOS Safari opens the keyboard only inside
   a user gesture. Focusing on the tap's end missed that tap's `touchend`,
   so the keyboard came up only on a second tap.
+- **The keyboard is normally open while Ebitengine's hidden textarea has
+  the DOM focus.** The field follows that (`app/textfield.go`), through
+  `platform.TextInputFocused`, which checks for Ebitengine's textarea ids
+  (`ebitengine-textinput` and its `-dummy`; internals of Ebitengine
+  2.10.6, to check when upgrading):
+  - **Leaving the field ends the session at once** (`blur`), and
+    Ebitengine then moves the focus to the canvas, which closes the
+    keyboard. Ending it in the field's `update` wasn't enough: picking a
+    game closes the drawer, `update` stops running, and the keyboard
+    stayed open during the game. `Game.Update` blurs the field whenever
+    the picker isn't showing, however it was left.
+  - **The user closing the keyboard** (Safari's done button blurs the
+    textarea) unfocuses the field. Otherwise it asked for a new session at
+    once, and the next tap anywhere, e.g. on a game, opened the keyboard
+    again.
+  - **The keyboard box, for Chrome on iOS.** Chrome's keyboard-down key
+    hides the keyboard but leaves the focus on the textarea. After that,
+    Chrome ignores every `focus()` from code, even during a tap, until the
+    page reloads or a finger taps a real text box (observed with Chrome
+    158 on iOS 27.2; `docs/investigations/ios-keyboard.md` §11.5). So when
+    the keyboard stays hidden for half a second while the textarea has the
+    focus, the field puts an invisible but real `<input>`, the keyboard box
+    (`platform.ShowKeyboardBox`), over itself. The next tap on the field
+    lands on the box, the browser focuses it natively, which opens the
+    keyboard, and the box hands the focus straight to the textarea. The
+    field hides the box once the keyboard shows, or when it loses the
+    focus. Apart from Ebitengine's own hidden textareas, it's the only DOM
+    element over the canvas, and only in this state; Safari doesn't need
+    it, because its done button gives the focus up.
+  - **Whether the keyboard is showing** comes from the visible area's
+    height (`platform.VisibleHeight`, the visual viewport). The keyboard
+    counts as shown while that height is below 85 % of the tallest seen in
+    the same device orientation (`keyboardWatch` in `app/textfield.go`).
+    The browsers shrink different things: Safari on iOS only the visual
+    viewport (775 to 426 CSS pixels on an iPhone 16 Plus), Chrome on iOS
+    the whole window (742 to 401). So comparing with the window's height
+    misses Chrome's keyboard, and the window's shape doesn't tell the
+    orientation (`screen.orientation` does). The field looks every frame
+    while it is focused on a touch screen (`watchKeyboard`), so the
+    tallest height is seen on the press that focuses it, before the
+    keyboard opens.
 
 **Audio (`app/sound`):**
 
@@ -831,7 +873,7 @@ with desktop stubs so `go run ./cmd/chippie` works natively:
 |---|---|
 | ROM and metadata cache | IndexedDB, through `syscall/js`, wrapped in goroutines and channels (from the prototype) |
 | Small preferences | `localStorage` (synchronous; wrapped so the app works when storage is blocked) |
-| "Load ROM from device" | A hidden `<input type="file">` created from Go. Its `change` event reads the file with `arrayBuffer()` and sends the bytes on a channel. This is the async case that was hard in the Rust version; goroutines make it a few lines. |
+| "Load ROM from device" | A hidden `<input type="file">` created from Go. Its `change` event reads the file with `arrayBuffer()` and sends the bytes on a channel. This is the async case that was hard in the Rust version; goroutines make it a few lines. Not offered on phones and tablets (`(pointer: coarse)`): iOS opens the file chooser only inside the tap, which the app handles a frame later, and ROM files are rarely kept on a phone. |
 | Drag-and-drop ROMs | `ebiten.DroppedFiles()`, no JS needed |
 | Network | `platform.Fetch`: `fetch()` through `syscall/js` (Go's `net/http` would add ~1.7 MB gzip); `net/http` natively |
 | Tab hidden | `platform.InFront`: `document.hidden`, to pause (not `ebiten.IsFocused()`, see §8) |
