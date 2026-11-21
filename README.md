@@ -94,7 +94,7 @@ still there next time.
 - **Filter** by platform with the chips under the search field.
 - Games for platforms Chippie can't run yet are listed under **Coming soon**.
 - **Load your own ROM** with "Load a ROM from this device", or drag a file
-  onto the page.
+  onto the page (on a computer; phones and tablets don't offer it).
 - **Kept up to date:** each time it starts, Chippie fetches the latest
   chip-8-database in the background, so game details and recommended
   settings stay current. A weekly job refreshes the built-in copy of the
@@ -162,7 +162,6 @@ VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (M10).
 **Next:**
 
 - Proposing Depot to chip-8-database and chip8Archive.
-- Getting the 2 Page Display and its ROMs into chip-8-database ([#34](https://github.com/chip-8/chip-8-database/pull/34)).
 - Favourite games, and one library entry per program.
 
 The full list, with open questions, is in [docs/ROADMAP.md](docs/ROADMAP.md).

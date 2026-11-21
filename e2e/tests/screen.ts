@@ -122,8 +122,8 @@ export async function click(page: Page, x: number, y: number) {
 // Touch layout of the drawer in CSS pixels (app/ui.go computeLayout): the
 // search field (one 44 px row) sits below a debug line and two paddings;
 // half a padding below it, the row of platform filters (one row), then the
-// list. Row 0 is "Load a ROM from this device", row 1 the PLAY heading,
-// row 2 the first ROM.
+// list. Row 0 is the PLAY heading, row 1 the first ROM ("Load a ROM from
+// this device" isn't offered on touch screens).
 export const pickerSearchY = 24 + 16 + 16 + 22;
 export const pickerListTop = 24 + 16 + 16 + 44 + 8 + 44;
 export const touchRowHeight = 44;

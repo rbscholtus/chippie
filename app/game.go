@@ -276,7 +276,7 @@ func (g *Game) Update() error {
 	switch g.state {
 	case stateOff:
 		if gesture && wasOff {
-			g.switchOn()
+			g.switchOnAt(in)
 			g.ptr.release(in.pos) // this press switched on; it doesn't pick
 		}
 	case statePicker:
@@ -287,6 +287,13 @@ func (g *Game) Update() error {
 		g.renderer.Static(uint64(ebiten.Tick())) //nolint:gosec // G115: Tick is never negative
 	case stateRunning:
 		g.updateRunning(in)
+	}
+
+	// The search field exists only in the picker. However the picker is
+	// left (a game starts, settings open, the TV switches off), the field
+	// loses the focus, so the phone's keyboard and the keyboard box go too.
+	if g.state != statePicker && g.search.focused {
+		g.search.blur()
 	}
 
 	g.animatePower()
@@ -301,9 +308,10 @@ func (g *Game) Update() error {
 }
 
 // shouldRun reports whether the emulator runs this tick: only while a ROM
-// runs, the window has focus and the machine hasn't halted.
-func shouldRun(s state, focused, halted bool) bool {
-	return s == stateRunning && focused && !halted
+// runs, the app is in front (platform.InFront) and the machine hasn't
+// halted.
+func shouldRun(s state, inFront, halted bool) bool {
+	return s == stateRunning && inFront && !halted
 }
 
 // Layout returns the real pixel size (outside size × device scale), so the

@@ -35,12 +35,12 @@ known ROMs (kripod/chip8-roms' `hires/` folder), all added through the
 overlay with the platform. All 8 play with the two rules (the `1260` start
 and `0230`); none needed anything else.
 
-**Left:** upstream. The platform is proposed in chip-8-database
-[#33](https://github.com/chip-8/chip-8-database/issues/33), and
-[#34](https://github.com/chip-8/chip-8-database/pull/34) adds it with the
-8 programs (drafts [07](upstream/07-hires-platform.md) and
-[08](upstream/08-hires-roms.md)). When upstream has them, the weekly
-refresh lists the overlay entries as done.
+**Upstream: done.** Renamed to `twoPageChip8`, Andy Modla and Jef Winsor's
+"2 Page Display for CHIP-8" (VIPER, September 1978), and detected by its
+patch (DESIGN §6.3). chip-8-database merged the platform and the 8 programs
+in [PR #34](https://github.com/chip-8/chip-8-database/pull/34) (drafts
+[07](upstream/07-hires-platform.md) and [08](upstream/08-hires-roms.md)),
+and the weekly refresh deleted the overlay entries.
 
 ### Not planned
 

@@ -240,3 +240,69 @@ func TestSkinRow(t *testing.T) {
 		t.Errorf("step left: skin %d", s.skin)
 	}
 }
+
+func TestSettingsScrollReachesBack(t *testing.T) {
+	t.Parallel()
+
+	s := newTestSettings()
+	s.setView(4*10, 10) // room for 4 rows of 10 pixels
+	back := rowOf(s, settingBack)
+
+	if got, ok := s.rowAt(35); !ok || got != 3 {
+		t.Fatalf("unscrolled, y 35: row %d (%v), want 3", got, ok)
+	}
+
+	s.scroll(1e6) // a long drag stops at the end
+
+	if want := float64(len(s.rows)-4) * 10; s.offset != want {
+		t.Errorf("offset %v at the end, want %v", s.offset, want)
+	}
+
+	if got, ok := s.rowAt(35); !ok || got != back {
+		t.Errorf("scrolled to the end, y 35: row %d (%v), want Back (%d)", got, ok, back)
+	}
+
+	s.scroll(-1e6)
+
+	if s.offset != 0 {
+		t.Errorf("offset %v after scrolling back, want 0", s.offset)
+	}
+
+	if _, ok := s.rowAt(40); ok {
+		t.Error("y 40 is below the view, want no row")
+	}
+}
+
+func TestSettingsMoveScrollsToSelection(t *testing.T) {
+	t.Parallel()
+
+	s := newTestSettings()
+	s.setView(3*10, 10)
+
+	s.move(-1) // wraps to Back, the last row
+
+	if top := float64(s.selected) * 10; top < s.offset || top+10 > s.offset+30 {
+		t.Errorf("row %d at %v not in view [%v, %v)", s.selected, top, s.offset, s.offset+30)
+	}
+
+	s.move(1) // wraps to the first row
+
+	if s.offset != 0 {
+		t.Errorf("offset %v at the first row, want 0", s.offset)
+	}
+}
+
+func TestSettingsFewerRowsScrollLess(t *testing.T) {
+	t.Parallel()
+
+	s := newTestSettings()
+	s.change(rowOf(s, settingTrace), 0) // trace on: adds Copy trace
+	s.setView(3*10, 10)
+	s.scroll(1e6)
+
+	s.change(rowOf(s, settingTrace), 0) // off again: one row fewer
+
+	if s.offset > s.maxOffset() {
+		t.Errorf("offset %v past the end %v", s.offset, s.maxOffset())
+	}
+}
