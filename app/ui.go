@@ -162,7 +162,10 @@ func (u *ui) draw(dst *ebiten.Image, g *Game) {
 			msg = "Tap to switch on"
 		}
 
-		u.centred(dst, screen, msg, inkColour)
+		if g.offLeft == 0 { // not over the fading spot
+			u.centred(dst, screen, msg, inkColour)
+		}
+
 		u.drawStatusTaps(dst, u.statusArea(g), g.hasROM)
 	case statePicker:
 		u.drawPicker(dst, g)

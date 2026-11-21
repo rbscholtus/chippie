@@ -101,6 +101,16 @@ To be settled while building, not before:
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
   usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
   keypad; show those properly instead of "?".
+- **A realistic switch-off** (2026-11-22). Real CRTs don't squash to a line
+  and then a dot over half a second: the sweep dies within a few frames, and
+  on sets without a spot killer (most before the late 1970s) the still-hot
+  cathode leaves a soft spot that fades over seconds (repair FAQs, the
+  spot-killer patents). Switching on, a cold set shows nothing until the
+  cathode heats, then the picture fades in (30 s or more; "instant-on" sets
+  of the 1970s about a second). Prototype on branch `crt-switch-off`: a
+  6-update collapse and a 3-second fading spot; on, a 2.5-second fade-in at
+  full size; no dot, no white flash ([crt-shader.md](crt-shader.md)). Still
+  open: tuning against videos and on phones.
 - **Favourite games.** Mark a game as a favourite (e.g. a star in the
   details), stored per device like the ROM cache, and list favourites first
   in the library drawer (or behind a "Favourites" filter) so they start in

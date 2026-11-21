@@ -23,7 +23,8 @@ pixel-exact picture, which the tests use.
 |---|---|---|
 | Phosphor afterglow | Keeps 82% of the previous glow per emulated frame. Also hides CHIP-8's sprite flicker, so it's functional, not only decoration. | `phosphor.kage`, `PhosphorDecay` |
 | Curvature | Barrel warp: coordinates scale by `1 + 0.06·r²` from the centre; outside is black | `warp` |
-| Power on/off | The picture squashes vertically, then horizontally, into a dot, with a white flash; driven by `Power` (0–1, 40 updates each way) | `Power` |
+| Power on | As on a 1970s "instant-on" set: sound at once, the tube dark for about 0.3 s while the cathode heats, then the picture fades in at full size over 2.5 s, soft and 3% oversized at first (the high voltage is still low), settling as it brightens. No dot, no flash. Driven by `Power` (0–1, 150 updates). | `Power` |
+| Switch-off | As on a mid-1970s set without a spot killer: the sweep dies at once, so the picture shrinks to the centre and brightens in 6 updates (the vertical a little first, so a short bar shows for a frame or two). The still-hot cathode then leaves a soft spot, three guns slightly apart, that fades over 3 seconds. Driven by `Collapse` and `Spot` (`switchOff` in `app/game_flow.go`); the "switch on" hint waits until the spot is gone. | `Collapse`, `Spot` |
 | Bloom | The centre pixel plus 8 neighbours 3 px away, added at 60% | "Cheap bloom" |
 | Tint | Multiplied by a warm tube colour (0.95, 0.93, 0.85) | `Tint` |
 | Scanlines | Brightness 75–100% along a sine with a period of about 3 screen pixels | `scan` |
