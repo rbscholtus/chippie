@@ -35,8 +35,18 @@ const (
 	stateRunning               // emulating
 )
 
-// Power animation speed: the full on/off animation takes 40 updates.
-const powerStep = 1.0 / 40
+// Power-on animation speed: the picture takes 150 updates (2.5 seconds) to
+// warm up, like a 1970s "instant-on" set (docs/crt-shader.md).
+const powerStep = 1.0 / 150
+
+// Switch-off timing, in updates (60 a second). The sweep dies almost at once,
+// so the picture collapses in a few frames; the spot of the still-hot cathode
+// then fades over about two seconds (docs/crt-shader.md).
+const (
+	collapseTicks  = 6   // the picture shrinks to the centre
+	spotFadeTicks  = 60  // the spot's brightness falls by e every this many
+	switchOffTicks = 180 // the end: the spot is gone
+)
 
 // Errors shown to the user.
 var (
@@ -91,7 +101,9 @@ type Game struct {
 	picked       <-chan platform.PickedFile
 	cached       chan []string
 	dropped      chan platform.PickedFile
-	power        float32
+	power        float32 // the power-on animation: 0 cold, 1 warmed up
+	tubeOn       bool    // false: the switch-off animation runs or has run
+	offLeft      int     // updates left in the switch-off animation
 	message      string
 	debug        bool
 	calibrate    bool
@@ -161,6 +173,7 @@ func New(d Deps) (*Game, error) {
 
 	if d.Params.ROM != "" {
 		g.power = 1
+		g.tubeOn = true
 		g.renderer.SetPower(1)
 
 		if err := g.startROM(d.Params.ROM); err != nil {

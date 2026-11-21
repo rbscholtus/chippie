@@ -1,6 +1,6 @@
 // Package crt draws the CHIP-8 display: the framebuffer is copied into a
 // texture, scaled up, passed through a phosphor afterglow shader and then a
-// CRT shader (curvature, scanlines, shadow mask, bloom, power animation).
+// CRT shader (curvature, scanlines, shadow mask, bloom, power animations).
 // A "clean" mode draws the plain scaled picture, for tests.
 package crt
 
@@ -66,7 +66,9 @@ type Renderer struct {
 	frameWidth  int
 	frameHeight int
 	power       float32
-	rotation    int // degrees clockwise: 0, 90, 180 or 270
+	collapse    float32 // switch-off: 0 = full picture, 1 = sweep gone
+	spot        float32 // switch-off: brightness of the lingering spot
+	rotation    int     // degrees clockwise: 0, 90, 180 or 270
 }
 
 // New compiles the shaders. Call it after Ebitengine is set up (from the
@@ -88,7 +90,10 @@ func New(mode Mode) (*Renderer, error) {
 
 	r.tint = []float32{0.95, 0.93, 0.85} // warm black-and-white tube
 	r.phosOpts.Uniforms = map[string]any{"Decay": float32(PhosphorDecay)}
-	r.crtOpts.Uniforms = map[string]any{"Time": float32(0), "Power": float32(1), "Tint": r.tint}
+	r.crtOpts.Uniforms = map[string]any{
+		"Time": float32(0), "Power": float32(1),
+		"Collapse": float32(0), "Spot": float32(0), "Tint": r.tint,
+	}
 
 	return r, nil
 }
@@ -96,8 +101,16 @@ func New(mode Mode) (*Renderer, error) {
 // SetPalette sets the colour of each pixel value, from the next frame on.
 func (r *Renderer) SetPalette(p Palette) { r.palette = p }
 
-// SetPower sets the power animation: 0 is off, 1 is fully on.
+// SetPower sets the power-on animation: 0 is a cold cathode, 1 warmed up.
 func (r *Renderer) SetPower(p float32) { r.power = min(max(p, 0), 1) }
+
+// SetSwitchOff sets the switch-off animation: collapse 0 is the full
+// picture and 1 the sweep gone; spot is the brightness (0–1) of the spot
+// the still-hot cathode leaves. Both are 0 while the TV is on.
+func (r *Renderer) SetSwitchOff(collapse, spot float32) {
+	r.collapse = min(max(collapse, 0), 1)
+	r.spot = min(max(spot, 0), 1)
+}
 
 // SetScreen sets where the picture is drawn, in destination pixels. The
 // screen-sized images are reallocated only when the size changes.
@@ -243,6 +256,8 @@ func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 
 	r.crtOpts.Uniforms["Time"] = float32(tick) / framesPerSecond
 	r.crtOpts.Uniforms["Power"] = r.power
+	r.crtOpts.Uniforms["Collapse"] = r.collapse
+	r.crtOpts.Uniforms["Spot"] = r.spot
 	r.crtOpts.Images[0] = r.phos[r.cur]
 	r.crtOpts.GeoM.Reset()
 	r.crtOpts.GeoM.Translate(float64(r.screen.Min.X), float64(r.screen.Min.Y))

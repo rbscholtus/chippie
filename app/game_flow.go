@@ -7,6 +7,7 @@ import (
 	"image"
 	"io"
 	"io/fs"
+	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -603,20 +604,49 @@ func (g *Game) applySetting(eff settingEffect) {
 	}
 }
 
+// animatePower runs the power animations: switching on, the picture
+// unsquashes from a dot; switching off, it collapses in a few frames and
+// leaves a fading spot (switchOff).
 func (g *Game) animatePower() {
-	target := float32(0)
-	if g.state != stateOff {
-		target = 1
+	if g.state == stateOff {
+		if g.tubeOn {
+			g.tubeOn, g.offLeft = false, switchOffTicks
+		} else {
+			g.offLeft = max(g.offLeft-1, 0)
+		}
+
+		g.renderer.SetSwitchOff(switchOff(switchOffTicks - g.offLeft))
+
+		return
 	}
 
-	switch {
-	case g.power < target:
-		g.power = min(target, g.power+powerStep)
-	case g.power > target:
-		g.power = max(target, g.power-powerStep)
+	if !g.tubeOn {
+		g.tubeOn, g.power = true, 0
+		g.renderer.SetSwitchOff(0, 0)
 	}
 
+	g.power = min(1, g.power+powerStep)
 	g.renderer.SetPower(g.power)
+}
+
+// switchOff returns the switch-off animation ticks updates after the TV was
+// switched off: how far the picture has collapsed (0–1) and the brightness of
+// the spot the still-hot cathode leaves (0–1).
+func switchOff(ticks int) (float32, float32) {
+	if ticks >= switchOffTicks {
+		return 1, 0
+	}
+
+	collapse := min(1, float32(ticks)/collapseTicks)
+	fade := float64(max(0, ticks-collapseTicks)) / spotFadeTicks
+	spot := float32(math.Exp(-fade))
+
+	// Fade the last bit out linearly, so the spot ends at 0, not at 3%.
+	if tail := switchOffTicks - ticks; tail < spotFadeTicks {
+		spot *= float32(tail) / spotFadeTicks
+	}
+
+	return collapse, spot
 }
 
 // functionKeys: F1 statistics, F3 calibration outlines, F5 (natively)
