@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rbscholtus/chippie/chip8"
+	"github.com/rbscholtus/chippie/internal/chip8"
 )
 
 // Frame is a captured display: one byte of plane bits per pixel (0 = off).

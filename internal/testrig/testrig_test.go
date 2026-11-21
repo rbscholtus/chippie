@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rbscholtus/chippie/chip8"
+	"github.com/rbscholtus/chippie/internal/chip8"
 )
 
 func testFrame() Frame {

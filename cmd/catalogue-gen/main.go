@@ -1,6 +1,6 @@
 // Command catalogue-gen refreshes the catalogue snapshot (DESIGN §9–10). It
 // downloads chip-8-database and the ROM archives at pinned commits, hashes
-// every ROM, and writes into catalogue/snapshot/:
+// every ROM, and writes into assets/catalogue/snapshot/:
 //
 //	platforms.json quirks.json programs.json sha1-hashes.json  chip-8-database
 //	chip8archive-programs.json chip8archive-hashes.json        chip8Archive metadata
@@ -9,8 +9,8 @@
 //	pins.json                                                  the commits used
 //
 // and the coverage report to docs/coverage.md. It also deletes from
-// catalogue/overlay.json the entries upstream now has. It needs the network;
-// the refresh workflow runs it weekly with -update-pins.
+// assets/catalogue/overlay.json the entries upstream now has. It needs the
+// network; the refresh workflow runs it weekly with -update-pins.
 //
 // Usage, from the repository root:
 //
@@ -41,8 +41,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rbscholtus/chippie/catalogue"
-	"github.com/rbscholtus/chippie/platform"
+	"github.com/rbscholtus/chippie/internal/catalogue"
+	"github.com/rbscholtus/chippie/internal/platform"
 )
 
 const (
@@ -63,12 +63,12 @@ const (
 var errBadTarball = errors.New("bad tarball")
 
 func main() {
-	snapshotDir := flag.String("snapshot", "catalogue/snapshot", "snapshot directory")
+	snapshotDir := flag.String("snapshot", "assets/catalogue/snapshot", "snapshot directory")
 	reportPath := flag.String("report", "docs/coverage.md", "coverage report")
 	updatePins := flag.Bool("update-pins", false, "follow each repository's branch or tag instead of the pins")
 	hostedDir := flag.String("hosted", "web/hosted-roms", "directory of the ROMs Chippie hosts itself")
 	summaryPath := flag.String("summary", "", "write a before/after summary here (Markdown)")
-	overlayPath := flag.String("overlay", "catalogue/overlay.json", "Chippie's overlay; done entries are deleted")
+	overlayPath := flag.String("overlay", "assets/catalogue/overlay.json", "Chippie's overlay; done entries are deleted")
 
 	flag.Parse()
 
@@ -173,7 +173,7 @@ func fetchTrees(ctx context.Context, pins map[string]string, hostedDir string) (
 	return append(trees, tree{archive: hostedArchive, files: hosted}), nil
 }
 
-// applyOverlay applies Chippie's overlay (catalogue/overlay.json) to the
+// applyOverlay applies Chippie's overlay (assets/catalogue/overlay.json) to the
 // freshly fetched database.
 func applyOverlay(db *catalogue.DB, path string) ([]catalogue.OverlayStatus, error) {
 	data, err := os.ReadFile(path)

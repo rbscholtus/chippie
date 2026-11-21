@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rbscholtus/chippie/catalogue"
+	"github.com/rbscholtus/chippie/internal/catalogue"
 )
 
 func testDB(t *testing.T, hashes ...string) *catalogue.DB {

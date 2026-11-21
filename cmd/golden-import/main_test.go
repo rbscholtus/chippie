@@ -18,7 +18,7 @@ func TestImportMatchesCommittedGoldens(t *testing.T) {
 		t.Skipf("test suite not checked out: %v", err)
 	}
 
-	goldens := filepath.Join("..", "..", "testdata", "golden")
+	goldens := filepath.Join("..", "..", "internal", "chip8", "testdata", "golden")
 
 	out := t.TempDir()
 	if err := run(suite, out); err != nil {

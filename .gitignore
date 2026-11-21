@@ -11,7 +11,7 @@ bin/
 coverage.html
 *.prof
 *.pprof
-testdata/failures/
+internal/chip8/testdata/failures/
 vendor/
 
 # ── Web build & browser tests ────────────────────────────────────

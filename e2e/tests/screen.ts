@@ -68,7 +68,7 @@ export function gridText(g: Grid): string {
 }
 
 export function golden(name: string): string {
-  return readFileSync(new URL(`../../testdata/golden/${name}.txt`, import.meta.url), "utf8");
+  return readFileSync(new URL(`../../internal/chip8/testdata/golden/${name}.txt`, import.meta.url), "utf8");
 }
 
 // A game is running when the screen shows only the emulated picture (at most

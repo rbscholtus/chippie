@@ -3,7 +3,7 @@
 //
 // The pictures are 768×384 with 12×12 blocks per CHIP-8 pixel. Each one is
 // converted losslessly (every block must be a single colour) and written as
-// testdata/golden/<name>.png and .txt.
+// internal/chip8/testdata/golden/<name>.png and .txt.
 //
 // Usage, from the repository root:
 //
@@ -36,7 +36,7 @@ var strayWhite = color.RGBA{R: 255, G: 255, B: 255, A: 255} //nolint:gochecknogl
 // picture is one reference picture to import.
 type picture struct {
 	file   string // in the suite's pictures/ directory
-	golden string // base name in testdata/golden/
+	golden string // base name in internal/chip8/testdata/golden/
 	width  int
 	height int
 	strays bool // ignore stray white pixels
@@ -87,7 +87,7 @@ var skipped = []struct{ file, reason string }{ //nolint:gochecknoglobals // read
 
 func main() {
 	suite := flag.String("suite", "third_party/chip8-test-suite/pictures", "suite pictures directory")
-	out := flag.String("out", "testdata/golden", "golden frames directory")
+	out := flag.String("out", "internal/chip8/testdata/golden", "golden frames directory")
 
 	flag.Parse()
 
