@@ -165,7 +165,7 @@ page in `web/page.html`.
 
 ```
 chippie/
-├── go.mod                      # go 1.27, toolchain go1.27.x
+├── go.mod                      # go 1.27.x, the latest patch release
 ├── cmd/
 │   ├── chippie/                # main: ebiten.RunGame (browser + desktop)
 │   ├── catalogue-gen/          # CI: hash archives → sources.json + coverage report
