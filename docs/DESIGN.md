@@ -81,9 +81,10 @@ Go. It also keeps the whole project in one language with one toolchain, and
 
 ## 3. Prototype findings
 
-A throwaway prototype (in `prototype/`: Ebitengine 2.10.6, ebitenui 0.7.3,
-Go 1.27.0) was built and tested in headless Chromium, desktop Chrome/Safari on
-a Mac, and Safari on an iPhone.
+A throwaway prototype (Ebitengine 2.10.6, ebitenui 0.7.3, Go 1.27.0) was built
+and tested in headless Chromium, desktop Chrome/Safari on a Mac, and Safari on
+an iPhone. It's no longer in the tree; the git tag `prototype` keeps it
+(`git worktree add <dir> prototype` brings it back).
 
 | Question | Result |
 |---|---|
