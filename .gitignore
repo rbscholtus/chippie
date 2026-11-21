@@ -34,7 +34,6 @@ __pycache__/
 # ── IDE & editor ─────────────────────────────────────────────────
 .idea/
 .vscode/*.code-workspace
-.vscode/diff/vulsCount.txt
 *.sublime-project
 *.sublime-workspace
 

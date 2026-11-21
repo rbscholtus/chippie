@@ -231,6 +231,7 @@ chippie/
 │   ├── images/                 # screenshots for the README
 │   └── coverage.md             # ROM coverage report (catalogue-gen)
 ├── .github/workflows/
+├── .github/dependabot.yml      # weekly dependency update PRs
 ├── .golangci.yml               # lint config
 ├── CONTRIBUTING.md
 └── CLAUDE.md
@@ -1066,6 +1067,13 @@ cd web/dist && python3 -m http.server 8080
 | `bench.yml` | PR | benchmarks vs `main` with benchstat → job summary |
 | `pages.yml` | push to `main` | build and deploy to GitHub Pages |
 | `refresh.yml` | weekly + manual | refresh database snapshot and `sources.json`, write coverage report, open PR if changed |
+| `vulncheck.yml` | push, PR, weekly + manual | `govulncheck` for the WASM app and the native build: known vulnerabilities in code Chippie calls |
+
+**Dependabot** (`.github/dependabot.yml`) opens weekly update PRs, one per
+ecosystem: the Go modules, the browser tests' npm packages and the Actions.
+Ebitengine gets a PR of its own, because the app relies on some of its
+internals (§13). Security alerts and security updates are on in the
+repository settings.
 
 **Compression on GitHub Pages:** the build ships the pre-gzipped
 `chippie-gz.wasm` and the loader unpacks it (proven in the prototype). The
