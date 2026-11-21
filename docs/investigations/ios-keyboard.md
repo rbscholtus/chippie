@@ -416,7 +416,7 @@ Chrome's keyboard open the window is 430×401, wider than tall.*
 
 Branch `fix-ios-keyboard` (from `main` at `276d074`, Chippie PR #27 merged),
 **uncommitted**. As of round 6 it passes `golangci-lint` (native and
-wasm), `go test ./...` and the Playwright suite (37 passed, 20 skipped).
+wasm), `go test ./...` and the Playwright suite (37 passed, 21 skipped).
 Changes:
 
 - `app/textfield.go`:
