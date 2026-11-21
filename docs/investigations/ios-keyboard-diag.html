@@ -1,0 +1,167 @@
+<script>
+// TEMPORARY diagnostic (?diag) for docs/investigations/ios-keyboard.md. Not part
+// of the app: paste before </body> of web/dist/index.html after a build.
+if (new URLSearchParams(location.search).has("diag")) {
+  const box = document.createElement("pre");
+  box.style.cssText = "position:fixed;left:0;right:0;bottom:0;margin:0;padding:4px 6px;font:11px/1.25 ui-monospace,monospace;" +
+    "background:rgba(0,0,0,.8);color:#7f7;z-index:99999;pointer-events:none;white-space:pre-wrap;max-height:45vh;overflow:hidden";
+  addEventListener("DOMContentLoaded", () => document.body.appendChild(box));
+  const log = [], t0 = performance.now();
+  const name = (e) => !e ? "-" : (e.id || e.tagName || String(e));
+  const add = (s) => { log.push(((performance.now() - t0) / 1000).toFixed(2) + " " + s); if (log.length > 18) log.shift(); };
+  for (const t of ["focusin", "focusout"]) addEventListener(t, (e) => add(t + " " + name(e.target)), true);
+  // Every focus() and blur() made by code, and every change of the visible height.
+  for (const m of ["focus", "blur"]) {
+    const orig = HTMLElement.prototype[m];
+    HTMLElement.prototype[m] = function (...a) {
+      add("call " + m + "() on " + name(this));
+      return orig.apply(this, a);
+    };
+  }
+  if (window.visualViewport) {
+    visualViewport.addEventListener("resize", () => add("viewport height " + Math.round(visualViewport.height)));
+  }
+  window.diagEbiPos = null;
+  addEventListener("focusin", (e) => {
+    if (e.target.id !== "ebitengine-textinput") return;
+    setTimeout(() => {
+      const st = e.target.style, r = e.target.getBoundingClientRect();
+      window.diagEbiPos = [st.left, st.top];
+      add("ebi box at " + st.left + "," + st.top + " (rect " + Math.round(r.left) + "," + Math.round(r.top) + " in " + innerWidth + "x" + innerHeight + ")");
+    }, 0);
+  }, true);
+  for (const t of ["touchstart", "touchend", "touchcancel"]) addEventListener(t, (e) => add(t + " on " + name(e.target)), true);
+  // Keyboard experiments: each button focuses a text box in its own touchend.
+  addEventListener("DOMContentLoaded", () => {
+    const bar = document.createElement("div");
+    bar.id = "diag-bar";
+    bar.style.cssText = "position:fixed;top:4px;left:4px;right:4px;z-index:100000;display:flex;gap:6px;align-items:center";
+    const visible = document.createElement("input");
+    visible.id = "diag-visible";
+    visible.placeholder = "visible";
+    visible.style.cssText = "width:30px;font-size:16px;padding:2px;margin-left:auto;order:99";
+    const hidden = document.createElement("textarea");
+    hidden.id = "diag-hidden";
+    hidden.style.cssText = "position:absolute;left:0;top:0;opacity:0;resize:none;pointer-events:none;overflow:hidden;width:1px;height:1px";
+    document.body.appendChild(hidden);
+    bar.appendChild(visible);
+    const button = (label, focus, prevent) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.style.cssText = "font-size:18px;min-width:44px;min-height:44px";
+      b.addEventListener("touchstart", (e) => { if (prevent) e.preventDefault(); }, { passive: false });
+      b.addEventListener("touchend", (e) => {
+        if (prevent) e.preventDefault();
+        const el = focus();
+        if (el) el.focus();
+        add("test " + label + ": focused " + name(document.activeElement));
+        setTimeout(() => add("test " + label + " +1s: vv=" + (vv ? Math.round(vv.height) : "?") + "/" + innerHeight + "/" + outerHeight + " active=" + name(document.activeElement)), 1000);
+      }, { passive: false });
+      bar.appendChild(b);
+    };
+    // Round 2: every button cancels the touch, as Ebitengine's canvas does.
+    const sized = document.createElement("textarea");
+    sized.id = "diag-sized";
+    sized.style.cssText = "position:fixed;left:120px;top:120px;opacity:0;resize:none;width:120px;height:30px;font-size:16px";
+    document.body.appendChild(sized);
+    const ebi = () => document.getElementById("ebitengine-textinput");
+    // Round 3: an exact clone of Ebitengine's box (attributes, style, place),
+    // under another id so Ebitengine's own code leaves it alone.
+    const clone = () => {
+      const e = ebi();
+      if (!e) return null;
+      let c = document.getElementById("diag-clone");
+      if (c) c.remove();
+      c = e.cloneNode(false);
+      c.id = "diag-clone";
+      document.body.appendChild(c);
+      add("clone at " + c.style.left + "," + c.style.top + " attrs " + [...c.attributes].map((a) => a.name).join(" "));
+      return c;
+    };
+    // 10: the clone, focused from a body listener during the bubble, like Ebitengine's handler.
+    let armed = false;
+    document.body.addEventListener("touchend", () => {
+      if (!armed) return;
+      armed = false;
+      const c = clone();
+      if (c) { c.value = ""; c.focus(); }
+      add("test 10 (body): focused " + name(document.activeElement));
+      setTimeout(() => add("test 10 +1s: vv=" + (vv ? Math.round(vv.height) : "?") + "/" + innerHeight + " active=" + name(document.activeElement)), 1000);
+    });
+    const b10 = document.createElement("button");
+    b10.textContent = "10";
+    b10.style.cssText = "font-size:18px;min-width:44px;min-height:44px";
+    b10.addEventListener("touchstart", (e) => { e.preventDefault(); armed = true; }, { passive: false });
+    b10.addEventListener("touchend", (e) => e.preventDefault(), { passive: false });
+    // Round 4: the next tap on the CANVAS (e.g. the "PLAY" heading) focuses the clone,
+    // in a body touchend listener, exactly where Ebitengine focuses its box.
+    // 11: Ebitengine's canvas handlers run as usual (touchstart calls canvas.focus()).
+    // 12: the same, but canvas.focus() does nothing during that one touch.
+    let canvasMode = 0; // 0 off, 11 or 12
+    const realFocus = HTMLCanvasElement.prototype.focus;
+    addEventListener("touchstart", (e) => {
+      if (!canvasMode || e.target.tagName !== "CANVAS") return;
+      add("test " + canvasMode + ": touchstart on canvas, active " + name(document.activeElement));
+      if (canvasMode === 12) {
+        HTMLCanvasElement.prototype.focus = function () { add("test 12: canvas.focus() skipped"); };
+      }
+    }, true);
+    document.body.addEventListener("touchend", (e) => {
+      if (!canvasMode || e.target.tagName !== "CANVAS") return;
+      const mode = canvasMode;
+      canvasMode = 0;
+      HTMLCanvasElement.prototype.focus = realFocus;
+      const c = clone();
+      if (c) {
+        c.value = "";
+        c.focus();
+        if ((mode === 13 || mode === 15) && window.diagEbiPos) {
+          // As Ebitengine's handler: move the box to the caret right after focusing it.
+          c.style.left = window.diagEbiPos[0];
+          c.style.top = window.diagEbiPos[1];
+          add("test " + mode + ": moved to " + c.style.left + "," + c.style.top);
+        }
+        if (mode === 14 || mode === 15) {
+          // As Ebitengine's session start, a frame later: rewrite the text, set the caret.
+          setTimeout(() => {
+            c.value = "";
+            c.value = "";
+            c.setSelectionRange(0, 0);
+            add("test " + mode + ": value rewritten, active " + name(document.activeElement));
+          }, 20);
+        }
+      }
+      add("test " + mode + " (canvas tap): focused " + name(document.activeElement));
+      setTimeout(() => add("test " + mode + " +1s: vv=" + (vv ? Math.round(vv.height) : "?") + "/" + innerHeight + " active=" + name(document.activeElement)), 1000);
+    });
+    const arm = (label) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.style.cssText = "font-size:18px;min-width:44px;min-height:44px";
+      b.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+      b.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        canvasMode = Number(label);
+        add("test " + label + " armed: now tap the PLAY heading" +
+          ((label !== "14" && !window.diagEbiPos) ? " (no ebi position yet: tap the search field first!)" : ""));
+      }, { passive: false });
+      bar.appendChild(b);
+    };
+    arm("13");
+    arm("14");
+    arm("15");
+    button("x", () => { document.activeElement && document.activeElement.blur(); return null; }, true);
+    document.body.appendChild(bar);
+  });
+  const vv = window.visualViewport;
+  setInterval(() => {
+    const w = window;
+    box.textContent =
+      "active=" + name(document.activeElement) +
+      " pending=" + (w._ebitengine_textinput_x !== undefined) + " ready=" + !!w._ebitengine_textinput_ready +
+      " vv=" + (vv ? Math.round(vv.height) : "?") + "/" + innerHeight + "/" + outerHeight + "/" + screen.height + " coarse=" + matchMedia("(pointer: coarse)").matches +
+      (document.getElementById("ebitengine-textinput") ? " ebi@" + document.getElementById("ebitengine-textinput").style.left + "," + document.getElementById("ebitengine-textinput").style.top : "") + "\n" +
+      log.join("\n");
+  }, 200);
+}
+</script>
