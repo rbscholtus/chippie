@@ -5,8 +5,11 @@ These are the coding standards for Chippie. The design is described in
 
 ## Toolchain
 
-- **Go 1.27**, latest patch release. `go.mod` declares `go 1.27`, and the
-  `toolchain` line is kept on the latest 1.27.x.
+- **Go 1.27**, latest patch release. `go.mod` declares that release (e.g.
+  `go 1.27.4`) and has no separate `toolchain` line: Chippie is an app that
+  nothing imports, so its minimum Go and its build toolchain are the same.
+  An older local Go downloads it (`GOTOOLCHAIN=auto`); CI's `setup-go`
+  reads it from `go.mod`.
 - **Ebitengine v2.10+**. Upgrades are their own PRs. No UI toolkit: the
   drawer, settings and controls are our own widgets (DESIGN §2).
 - **golangci-lint v2.** The config is in `.golangci.yml`.
