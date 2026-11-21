@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  br8kout, click, desktopRow, golden, gridText, offline, running, sampleScreen, waitForApp,
+  br8kout, click, desktopRow, golden, gridText, offline, press, running, sampleScreen, waitForApp, waitForArt,
 } from "./screen";
 
 // Desktop (mouse and keyboard) library tests. Touch is in touch.spec.ts.
@@ -22,7 +22,7 @@ test("typing searches, Enter plays a bundled game", async ({ page }) => {
   await offline(page);
   await openLibrary(page);
   await search(page, "glitch");
-  await page.keyboard.press("Enter");
+  await press(page, "Enter");
 
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 });
@@ -31,7 +31,7 @@ test("a coming-soon game can't be started", async ({ page }) => {
   await offline(page);
   await openLibrary(page);
   await search(page, "clock program");
-  await page.keyboard.press("Enter");
+  await press(page, "Enter");
   await page.waitForTimeout(1500);
 
   expect(gridText(await sampleScreen(page))).toContain("?"); // still the drawer
@@ -41,7 +41,7 @@ test("a downloaded ROM is cached and plays offline after a reload", async ({ pag
   await offline(page, { "/roms/br8kout.ch8": "br8kout.ch8" });
   await openLibrary(page);
   await search(page, "br8kout");
-  await page.keyboard.press("Enter");
+  await press(page, "Enter");
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
 
   // Now nothing can be downloaded: the ROM must come from IndexedDB.
@@ -57,7 +57,7 @@ test("a ROM that can't be downloaded keeps the library open", async ({ page }) =
   await offline(page); // Br8kout's download fails
   await openLibrary(page);
   await search(page, "br8kout");
-  await page.keyboard.press("Enter");
+  await press(page, "Enter");
   await page.waitForTimeout(2000);
 
   expect(gridText(await sampleScreen(page))).toContain("?");
@@ -68,36 +68,32 @@ test("settings persist per ROM across a reload", async ({ page }) => {
   await page.goto("/?rom=game/glitchGhost&shader=clean");
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
+  await waitForArt(page); // decoding the art blocks the app: let it finish first
 
   // Settings rows: TV (with more than one skin), Platform, Speed, …
-  await page.keyboard.press("F2");
-  await page.waitForTimeout(300);
+  await press(page, "F2");
   for (let i = 0; i < 2; i++) {
-    await page.keyboard.press("ArrowDown"); // to Speed
-    await page.waitForTimeout(100);
+    await press(page, "ArrowDown"); // to Speed
   }
-  await page.keyboard.press("ArrowRight"); // 200 → 300
-  await page.waitForTimeout(300);
-  await page.keyboard.press("Escape");
-  await page.waitForTimeout(300);
+  await press(page, "ArrowRight"); // 200 → 300
+  await press(page, "Escape");
 
   const key = "chippie.overrides/2cdcb3c29a5f013a991db5909ca8e18e27b3c42b";
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe('{"tickrate":300}');
+  const stored = () => page.evaluate((k) => localStorage.getItem(k), key);
+  await expect.poll(stored, { intervals: [300] }).toBe('{"tickrate":300}');
 
   // Reset to recommended clears it again.
   await page.reload();
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
-  await page.keyboard.press("F2");
-  await page.waitForTimeout(300);
+  await waitForArt(page);
+  await press(page, "F2");
   for (let i = 0; i < 10; i++) {
-    await page.keyboard.press("ArrowDown"); // to "Reset to recommended"
-    await page.waitForTimeout(100);
+    await press(page, "ArrowDown"); // to "Reset to recommended"
   }
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(300);
+  await press(page, "Enter");
 
-  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBeNull();
+  await expect.poll(stored, { intervals: [300] }).toBeNull();
 });
 
 test("load a ROM from this device", async ({ page }) => {

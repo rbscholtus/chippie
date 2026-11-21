@@ -87,6 +87,42 @@ export async function waitForApp(page: Page) {
   await expect(page.locator("#loader")).toBeHidden();
 }
 
+// Waits until the TV's art is drawn, which loads in the background: until
+// then the TV's controls and their keys (P, T, the knobs) don't work. Go
+// runs on the page's only thread, and decoding the art blocks it for a
+// moment; a click that starts and ends in such a pause isn't seen, so this
+// waits a little longer.
+export async function waitForArt(page: Page) {
+  await expect.poll(async () => (await appLayout(page)).art, { intervals: [500] }).toBe(true);
+  await page.waitForTimeout(1000);
+}
+
+// Waits for n animation frames. Ebitengine updates the app in its own
+// animation-frame callback, which runs before one asked for later, so two
+// frames mean the app has had at least one update.
+async function frames(page: Page, n = 2) {
+  await page.evaluate(
+    (n) =>
+      new Promise<void>((done) => {
+        const step = (left: number) => (left === 0 ? done() : requestAnimationFrame(() => step(left - 1)));
+        step(n);
+      }),
+    n,
+  );
+}
+
+// Presses a key the way the app can see it: down for at least one update,
+// then up, and waits until the app has had an update after that. Ebitengine
+// stamps a key event with the update that handles it, so presses of the
+// same key that all arrive before one update (Playwright's press is
+// instant, and frames are slow in CI) count as one.
+export async function press(page: Page, key: string) {
+  await page.keyboard.down(key);
+  await frames(page);
+  await page.keyboard.up(key);
+  await frames(page);
+}
+
 // Touch helpers (Chromium only): Playwright's tap() presses and releases
 // within one frame, which the app can miss; real fingers are slower.
 export async function touchTap(page: Page, x: number, y: number) {

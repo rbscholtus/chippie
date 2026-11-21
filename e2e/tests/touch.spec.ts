@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { PNG } from "pngjs";
 import {
-  appLayout, centre, golden, gridText, offline, pickerSearchY, rowCentre, running, sampleScreen, touchDrag, touchTap,
-  waitForApp,
+  appLayout, centre, golden, gridText, offline, pickerSearchY, press, rowCentre, running, sampleScreen, touchDrag,
+  touchTap, waitForApp, waitForArt,
 } from "./screen";
 
 // Phone only: touch input through the DevTools protocol (Chromium).
@@ -185,7 +185,8 @@ test("when the TV is off, Settings under it switches on and opens them", async (
   await page.goto("/?rom=game/glitchGhost&shader=clean");
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
-  await page.keyboard.press("p"); // switch off
+  await waitForArt(page); // P is the TV's power key: it works once the TV is drawn
+  await press(page, "p"); // switch off
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(0);
 
   const l = await appLayout(page);

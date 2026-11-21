@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { appLayout, click, offline, running, stateOff, stateRunning, waitForApp } from "./screen";
+import { appLayout, click, offline, press, running, stateOff, stateRunning, waitForApp, waitForArt } from "./screen";
 
 // Desktop: the TV's controls by mouse, wheel and keyboard. The app
 // publishes what they did (window.chippieLayout.status).
@@ -11,10 +11,7 @@ async function startGame(page: Page) {
   await page.goto("/?rom=game/glitchGhost&shader=clean");
   await waitForApp(page);
   await expect.poll(() => running(page), { intervals: [500] }).toBe(true);
-  await expect.poll(async () => (await appLayout(page)).art, { intervals: [500] }).toBe(true);
-  // Go runs on the page's only thread: decoding the art just now blocked
-  // it, and a click that starts and ends in such a pause isn't seen.
-  await page.waitForTimeout(1000);
+  await waitForArt(page);
 }
 
 async function control(page: Page, id: string, dx = 0): Promise<[number, number]> {
@@ -53,17 +50,17 @@ test("the power switch and P switch off; a key switches back on", async ({ page 
   await click(page, ...(await control(page, "power")));
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
 
-  await page.keyboard.press("x");
+  await press(page, "x");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateRunning);
 
-  await page.keyboard.press("p");
+  await press(page, "p");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
 });
 
 test("T turns the tint knob", async ({ page }) => {
   await startGame(page);
 
-  await page.keyboard.press("t");
+  await press(page, "t");
 
   await expect.poll(async () => (await appLayout(page)).status.tint, { intervals: [300] }).toBe(1);
 });
@@ -72,9 +69,8 @@ test("Settings switches the TV skin, and it stays after a reload", async ({ page
   await startGame(page);
   expect((await appLayout(page)).status.skin).toBe("classic");
 
-  await page.keyboard.press("F2"); // Settings: the TV row is first
-  await page.waitForTimeout(500);
-  await page.keyboard.press("ArrowRight");
+  await press(page, "F2"); // Settings: the TV row is first
+  await press(page, "ArrowRight");
 
   await expect.poll(async () => (await appLayout(page)).status.skin, { intervals: [300] }).toBe("portable");
   await expect.poll(async () => (await appLayout(page)).art, { intervals: [500] }).toBe(true);

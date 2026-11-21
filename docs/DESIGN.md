@@ -968,6 +968,15 @@ Same approach as the prototype's test:
   keys. Ebitengine's `exp/textinput` drops the first synthetic key in headless
   Chromium; that's a test artefact (real devices are fine), so tests type a
   throwaway character first.
+- **Wait for the app, not for a time** (`e2e/tests/screen.ts`):
+  - `press` holds a key over at least one update and waits for the next.
+    Ebitengine stamps a key event with the update that handles it, so
+    presses of the same key that all arrive before one update count as
+    one: a series of ArrowDowns could fall short.
+  - `waitForArt` waits for the TV's art, which loads in the background.
+    Until it's there the TV's controls and their keys (P, T) do nothing,
+    and decoding it blocks Go, the page's only thread, for a moment.
+  - Results are read with `expect.poll`, not once after a fixed pause.
 - Desktop and phone viewports (390×844, DPR 2, touch).
 
 ### 15.4 Native run
