@@ -12,6 +12,10 @@ These are the coding standards for Chippie. The design is described in
   reads it from `go.mod`.
 - **Ebitengine v2.10+**. Upgrades are their own PRs. No UI toolkit: the
   drawer, settings and controls are our own widgets (DESIGN §2).
+- **Dependencies:** Dependabot opens weekly update PRs, and Ebitengine gets
+  its own (DESIGN §17). `govulncheck` runs in CI for the native and the
+  WASM build; after changing dependencies, run `govulncheck ./...` and
+  `GOOS=js GOARCH=wasm govulncheck ./...` locally.
 - **golangci-lint v2.** The config is in `.golangci.yml`.
 - **Node LTS** only for the Playwright browser tests in `e2e/`. No JavaScript
   in the app, apart from the small loader page.
