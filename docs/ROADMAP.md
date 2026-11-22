@@ -97,22 +97,23 @@ To be settled while building, not before:
   rows. List the database's first ROM only, and offer the others in Settings.
 
 - **Download sources for the games the library leaves out** (checked
-  2026-11-23). Of chip-8-database's 585 ROMs, Chippie can download 310. The
-  library leaves out the other 275, which have no known source: 172 CHIP-8,
-  53 SUPER-CHIP, 42 XO-CHIP and 7 modern CHIP-8 ROMs. Other emulators'
-  built-in ROMs and the Octojams have 23 of them, maybe 24:
+  2026-11-23). Of chip-8-database's 585 ROMs, Chippie could download 310.
+  The library left out the other 275, which had no known source: 172
+  CHIP-8, 53 SUPER-CHIP, 42 XO-CHIP and 7 modern CHIP-8 ROMs. Other
+  emulators' built-in ROMs and the Octojams have 23 of them, maybe 24; the
+  first 19 are done (329 downloadable now), the rest are open:
   - [00SChip8](https://github.com/00laboratories/00SChip8/tree/master/games)'s
     `games/` is Revival Studios' whole Chip-8 Program Pack (RS-C8000,
     2011); kripod and dmatlack carry only its CHIP-8 half. It adds the
     pack's 17 SuperChip games and demos (Revival's Climax Slideshow, Super
     Trip8 Demo and Super Astro Dodge, Hap's Sokoban and Loopz, SuperWorm
-    V4, Laser, Matches…) and the 00Schip8 Life demo. Add it to
-    `cmd/catalogue-gen`'s `archives`, linking only, as with kripod (no
-    licence for the ROMs).
+    V4, Laser, Matches…) and the 00Schip8 Life demo. **Done 2026-11-23**:
+    a `catalogue-gen` archive that only links, as with kripod (no licence
+    for the ROMs).
   - [Timendus/alien-inv8sion](https://github.com/Timendus/alien-inv8sion)
     (GPL-3.0, Octojam 8): Alien-Inv8sion (XO-CHIP), as
-    `bin/alien-inv8sion.ch8`. One more `archives` entry, like 3D Viper
-    Maze.
+    `bin/alien-inv8sion.ch8`. **Done 2026-11-23**: an archive like 3D
+    Viper Maze's.
   - Octojams 6–10 on itch.io ([Octojam 10](https://itch.io/jam/octojam-10/entries),
     86 entries in all): every other entry is playable already. Dump Trump
     (Micheal Wales, [Octojam 6](https://itch.io/jam/octojam-6/entries)) is

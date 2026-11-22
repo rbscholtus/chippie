@@ -490,11 +490,16 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
 | [mattmikolay/chip-8](https://github.com/mattmikolay/chip-8) (MIT) | 6 | 4 | 2 | Yes (GitHub raw, CORS `*`) |
 | Timendus [3d-viper-maze](https://github.com/Timendus/3d-viper-maze), [3d-vipr-maze](https://github.com/Timendus/3d-vipr-maze) (GPL-3.0) | 3 | 3 | 0 | Yes (GitHub raw, CORS `*`) |
 | Octojam 6–10 games from itch.io, via [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator) (no licence) | 68 | 42 | 26 | Yes (GitHub raw, CORS `*`) |
+| Revival Studios' Chip-8 Program Pack (2011), via [00laboratories/00SChip8](https://github.com/00laboratories/00SChip8/tree/master/games) (no licence for the ROMs) | 177 | 141 | 36 | Yes (GitHub raw, CORS `*`) |
+| Timendus [alien-inv8sion](https://github.com/Timendus/alien-inv8sion) (GPL-3.0) | 1 | 1 | 0 | Yes (GitHub raw, CORS `*`) |
 | **All combined** | **~310** | **268** | **42** | |
 
 Added 2026-11-14: David Winter's page, the Octojam games and the three GitHub repositories, found
-by hashing candidate sources against the database. `docs/coverage.md` has the
-current numbers.
+by hashing candidate sources against the database. Added 2026-11-23 (and
+not in the totals above, which date from 2026-11-14): the Revival pack and
+Alien-Inv8sion, which made 19 more ROMs downloadable (329 of 585);
+ROADMAP's "Download sources" item has the other collections checked.
+`docs/coverage.md` has the current numbers.
 
 **Findings:**
 
@@ -508,6 +513,10 @@ current numbers.
   in `web/hosted-roms/`, with Zophar's attribution and `.DOC` files.
 - **6 more exist only on David Winter's page:** MINES, SQUARE, MAZE (his own
   freeware), DRAGON1/DRAGON2 (Single Dragon) and LOOPZ. We host these too.
+- **The Revival pack has 17 of those 18 too** (all but KALEID), as the
+  same files; it came to light on 2026-11-23, through 00SChip8. Chippie's
+  hosted copies stay first in `sources.json` (`catalogue-gen` puts them
+  first), with 00SChip8 as a fallback.
 - **Octojam games on itch.io (2019–2023)** are only playable there as Octo
   HTML exports, with no CORS. A third-party repository
   ([maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator))

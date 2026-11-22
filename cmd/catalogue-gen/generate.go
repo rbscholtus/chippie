@@ -88,6 +88,33 @@ var archives = []archive{ //nolint:gochecknoglobals // read-only configuration
 		repo: "maxisimonazzi/chip8-emulator", ref: mainBranch,
 		include: func(f string) bool { return strings.HasPrefix(f, "roms/octojam/") && strings.HasSuffix(f, ".ch8") },
 	},
+	{
+		// Revival Studios' whole Chip-8 Program Pack (RS-C8000, 2011), as
+		// 00SChip8 ships it; kripod has only its CHIP-8 half, not the
+		// SuperChip games and demos. The repository's MIT licence is for
+		// the emulator: each game belongs to its author, and the pack may be
+		// "freely distributed in its original form". We only link, as with
+		// kripod.
+		id: "00schip8",
+		info: catalogue.SourceInfo{
+			Name: "Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8)",
+			Home: "https://github.com/00laboratories/00SChip8/tree/master/games",
+		},
+		repo: "00laboratories/00SChip8", ref: master,
+		include: func(f string) bool {
+			ext := strings.ToLower(path.Ext(f))
+
+			return strings.HasPrefix(f, "games/") && (ext == ".ch8" || ext == ".c8" || ext == ".c8x")
+		},
+	},
+	{
+		id: "alieninv8sion",
+		info: catalogue.SourceInfo{
+			Name: "Alien-Inv8sion (Timendus)", License: gpl3, Home: "https://github.com/Timendus/alien-inv8sion",
+		},
+		repo: "Timendus/alien-inv8sion", ref: mainBranch,
+		include: func(f string) bool { return f == "bin/alien-inv8sion.ch8" },
+	},
 }
 
 // hostedArchive is web/hosted-roms: ROMs Chippie serves beside the app, at
@@ -108,6 +135,17 @@ var hostedArchive = archive{ //nolint:gochecknoglobals // read-only configuratio
 const hostedURLPrefix = "roms/hosted/"
 
 // locationURL is where a file of an archive can be downloaded.
+// addLocation adds loc to a ROM's locations, which the app tries in order.
+// Chippie's own copy goes first: it's served next to the app, so it works
+// whenever the app does. Others go last, in the order of archives.
+func addLocation(locs []catalogue.Location, loc catalogue.Location) []catalogue.Location {
+	if loc.Source == catalogue.HostedSource {
+		return append([]catalogue.Location{loc}, locs...)
+	}
+
+	return append(locs, loc)
+}
+
 func locationURL(t tree, file string) string {
 	if t.archive.id == catalogue.HostedSource {
 		return hostedURLPrefix + url.PathEscape(file)
@@ -203,7 +241,7 @@ func generate(db *catalogue.DB, trees []tree, generated string) result {
 
 			st.inDB++
 
-			res.sources.ROMs[hash] = append(res.sources.ROMs[hash],
+			res.sources.ROMs[hash] = addLocation(res.sources.ROMs[hash],
 				catalogue.Location{Source: t.archive.id, URL: locationURL(t, file)})
 		}
 

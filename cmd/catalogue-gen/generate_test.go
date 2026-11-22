@@ -190,6 +190,26 @@ func TestGenerateHostedROMs(t *testing.T) {
 	}
 }
 
+// A ROM Chippie hosts that a GitHub archive has too (the Revival pack in
+// 00SChip8 holds most of them) keeps Chippie's copy first, and the archive
+// second, as a fallback.
+func TestHostedCopyComesFirst(t *testing.T) {
+	t.Parallel()
+
+	rom := []byte("hosted ROM")
+	db := testDB(t, sha1Hex(rom))
+
+	res := generate(db, []tree{
+		{archive: archives[1], commit: "c2", files: map[string][]byte{"games/Space Fig.ch8": rom}},
+		{archive: hostedArchive, files: map[string][]byte{"SPACEFIG": rom}},
+	}, "2026-11-09T00:00:00Z")
+
+	locs := res.sources.ROMs[sha1Hex(rom)]
+	if len(locs) != 2 || locs[0].Source != catalogue.HostedSource || locs[1].Source != archives[1].id {
+		t.Errorf("locations %+v, want the hosted copy, then %s", locs, archives[1].id)
+	}
+}
+
 // Every hosted ROM must be in the committed manifest, or nobody can play it.
 func TestHostedROMsAreInManifest(t *testing.T) {
 	t.Parallel()

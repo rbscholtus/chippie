@@ -1,6 +1,6 @@
 # ROM coverage
 
-Generated 2026-11-15T01:26:02Z by `cmd/catalogue-gen`.
+Generated 2026-11-22T20:40:16Z by `cmd/catalogue-gen`.
 
 chip-8-database: 521 programs, 585 ROMs.
 
@@ -13,10 +13,12 @@ chip-8-database: 521 programs, 585 ROMs.
 | 3D Viper Maze (Timendus) | 1 | 1 | 0 |
 | 3D VIP'r Maze (Timendus) | 2 | 2 | 0 |
 | Octojam games from itch.io (via maxisimonazzi/chip8-emulator) | 68 | 68 | 0 |
+| Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8) | 177 | 141 | 36 |
+| Alien-Inv8sion (Timendus) | 1 | 1 | 0 |
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
-| **All combined** | **310** | **310** | **0** |
+| **All combined** | **365** | **329** | **36** |
 
-Downloadable ROMs in the manifest: 310 of 585 in the database and Chippie's overlay.
+Downloadable ROMs in the manifest: 329 of 585 in the database and Chippie's overlay.
 
 ## Chippie's overlay (pending upstream)
 
@@ -26,6 +28,42 @@ Empty.
 
 ## Not in chip-8-database
 
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Blockout [Steve Houk].c8x`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Color Kaleidoscope [Steve Houk, 1978].c8x`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ColourTest.c8x`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ETI660 Hybrids/Maze 2 (ETI660 Hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ETI660 Hybrids/Music Maker (ETI660 Hybrid) [Peter Collins, 198x].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ETI660 Hybrids/Pong (ETI660 Hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ETI660 Hybrids/Space Invaders (ETI660 Hybrid) [P. Easdown,198x].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/ETI660 Hybrids/Wipeout (ETI660 hybrid) [W.F. Kreykes, 1982].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Hybrids/Bingo [Andrew Modla] (hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Hybrids/Blackjack [Andrew Modla] (hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Hybrids/Boot-128 (hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Hybrids/Message Center [Andrew Modla] (hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Hybrids/Video Display Drawing Game [Joseph Weisbecker] (hybrid).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/Pinball [Andrew Modla].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Chip-8X and Hybrids/SoundTest.c8x`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/Henry/SuperChipFontTest.c8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/MegaChip8 Demos/Mega Minimal [Revival Studios, 2007].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/MegaChip8 Demos/Mega Particle Demo [zeroZshadow, 2008].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/MegaChip8 Demos/MegaMaze [David Winter, 2007].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/MegaChip8 Demos/MegaSirpinski [Sergey Naydenov, 2010].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/MegaChip8 Demos/Twister Demo [Revival Studios, 2007].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Games/Field! [Al Roland, 1993] (alt).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Games/Sokoban [Hap, 2006] (alt).ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/BMP Viewer (16x16 tiles) (MAME) [IQ_132].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/BMP Viewer (Google) [IQ_132].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/BMP Viewer - Flip-8 logo [Newsdee, 2006].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/BMP Viewer - Kyori (SC example) [Hap, 2005].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/BMP Viewer - Let's Chip-8! [Koppepan, 2005].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/Emutest [Hap, 2006].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/Font Test [Newsdee, 2006].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/SC Test.ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/SCHIP Test [iq_132].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/Scroll Test (modified) [Garstyciuks].ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/Scroll Test.ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/SuperChip Test.ch8`
+- Revival Studios' Chip-8 Program Pack (via 00laboratories/00SChip8): `games/SuperChip Test Programs/Test128.ch8`
 
 ## chip8Archive vs chip-8-database
 
