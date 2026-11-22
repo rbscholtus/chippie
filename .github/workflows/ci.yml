@@ -72,7 +72,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Short fuzz run
-        run: go test ./chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
+        run: go test ./internal/chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
 
   build:
     name: Build

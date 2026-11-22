@@ -96,7 +96,7 @@ func TestDisassemble(t *testing.T) {
 
 		want, err := os.ReadFile(path)
 		if err != nil {
-			t.Fatalf("%v (run go test ./chip8 -run TestDisassemble -update)", err)
+			t.Fatalf("%v (run go test ./internal/chip8 -run TestDisassemble -update)", err)
 		}
 
 		if got != string(want) {
