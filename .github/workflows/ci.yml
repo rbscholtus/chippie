@@ -27,8 +27,8 @@ jobs:
             goos: js
             goarch: wasm
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Install Ebitengine dependencies
@@ -45,10 +45,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: true
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Install Ebitengine dependencies
@@ -60,7 +60,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: golden-failures
-          path: testdata/failures
+          path: |
+            internal/chip8/testdata/failures
+            games/*/testdata/failures
           if-no-files-found: ignore
           retention-days: 7
       - name: Coverage summary
@@ -72,13 +74,13 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Short fuzz run
-        run: go test ./chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
+        run: go test ./internal/chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
 
   games:
     name: Games are up to date
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -88,7 +90,7 @@ jobs:
         run: ./scripts/build-games.sh
       - name: Committed ROMs match their source
         run: |
-          if ! git diff --exit-code -- assets/roms catalogue/overlay.json; then
+          if ! git diff --exit-code -- assets/roms assets/catalogue/overlay.json; then
             echo "::error::a game's ROM or SHA-1 is stale: run scripts/build-games.sh and commit"
             exit 1
           fi
@@ -97,10 +99,10 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: true
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Install Ebitengine dependencies
@@ -137,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: true # the file-picker test loads a test-suite ROM
       - uses: actions/download-artifact@v8

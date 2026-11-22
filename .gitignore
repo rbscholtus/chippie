@@ -11,7 +11,8 @@ bin/
 coverage.html
 *.prof
 *.pprof
-testdata/failures/
+internal/chip8/testdata/failures/
+games/*/testdata/failures/
 vendor/
 
 # ── Web build & browser tests ────────────────────────────────────
@@ -34,7 +35,6 @@ __pycache__/
 # ── IDE & editor ─────────────────────────────────────────────────
 .idea/
 .vscode/*.code-workspace
-.vscode/diff/vulsCount.txt
 *.sublime-project
 *.sublime-workspace
 

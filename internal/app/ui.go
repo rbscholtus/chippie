@@ -1,0 +1,721 @@
+package app
+
+import (
+	"bytes"
+	"fmt"
+	"image"
+	"image/color"
+	"strconv"
+	"strings"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font/gofont/gomono"
+	"golang.org/x/image/font/gofont/goregular"
+
+	"github.com/rbscholtus/chippie/internal/app/input"
+	"github.com/rbscholtus/chippie/internal/app/library"
+	"github.com/rbscholtus/chippie/internal/chip8"
+)
+
+// Colours of the room and the overlays.
+var (
+	panelColour    = color.RGBA{R: 0x10, G: 0x0E, B: 0x0B, A: 0xF0} //nolint:gochecknoglobals // read-only colour
+	selectedColour = color.RGBA{R: 0x2C, G: 0x26, B: 0x1E, A: 0xFF} //nolint:gochecknoglobals // read-only colour
+	inkColour      = color.RGBA{R: 0xEF, G: 0xE3, B: 0xCC, A: 0xFF} //nolint:gochecknoglobals // read-only colour
+	mutedColour    = color.RGBA{R: 0x8A, G: 0x7C, B: 0x66, A: 0xFF} //nolint:gochecknoglobals // read-only colour
+	accentColour   = color.RGBA{R: 0xFF, G: 0xB4, B: 0x3C, A: 0xFF} //nolint:gochecknoglobals // read-only colour
+	errorColour    = color.RGBA{R: 0xFF, G: 0x7A, B: 0x6B, A: 0xFF} //nolint:gochecknoglobals // read-only colour
+)
+
+// Sizes in CSS pixels; multiplied by the device scale.
+const (
+	textSize       = 16
+	lineSpacing    = 1.5
+	panelPad       = 16
+	touchRowSize   = 44  // Apple's minimum touch target
+	dragThreshold  = 8   // pixels of movement before a press scrolls
+	detailsMinWide = 720 // the drawer shows a details pane from this width
+	detailsShare   = 0.7 // descriptions are often long
+	monoSize       = 14  // Go Mono is wider than Go Regular
+	traceLines     = 8
+	chipPad        = 10 // inside a filter chip, left and right
+	chipGap        = 8  // between filter chips
+)
+
+// ui draws the overlays (drawer, settings, messages, the debug line) and
+// owns the layout that input handling uses for hit testing.
+type ui struct {
+	source  *text.GoTextFaceSource
+	face    *text.GoTextFace
+	mono    *text.GoTextFace // tables and indented lines in descriptions
+	monoSrc *text.GoTextFaceSource
+	scale   float64
+	touch   bool // a touch was seen: bigger rows, touch wording
+	light   bool // the background around the TV is light: dark status text
+
+	layout layout
+}
+
+// layout holds the rectangles of the overlays, in real pixels.
+type layout struct {
+	window      image.Rectangle
+	panel       image.Rectangle // the drawer's or settings panel's background
+	search      image.Rectangle // the drawer's search field
+	filters     image.Rectangle // the platform filter chips, under the search field
+	list        image.Rectangle // the scrolling rows
+	content     image.Rectangle // below the search line, full width (settings)
+	details     image.Rectangle // the selected ROM, on wide screens; else empty
+	below       image.Rectangle // the status lines under the TV
+	statusLeft  image.Rectangle // below the TV: tap for the ROM list
+	statusRight image.Rectangle // below the TV: tap for settings
+	rowH        float64
+}
+
+func newUI() (*ui, error) {
+	src, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		return nil, fmt.Errorf("load font: %w", err)
+	}
+
+	monoSrc, err := text.NewGoTextFaceSource(bytes.NewReader(gomono.TTF))
+	if err != nil {
+		return nil, fmt.Errorf("load mono font: %w", err)
+	}
+
+	u := &ui{source: src, monoSrc: monoSrc}
+	u.resize(image.Rect(0, 0, 1, 1), image.Rect(0, 0, 1, 1), 1)
+
+	return u, nil
+}
+
+func (u *ui) lineHeight() float64 { return textSize * lineSpacing * u.scale }
+
+// resize lays out the overlays for a window and the status lines' area
+// under the TV.
+func (u *ui) resize(window, below image.Rectangle, scale float64) {
+	u.scale = scale
+	u.face = &text.GoTextFace{Source: u.source, Size: textSize * scale}
+	u.mono = &text.GoTextFace{Source: u.monoSrc, Size: monoSize * scale}
+	u.layout = computeLayout(window, below, scale, u.lineHeight(), u.touch)
+}
+
+// computeLayout places the panel over the whole window, leaving a line at
+// the top (debug) and two at the bottom (status). Inside: the search field,
+// the list, and on wide screens a details pane beside the list. The status
+// lines' tap areas (ROM list, settings) are the outer thirds of below.
+func computeLayout(window, below image.Rectangle, scale, lineH float64, touch bool) layout {
+	pad := int(panelPad * scale)
+	statusH := int(2 * lineH)
+
+	rowH := lineH
+	if touch {
+		rowH = max(rowH, touchRowSize*scale)
+	}
+
+	panel := image.Rect(window.Min.X+pad, window.Min.Y+int(lineH)+pad, window.Max.X-pad, window.Max.Y-statusH)
+	if panel.Dy() < 4*int(rowH) {
+		panel = window
+	}
+
+	inner := panel.Inset(pad)
+	search := image.Rect(inner.Min.X, inner.Min.Y, inner.Max.X, inner.Min.Y+int(rowH))
+	content := image.Rect(inner.Min.X, search.Max.Y+pad/2, inner.Max.X, inner.Max.Y) // settings rows
+	filters := image.Rect(inner.Min.X, search.Max.Y+pad/2, inner.Max.X, search.Max.Y+pad/2+int(rowH))
+	list := image.Rect(inner.Min.X, filters.Max.Y, inner.Max.X, inner.Max.Y) // rows have their own spacing
+
+	var details image.Rectangle
+
+	if float64(inner.Dx()) >= detailsMinWide*scale {
+		split := inner.Max.X - int(float64(inner.Dx())*detailsShare)
+		details = image.Rect(split+pad, list.Min.Y, inner.Max.X, list.Max.Y)
+		list.Max.X = split
+		search.Max.X = split
+	}
+
+	third := below.Dx() / 3
+	status := below
+
+	return layout{
+		window:      window,
+		below:       below,
+		panel:       panel,
+		search:      search,
+		filters:     filters,
+		list:        list,
+		content:     content,
+		details:     details,
+		statusLeft:  image.Rect(status.Min.X, status.Min.Y, status.Min.X+third, status.Max.Y),
+		statusRight: image.Rect(status.Max.X-third, status.Min.Y, status.Max.X, status.Max.Y),
+		rowH:        rowH,
+	}
+}
+
+func (u *ui) draw(dst *ebiten.Image, g *Game) {
+	screen := g.renderer.Picture()
+
+	switch g.state {
+	case stateOff:
+		msg := "Tap, click or press a key to switch on"
+		if u.touch {
+			msg = "Tap to switch on"
+		}
+
+		if g.offLeft == 0 { // not over the fading spot
+			u.centred(dst, screen, msg, inkColour)
+		}
+
+		u.drawStatusTaps(dst, u.statusArea(g), g.hasROM)
+	case statePicker:
+		u.drawPicker(dst, g)
+	case stateSettings:
+		u.drawSettings(dst, g)
+	case stateLoading:
+		u.centred(dst, screen, "Tuning in "+g.loadingEntry.Title+"…", inkColour)
+	case stateRunning:
+		u.drawRunningStatus(dst, g, u.statusArea(g))
+	}
+
+	if g.state == statePicker || g.state == stateSettings {
+		x := float64(u.layout.panel.Min.X)
+		y := float64(u.layout.panel.Max.Y) + u.lineHeight()/2
+		maxW := float64(u.layout.panel.Dx())
+
+		if g.message != "" {
+			u.text(dst, u.fit(g.message, maxW), x, y, errorColour)
+		} else {
+			u.text(dst, u.fit(u.hint(g), maxW), x, y, mutedColour)
+		}
+	}
+
+	if g.debug {
+		msg := fmt.Sprintf("TPS %.0f  FPS %.0f  scale %.1f×  %d×%d",
+			ebiten.ActualTPS(), ebiten.ActualFPS(), g.scale, g.width, g.height)
+		if g.tv.artErr != nil {
+			msg += "  ·  TV art: " + g.tv.artErr.Error()
+		}
+
+		u.text(dst, msg, panelPad*u.scale, panelPad*u.scale/2, mutedColour)
+	}
+}
+
+// textPalette is the colours of text drawn straight on the background.
+type textPalette struct{ ink, muted, accent, error color.RGBA }
+
+// statusPalette is dark ink on a light background (the studio around the
+// TV), else the overlays' light ink.
+func (u *ui) statusPalette() textPalette {
+	if u.light {
+		return textPalette{
+			ink:    color.RGBA{R: 0x2E, G: 0x27, B: 0x20, A: 0xFF},
+			muted:  color.RGBA{R: 0x5E, G: 0x53, B: 0x48, A: 0xFF},
+			accent: color.RGBA{R: 0x9A, G: 0x4A, B: 0x00, A: 0xFF},
+			error:  color.RGBA{R: 0xA3, G: 0x26, B: 0x1A, A: 0xFF},
+		}
+	}
+
+	return textPalette{ink: inkColour, muted: mutedColour, accent: accentColour, error: errorColour}
+}
+
+// statusArea is where the status lines go: under the TV, as wide as the
+// cabinet.
+func (u *ui) statusArea(g *Game) image.Rectangle {
+	cab := g.tv.lay.cabinet
+
+	return image.Rect(cab.Min.X, u.layout.below.Min.Y, cab.Max.X, u.layout.below.Max.Y)
+}
+
+// drawStatusTaps draws the status line's two taps in area: "< ROM list" on
+// the left, and "Settings >" on the right if settings.
+func (u *ui) drawStatusTaps(dst *ebiten.Image, area image.Rectangle, settings bool) {
+	pal := u.statusPalette()
+	y := float64(area.Min.Y) + u.lineHeight()/2
+
+	u.text(dst, "< ROM list", float64(area.Min.X), y, pal.accent)
+
+	if settings {
+		w, _ := text.Measure("Settings >", u.face, 0)
+		u.text(dst, "Settings >", float64(area.Max.X)-w, y, pal.accent)
+	}
+}
+
+// drawRunningStatus draws the lines under the TV (in area): "ROM list" on
+// the left, the title (or a message) in the middle, "Settings" on the
+// right; then the game's keys.
+func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, area image.Rectangle) {
+	pal := u.statusPalette()
+	y := float64(area.Min.Y) + u.lineHeight()/2
+	left, right := float64(area.Min.X), float64(area.Max.X)
+
+	u.drawStatusTaps(dst, area, true)
+	w, _ := text.Measure("Settings >", u.face, 0)
+
+	mid, col := g.current.Title, pal.muted
+	if g.message != "" {
+		mid, col = g.message, pal.error
+	}
+
+	lw, _ := text.Measure("< ROM list", u.face, 0)
+	gap := panelPad * u.scale
+	space := right - left - lw - w - 2*gap
+
+	if !u.touch && g.message == "" {
+		hint := "  ·  Esc: ROM list  ·  F2: settings  ·  F1: stats"
+		if tw, _ := text.Measure(mid+hint, u.face, 0); tw <= space {
+			mid += hint
+		}
+	}
+
+	mid = u.fit(mid, space)
+	mw, _ := text.Measure(mid, u.face, 0)
+	u.text(dst, mid, left+lw+gap+(space-mw)/2, y, col)
+
+	// The second line shows the game's keys; a message that didn't fit
+	// goes on the third.
+	if keys := u.keysLine(g); keys != "" {
+		k := u.fit(keys, right-left)
+		kw, _ := text.Measure(k, u.face, 0)
+		u.text(dst, k, left+(right-left-kw)/2, y+u.lineHeight(), pal.ink)
+	}
+
+	if g.message != "" && mid != g.message {
+		u.text(dst, u.fit(g.message, right-left), left, y+2*u.lineHeight(), pal.error)
+	}
+}
+
+// keysLine describes the running game's controls: the database's hint if
+// it has one, otherwise the keys the game has checked so far.
+func (u *ui) keysLine(g *Game) string {
+	if len(g.current.Keys) > 0 {
+		return "Keys: " + input.DescribeControls(g.current.Keys)
+	}
+
+	mask, anyKey := g.machine.KeysRead()
+
+	switch {
+	case mask != 0:
+		return "Keys it reads: " + input.DescribeMask(mask)
+	case anyKey:
+		return "Press any key (1–4, Q–R, A–F, Z–V)"
+	default:
+		return ""
+	}
+}
+
+// hint is the line under the drawer or settings panel.
+func (u *ui) hint(g *Game) string {
+	if g.state == stateSettings {
+		if u.touch {
+			return "Tap a setting to change it  ·  tap outside to close"
+		}
+
+		return "↑↓ choose  ·  ←→ or Enter: change  ·  Esc: close"
+	}
+
+	hint := "↑↓ choose  ·  Enter: play  ·  type to search"
+	if u.touch {
+		hint = "Tap a ROM to play  ·  drag to scroll"
+	}
+
+	if g.hasROM {
+		if u.touch {
+			hint += "  ·  tap here to go back"
+		} else {
+			hint += "  ·  Esc: back"
+		}
+	}
+
+	return hint
+}
+
+func (u *ui) fillPanel(dst *ebiten.Image) {
+	p := u.layout.panel
+	vector.FillRect(dst, float32(p.Min.X), float32(p.Min.Y), float32(p.Dx()), float32(p.Dy()), panelColour, false)
+}
+
+func (u *ui) drawPicker(dst *ebiten.Image, g *Game) {
+	l := u.layout
+	u.fillPanel(dst)
+	g.search.draw(dst)
+	u.drawFilters(dst, g.picker)
+
+	// Draw the rows into the list area only, so partly visible rows are
+	// clipped at its edges.
+	list, ok := dst.SubImage(l.list).(*ebiten.Image)
+	if !ok {
+		return
+	}
+
+	p := g.picker
+	textOffset := (l.rowH - u.lineHeight()) / 2
+	maxW := float64(l.list.Dx())
+	x := float64(l.list.Min.X)
+
+	if len(p.entries) == 0 {
+		// Below the load-file row, where the first result would be.
+		y := float64(l.list.Min.Y) + float64(len(p.rows))*l.rowH - p.offset
+		u.text(list, u.fit("Nothing matches “"+p.query+"”.", maxW), x, y+textOffset, mutedColour)
+	}
+
+	for r, row := range p.rows {
+		y := float64(l.list.Min.Y) + float64(r)*l.rowH - p.offset
+		if y+l.rowH < float64(l.list.Min.Y) || y > float64(l.list.Max.Y) {
+			continue
+		}
+
+		switch row.kind {
+		case rowHeading:
+			u.text(list, u.fit(row.heading, maxW), x, y+textOffset, mutedColour)
+		case rowLoadFile:
+			u.text(list, u.fit("+ Load a ROM from this device…", maxW), x, y+textOffset, accentColour)
+		case rowEntry:
+			u.drawEntryRow(list, p, row.entry, x, y, maxW, textOffset)
+		}
+	}
+
+	if !l.details.Empty() {
+		if e, ok := p.current(); ok {
+			u.drawDetails(dst, e)
+		}
+	}
+}
+
+func (u *ui) drawEntryRow(list *ebiten.Image, p *picker, i int, x, y, maxW, textOffset float64) {
+	e := p.entries[i]
+	col := inkColour
+
+	if !e.Playable() {
+		col = mutedColour
+	}
+
+	if i == p.selected && !u.touch {
+		vector.FillRect(list, float32(x), float32(y), float32(maxW), float32(u.layout.rowH), selectedColour, false)
+
+		col = accentColour
+	}
+
+	label := "  " + e.Title
+	if !e.Playable() {
+		label += "  —  " + e.Platform.Name()
+	}
+
+	u.text(list, u.fit(label, maxW), x, y+textOffset, col)
+}
+
+// drawDetails shows the selected ROM beside the list on wide screens.
+func (u *ui) drawDetails(dst *ebiten.Image, e library.Entry) {
+	d := u.layout.details
+	x, y := float64(d.Min.X), float64(d.Min.Y)
+	maxW := float64(d.Dx())
+	lh := u.lineHeight()
+
+	u.text(dst, u.fit(e.Title, maxW), x, y, accentColour)
+	y += lh
+	u.text(dst, u.fit(e.Subtitle(), maxW), x, y, mutedColour)
+	y += lh
+
+	keys := "Keys: shown under the picture once the game reads them."
+	if len(e.Keys) > 0 {
+		keys = "Keys: " + input.DescribeControls(e.Keys)
+	}
+
+	u.text(dst, u.fit(keys, maxW), x, y, inkColour)
+	y += 2 * lh
+
+	status := "Downloads when you play it, then works offline."
+
+	switch {
+	case !e.Playable():
+		status = "Coming soon: needs " + e.Platform.Name() + "."
+	case e.Offline:
+		status = "Plays offline."
+	}
+
+	lines := u.wrap(e.Description, maxW)
+	room := int((float64(d.Max.Y)-y)/lh) - 2
+
+	for i, line := range lines {
+		if i >= room {
+			break
+		}
+
+		if i == room-1 && len(lines) > room {
+			line.text = u.fit(line.text+" …", maxW)
+		}
+
+		if line.mono {
+			u.textFace(dst, line.text, x, y, inkColour, u.mono)
+		} else {
+			u.text(dst, line.text, x, y, inkColour)
+		}
+
+		y += lh
+	}
+
+	u.text(dst, u.fit(status, maxW), x, float64(d.Max.Y)-lh, mutedColour)
+}
+
+func (u *ui) drawSettings(dst *ebiten.Image, g *Game) {
+	l := u.layout
+	u.fillPanel(dst)
+
+	s := g.settings
+	u.text(dst, u.fit("Settings: "+g.current.Title, float64(l.content.Dx())), float64(l.search.Min.X),
+		float64(l.search.Min.Y)+(l.rowH-u.lineHeight())/2, accentColour)
+
+	textOffset := (l.rowH - u.lineHeight()) / 2
+	x, right := float64(l.content.Min.X), float64(l.content.Max.X)
+
+	// Rows scroll (settings.offset) and are clipped to the panel, so one
+	// half scrolled out doesn't spill over the title or the hint.
+	rows, ok := dst.SubImage(l.content).(*ebiten.Image)
+	if !ok {
+		return
+	}
+
+	for i := range s.rows {
+		y := float64(l.content.Min.Y) + float64(i)*l.rowH - s.offset
+		if y+l.rowH <= float64(l.content.Min.Y) || y >= float64(l.content.Max.Y) {
+			continue
+		}
+
+		lbl := s.label(i)
+		name, value, changed := lbl.name, lbl.value, lbl.changed
+		col := inkColour
+
+		if i == s.selected && !u.touch {
+			vector.FillRect(rows, float32(x), float32(y), float32(right-x), float32(l.rowH), selectedColour, false)
+
+			col = accentColour
+		}
+
+		if s.steps(i) {
+			value = "‹  " + value + "  ›"
+		}
+
+		if changed {
+			value += " *"
+		}
+
+		vw, _ := text.Measure(value, u.face, 0)
+		u.text(rows, u.fit(name, right-x-vw-panelPad*u.scale), x, y+textOffset, col)
+
+		vc := mutedColour
+		if changed {
+			vc = accentColour
+		}
+
+		u.text(rows, value, right-vw, y+textOffset, vc)
+	}
+
+	u.drawTrace(dst, g, float64(l.content.Min.Y)+float64(len(s.rows))*l.rowH-s.offset+u.lineHeight()/2)
+}
+
+// drawTrace shows the last instructions when tracing is on, below the
+// settings rows, if there is room.
+func (u *ui) drawTrace(dst *ebiten.Image, g *Game, y float64) {
+	tr := g.machine.Trace()
+	if tr == nil {
+		return
+	}
+
+	entries := tr.Entries()
+	room := min(int((float64(u.layout.content.Max.Y)-y)/u.lineHeight()), traceLines, len(entries))
+
+	if room <= 0 {
+		return
+	}
+
+	trace := chip8.FormatTrace(g.machine.Profile().Platform, entries[len(entries)-room:])
+
+	lines := strings.SplitSeq(strings.TrimRight(trace, "\n"), "\n")
+	for line := range lines {
+		u.text(dst, u.fit(line, float64(u.layout.content.Dx())), float64(u.layout.content.Min.X), y, mutedColour)
+		y += u.lineHeight()
+	}
+}
+
+// wrap splits s into lines no wider than maxW, at spaces.
+// descLine is one drawn line of a description.
+type descLine struct {
+	text string
+	mono bool // preformatted: a table row, indented line or underline
+}
+
+// wrap lays out a (reflowed) description: paragraphs are word-wrapped to
+// maxW, blank lines between them kept (one at most), and preformatted lines
+// drawn as they are, in Go Mono, cut off if too wide.
+func (u *ui) wrap(s string, maxW float64) []descLine {
+	var lines []descLine
+
+	blank := func() bool { return len(lines) == 0 || lines[len(lines)-1].text == "" }
+
+	for para := range strings.SplitSeq(s, "\n") {
+		switch {
+		case strings.TrimSpace(para) == "":
+			if !blank() {
+				lines = append(lines, descLine{})
+			}
+		case library.Preformatted(para):
+			lines = append(lines, descLine{text: fitFace(para, maxW, u.mono), mono: true})
+		default:
+			lines = append(lines, u.wrapParagraph(para, maxW)...)
+		}
+	}
+
+	for len(lines) > 0 && lines[len(lines)-1].text == "" {
+		lines = lines[:len(lines)-1]
+	}
+
+	return lines
+}
+
+func (u *ui) wrapParagraph(para string, maxW float64) []descLine {
+	var (
+		lines []descLine
+		line  string
+	)
+
+	for word := range strings.FieldsSeq(para) {
+		candidate := word
+		if line != "" {
+			candidate = line + " " + word
+		}
+
+		if w, _ := text.Measure(candidate, u.face, 0); w > maxW && line != "" {
+			lines = append(lines, descLine{text: line})
+			candidate = word
+		}
+
+		line = candidate
+	}
+
+	if line != "" {
+		lines = append(lines, descLine{text: u.fit(line, maxW)})
+	}
+
+	return lines
+}
+
+// fit shortens s with "…" until it is at most maxW pixels wide.
+func (u *ui) fit(s string, maxW float64) string { return fitFace(s, maxW, u.face) }
+
+// fitFace is fit for a given font.
+func fitFace(s string, maxW float64, face text.Face) string {
+	if w, _ := text.Measure(s, face, 0); w <= maxW {
+		return s
+	}
+
+	r := []rune(s)
+	for len(r) > 0 {
+		r = r[:len(r)-1]
+
+		t := string(r) + "…"
+		if w, _ := text.Measure(t, face, 0); w <= maxW {
+			return t
+		}
+	}
+
+	return ""
+}
+
+func (u *ui) centred(dst *ebiten.Image, r image.Rectangle, s string, c color.Color) {
+	s = u.fit(s, float64(r.Dx()))
+	w, h := text.Measure(s, u.face, 0)
+	u.text(dst, s, float64(r.Min.X)+(float64(r.Dx())-w)/2, float64(r.Min.Y)+(float64(r.Dy())-h)/2, c)
+}
+
+func (u *ui) text(dst *ebiten.Image, s string, x, y float64, c color.Color) {
+	u.textFace(dst, s, x, y, c, u.face)
+}
+
+func (u *ui) textFace(dst *ebiten.Image, s string, x, y float64, c color.Color, face text.Face) {
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(x, y)
+	op.ColorScale.ScaleWithColor(c)
+	text.Draw(dst, s, face, op)
+}
+
+// filterChip is one platform filter: its family, label and place.
+type filterChip struct {
+	family library.Family
+	label  string
+	rect   image.Rectangle
+}
+
+// filterChips lays out the platform filters left to right in the filters
+// row, each as wide as its label ("XO-CHIP 81") plus padding. Drawing and
+// tapping use the same layout.
+func (u *ui) filterChips(p *picker) []filterChip {
+	row := u.layout.filters
+	// With counts ("XO-CHIP 81") if they fit, else the names, else the
+	// short names (SCHIP).
+	var chips []filterChip
+
+	for _, style := range []chipStyle{chipCounts, chipNames, chipShort} {
+		if chips = u.layOutChips(p, row, style); len(chips) == len(library.Filters) {
+			break
+		}
+	}
+
+	return chips
+}
+
+// chipStyle is how much a filter chip's label says.
+type chipStyle uint8
+
+const (
+	chipCounts chipStyle = iota // "XO-CHIP 81"
+	chipNames                   // "XO-CHIP"
+	chipShort                   // "SCHIP"
+)
+
+// layOutChips places the chips from the left in a style, leaving out any
+// that don't fit.
+func (u *ui) layOutChips(p *picker, row image.Rectangle, style chipStyle) []filterChip {
+	pad := int(chipPad * u.scale)
+	gap := int(chipGap * u.scale)
+	x := row.Min.X
+	out := make([]filterChip, 0, len(library.Filters))
+
+	for _, f := range library.Filters {
+		label := f.Name()
+
+		switch style {
+		case chipCounts:
+			label += " " + strconv.Itoa(p.counts[f])
+		case chipShort:
+			label = f.ShortName()
+		case chipNames:
+		}
+
+		w, _ := text.Measure(label, u.face, 0)
+		r := image.Rect(x, row.Min.Y, x+int(w)+2*pad, row.Max.Y)
+
+		if r.Max.X > row.Max.X {
+			break
+		}
+
+		out = append(out, filterChip{family: f, label: label, rect: r})
+		x = r.Max.X + gap
+	}
+
+	return out
+}
+
+// drawFilters draws the platform filter chips; the selected one is lit.
+func (u *ui) drawFilters(dst *ebiten.Image, p *picker) {
+	for _, c := range u.filterChips(p) {
+		bg, ink := selectedColour, mutedColour
+		if c.family == p.family {
+			bg, ink = accentColour, panelColour
+		}
+
+		r := c.rect
+		vector.FillRect(dst, float32(r.Min.X), float32(r.Min.Y), float32(r.Dx()), float32(r.Dy()), bg, false)
+
+		w, h := text.Measure(c.label, u.face, 0)
+		u.text(dst, c.label, float64(r.Min.X)+(float64(r.Dx())-w)/2, float64(r.Min.Y)+(float64(r.Dy())-h)/2, ink)
+	}
+}

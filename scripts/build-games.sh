@@ -4,9 +4,9 @@
 # (docs/plans/M9-game.md §3). CI runs this and fails if a ROM is stale.
 #
 # When a ROM changes, its SHA-1 changes too: whatever SHA-1 the metadata
-# (assets/roms/bundled.json and catalogue/overlay.json) holds for the ROM's
-# file is replaced with the new one. It's read from the metadata rather than
-# the old ROM, so an interrupted run can't leave them out of step.
+# (assets/roms/bundled.json and assets/catalogue/overlay.json) holds for the
+# ROM's file is replaced with the new one. It's read from the metadata rather
+# than the old ROM, so an interrupted run can't leave them out of step.
 #
 # Needs Node: the first run installs the pinned assembler into games/node_modules.
 set -euo pipefail
@@ -42,7 +42,7 @@ for src in games/*/*.8o; do
   games/node_modules/.bin/octo "$src" "$out"
   new=$(shasum "$out" | cut -d' ' -f1)
   echo "$out: $(wc -c < "$out" | tr -d ' ') bytes, SHA-1 $new"
-  for meta in assets/roms/bundled.json catalogue/overlay.json; do
+  for meta in assets/roms/bundled.json assets/catalogue/overlay.json; do
     for old in $(rom_hashes "$meta" "$name.ch8"); do
       if [ "$old" != "$new" ]; then
         sed -i.bak "s/$old/$new/g" "$meta" && rm "$meta.bak"

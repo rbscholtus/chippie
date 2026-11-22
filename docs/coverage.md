@@ -20,7 +20,7 @@ Downloadable ROMs in the manifest: 310 of 586 in the database and Chippie's over
 
 ## Chippie's overlay (pending upstream)
 
-Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
+Additions and corrections in `assets/catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
 
 - add Depot: not yet proposed upstream
 

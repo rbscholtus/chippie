@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/rbscholtus/chippie/assets"
-	"github.com/rbscholtus/chippie/chip8"
+	"github.com/rbscholtus/chippie/internal/chip8"
 	"github.com/rbscholtus/chippie/internal/testrig"
 )
 
@@ -20,7 +20,7 @@ var update = flag.Bool("update", false, "rewrite generated golden files")
 // Paths from this package's directory.
 const (
 	goldenDir  = "testdata/golden"
-	failureDir = "../../testdata/failures/depot"
+	failureDir = "testdata/failures"
 )
 
 // The game runs at 500 ticks per frame (design §2.4).
@@ -1023,7 +1023,7 @@ func TestHopSound(t *testing.T) {
 
 // TestBestScoreSurvivesAReload sets a best score, then starts the ROM again
 // on a new machine with the flag registers the app saved (as Chippie does
-// after a reload, app/flags.go): the title shows the same best score.
+// after a reload, internal/app/flags.go): the title shows the same best score.
 func TestBestScoreSurvivesAReload(t *testing.T) {
 	t.Parallel()
 

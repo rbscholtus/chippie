@@ -17,7 +17,7 @@ use it however you like.
 This assembles `games/<name>/<name>.8o` with
 [`@chipcode/octo-assembler`](https://www.npmjs.com/package/@chipcode/octo-assembler)
 (pinned in `package.json`) into `assets/roms/<name>.ch8`, and updates the
-ROM's SHA-1 in `assets/roms/bundled.json` and `catalogue/overlay.json`.
+ROM's SHA-1 in `assets/roms/bundled.json` and `assets/catalogue/overlay.json`.
 Commit all three. The built ROM is committed so Go builds and tests never
 need Node; CI rebuilds it and fails if it's stale.
 
@@ -37,7 +37,7 @@ XO-CHIP with the game's tick rate.
 
 1. Create `games/<name>/<name>.8o` and run the build script.
 2. Add an entry to `assets/roms/bundled.json` and an `add` entry with
-   `"upstream": "pending"` to `catalogue/overlay.json` (title, authors,
+   `"upstream": "pending"` to `assets/catalogue/overlay.json` (title, authors,
    platform, tick rate, colours, keys).
 3. Add it to the table above and to `assets/LICENSES.md`, and add tests in
    `games/<name>/`.

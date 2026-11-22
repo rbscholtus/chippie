@@ -5,7 +5,7 @@ package testrig
 import (
 	"fmt"
 
-	"github.com/rbscholtus/chippie/chip8"
+	"github.com/rbscholtus/chippie/internal/chip8"
 )
 
 // Poke writes one byte of memory before the first frame, for example 0x1FF

@@ -79,10 +79,10 @@ To be settled while building, not before:
 **Ideas for the end of the project:**
 
 - **Follow up on the upstream submissions** ([upstream/](upstream/README.md);
-  `catalogue/overlay.json`). Answer the maintainers'
+  `assets/catalogue/overlay.json`). Answer the maintainers'
   questions on chip-8-database #29–#34 and chip8-test-suite #38. When
   chip-8-database merges a PR, the weekly refresh lists its overlay entries
-  as done: delete them from `catalogue/overlay.json`. If the test suite's
+  as done: delete them from `assets/catalogue/overlay.json`. If the test suite's
   pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
 - **Upstream proposals, deferred until the maintainers react** (M8 items
   4–6): a standard "where to download" field in chip-8-database, with
@@ -104,6 +104,16 @@ To be settled while building, not before:
 - **Forget a game's saved data.** Chippie keeps each ROM's flag registers
   (DESIGN §13), e.g. Depot's best score. A button in the game's details
   could clear them.
+- **A realistic switch-off** (2026-11-22). Real CRTs don't squash to a line
+  and then a dot over half a second: the sweep dies within a few frames, and
+  on sets without a spot killer (most before the late 1970s) the still-hot
+  cathode leaves a soft spot that fades over seconds (repair FAQs, the
+  spot-killer patents). Switching on, a cold set shows nothing until the
+  cathode heats, then the picture fades in (30 s or more; "instant-on" sets
+  of the 1970s about a second). Prototype on branch `crt-switch-off`: a
+  6-update collapse and a 3-second fading spot; on, a 2.5-second fade-in at
+  full size; no dot, no white flash ([crt-shader.md](crt-shader.md)). Still
+  open: tuning against videos and on phones.
 - **Favourite games.** Mark a game as a favourite (e.g. a star in the
   details), stored per device like the ROM cache, and list favourites first
   in the library drawer (or behind a "Favourites" filter) so they start in
@@ -113,7 +123,7 @@ To be settled while building, not before:
   it reads (`EX9E`/`EXA1`), the keys actually held when read (filters out
   keypad scans) and the key that ends an `FX0A` wait. Merge across sessions
   into a JSON file in the user config folder, saved off the `Update` loop via
-  `platform/` (no-op on WASM). Roles (up, fire…) can't be inferred: fill the
-  database-format `keys` block by hand, and export filled entries with a small
-  `cmd/` tool for a chip-8-database PR.
+  `internal/platform/` (no-op on WASM). Roles (up, fire…) can't be inferred:
+  fill the database-format `keys` block by hand, and export filled entries
+  with a small `cmd/` tool for a chip-8-database PR.
 

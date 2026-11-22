@@ -12,6 +12,10 @@ These are the coding standards for Chippie. The design is described in
   reads it from `go.mod`.
 - **Ebitengine v2.10+**. Upgrades are their own PRs. No UI toolkit: the
   drawer, settings and controls are our own widgets (DESIGN §2).
+- **Dependencies:** Dependabot opens weekly update PRs, and Ebitengine gets
+  its own (DESIGN §17). `govulncheck` runs in CI for the native and the
+  WASM build; after changing dependencies, run `govulncheck ./...` and
+  `GOOS=js GOARCH=wasm govulncheck ./...` locally.
 - **golangci-lint v2.** The config is in `.golangci.yml`.
 - **Node LTS** only for the Playwright browser tests in `e2e/`. No JavaScript
   in the app, apart from the small loader page.
@@ -33,22 +37,28 @@ These are the coding standards for Chippie. The design is described in
 
 ## Package rules
 
-- **`chip8/` (the core):**
+Go code lives in `cmd/` (programs) and `internal/` (packages). The only other
+Go file is `assets/assets.go`, which embeds the data around it (DESIGN §5).
+
+- **`internal/chip8/` (the core):**
   - No imports outside the standard library.
   - No `syscall/js`, `time`, `math/rand` global state, or I/O.
   - The core never reads the clock. It advances only through `RunFrame`.
-- **`catalogue/`, `romstore/`:** standard library + `platform.Fetch` for
-  downloads (never `net/http` directly: it would bloat the WASM); no Ebitengine,
+- **`internal/catalogue/`, `internal/romstore/`:** standard library +
+  `platform.Fetch` for downloads (never `net/http` directly: it would bloat
+  the WASM), and `assets` for the catalogue's embedded data; no Ebitengine,
   no `syscall/js`.
-- **`platform/`:** the only package with `syscall/js`. Every file that uses it
-  is build-tagged `//go:build js && wasm` and has a `!(js && wasm)` stub, so
-  native builds and tests work.
-- **`app/`:** Ebitengine. Keeps game logic out: it calls into
+- **`internal/platform/`:** the only package with `syscall/js`. Every file
+  that uses it is build-tagged `//go:build js && wasm` and has a
+  `!(js && wasm)` stub, so native builds and tests work.
+- **`internal/app/`:** Ebitengine. Keeps game logic out: it calls into
   `chip8`, `catalogue` and `romstore`.
 - **`internal/testrig/`:** test helpers only, never imported by production
   code.
 - **`cmd/`:** entry points and developer/CI tools. Tools may use the network
   and the file system.
+- **`assets/`:** the files compiled into the app, and `assets.go`, which only
+  embeds them and finds files in them (standard library only).
 
 ## Ebitengine rules
 
@@ -66,8 +76,8 @@ These are the coding standards for Chippie. The design is described in
 - **HiDPI:** `Layout` returns real pixels (outside size × device scale
   factor). Sizes and fonts are scaled by the same factor, never hard-coded in
   CSS pixels.
-- **Text input:** `app/textfield.go`: `exp/textinput` on touch screens (phone
-  keyboards, IME), typed characters with a physical keyboard.
+- **Text input:** `internal/app/textfield.go`: `exp/textinput` on touch
+  screens (phone keyboards, IME), typed characters with a physical keyboard.
 - **Widgets:** keep layout and state in plain types (`picker`, `settings`,
   `pointer`, `computeLayout`) that tests can drive without Ebitengine; only
   the drawing touches it.
@@ -91,8 +101,8 @@ These are the coding standards for Chippie. The design is described in
   results in the PR.
 - **Avoid `fmt`, `reflect` and growing strings in hot code.** Disassembly,
   trace formatting and OSD text are built only when they change.
-- **PRs that touch `chip8/` or `app/crt/`** include `benchstat` output
-  against `main` if they could affect speed.
+- **PRs that touch `internal/chip8/` or `internal/app/crt/`** include
+  `benchstat` output against `main` if they could affect speed.
 
 ## Code style
 
@@ -114,7 +124,7 @@ These are the coding standards for Chippie. The design is described in
 
 - **Every opcode has table-driven tests** covering each quirk that affects it.
 - **Screenshot tests** use the Timendus suite (submodule pinned to `v4.2`) and
-  the golden frames in `testdata/golden/`.
+  the golden frames in `internal/chip8/testdata/golden/`.
   - `go test ./... -update` regenerates golden frames that have no reference
     picture.
   - Regenerated goldens must be checked by eye in the PR (the ASCII `.txt`
@@ -124,8 +134,8 @@ These are the coding standards for Chippie. The design is described in
   explicit build tag).
 - **Browser tests** (`e2e/`, Playwright): allow for software rendering in CI
   (DESIGN §15.3).
-- **Coverage:** `chip8/` aims for 90%+ line coverage. Coverage is reported
-  in CI, not enforced.
+- **Coverage:** `internal/chip8/` aims for 90%+ line coverage. Coverage is
+  reported in CI, not enforced.
 - **Before pushing:** `go test -race ./...` (native), the WASM build, and the
   native build all pass.
 

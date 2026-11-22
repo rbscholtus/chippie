@@ -1,7 +1,9 @@
-// Package assets embeds the files compiled into the app: the bundled ROMs
-// and each TV skin's skin.json. The TV images themselves are fetched at
-// runtime (DESIGN §12.2), so they don't grow the WASM. Every file's origin
-// and licence is recorded in LICENSES.md.
+// Package assets embeds the files compiled into the app: the bundled ROMs,
+// each TV skin's skin.json, and the catalogue's data. The TV images
+// themselves are fetched at runtime (DESIGN §12.2), so they don't grow the
+// WASM. Every file's origin and licence is recorded in LICENSES.md. This is
+// the one package outside cmd/ and internal/: go:embed only reaches files
+// at or below its package's folder.
 package assets
 
 import (
@@ -23,6 +25,15 @@ var ROMs embed.FS
 //
 //go:embed tv/*/skin.json
 var skinFiles embed.FS
+
+// Catalogue holds the catalogue's data, which internal/catalogue reads:
+// catalogue/snapshot/*.json (chip-8-database, chip8Archive and the sources
+// manifest, refreshed by cmd/catalogue-gen; their source commits are in
+// catalogue/snapshot/SNAPSHOT.md) and catalogue/overlay.json, Chippie's
+// pending additions to chip-8-database (DESIGN §10).
+//
+//go:embed catalogue/snapshot/*.json catalogue/overlay.json
+var Catalogue embed.FS
 
 // DefaultSkin is the skin shown until the user picks another.
 const DefaultSkin = "classic"

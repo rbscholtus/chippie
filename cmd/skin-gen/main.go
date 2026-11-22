@@ -37,7 +37,7 @@ import (
 
 	"golang.org/x/image/font/gofont/gomedium"
 
-	"github.com/rbscholtus/chippie/app/skin"
+	"github.com/rbscholtus/chippie/internal/app/skin"
 )
 
 const (

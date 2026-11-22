@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { Page, expect } from "@playwright/test";
 import { PNG } from "pngjs";
 
-// The app's layout and status, as it publishes them (app/game_flow.go
+// The app's layout and status, as it publishes them (internal/app/game_flow.go
 // publishLayout), in real (device) pixels: [x, y, w, h] and [x, y].
 export type Box = [number, number, number, number];
 export type AppLayout = {
@@ -22,7 +22,7 @@ export type AppLayout = {
   };
 };
 
-// The app's states (app/game.go).
+// The app's states (internal/app/game.go).
 export const stateOff = 0, stateRunning = 4;
 
 export async function appLayout(page: Page): Promise<AppLayout> {
@@ -68,7 +68,7 @@ export function gridText(g: Grid): string {
 }
 
 export function golden(name: string): string {
-  return readFileSync(new URL(`../../testdata/golden/${name}.txt`, import.meta.url), "utf8");
+  return readFileSync(new URL(`../../internal/chip8/testdata/golden/${name}.txt`, import.meta.url), "utf8");
 }
 
 // A game is running when the screen shows only the emulated picture (at most
@@ -85,6 +85,42 @@ export async function running(page: Page) {
 export async function waitForApp(page: Page) {
   await page.waitForFunction(() => (window as any).chippieTimings !== undefined, null, { timeout: 60_000 });
   await expect(page.locator("#loader")).toBeHidden();
+}
+
+// Waits until the TV's art is drawn, which loads in the background: until
+// then the TV's controls and their keys (P, T, the knobs) don't work. Go
+// runs on the page's only thread, and decoding the art blocks it for a
+// moment; a click that starts and ends in such a pause isn't seen, so this
+// waits a little longer.
+export async function waitForArt(page: Page) {
+  await expect.poll(async () => (await appLayout(page)).art, { intervals: [500] }).toBe(true);
+  await page.waitForTimeout(1000);
+}
+
+// Waits for n animation frames. Ebitengine updates the app in its own
+// animation-frame callback, which runs before one asked for later, so two
+// frames mean the app has had at least one update.
+async function frames(page: Page, n = 2) {
+  await page.evaluate(
+    (n) =>
+      new Promise<void>((done) => {
+        const step = (left: number) => (left === 0 ? done() : requestAnimationFrame(() => step(left - 1)));
+        step(n);
+      }),
+    n,
+  );
+}
+
+// Presses a key the way the app can see it: down for at least one update,
+// then up, and waits until the app has had an update after that. Ebitengine
+// stamps a key event with the update that handles it, so presses of the
+// same key that all arrive before one update (Playwright's press is
+// instant, and frames are slow in CI) count as one.
+export async function press(page: Page, key: string) {
+  await page.keyboard.down(key);
+  await frames(page);
+  await page.keyboard.up(key);
+  await frames(page);
 }
 
 // Touch helpers (Chromium only): Playwright's tap() presses and releases
@@ -119,7 +155,7 @@ export async function click(page: Page, x: number, y: number) {
   await page.waitForTimeout(150);
 }
 
-// Touch layout of the drawer in CSS pixels (app/ui.go computeLayout): the
+// Touch layout of the drawer in CSS pixels (internal/app/ui.go computeLayout): the
 // search field (one 44 px row) sits below a debug line and two paddings;
 // half a padding below it, the row of platform filters (one row), then the
 // list. Row 0 is the PLAY heading, row 1 the first ROM ("Load a ROM from

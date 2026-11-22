@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rbscholtus/chippie/catalogue"
+	"github.com/rbscholtus/chippie/internal/catalogue"
 )
 
 // counts are a snapshot's headline numbers, compared in the refresh summary.
@@ -142,7 +142,7 @@ func writeOverlayDone(b *strings.Builder, after snapshotState) {
 	}
 
 	b.WriteString("\n**Upstream now has these overlay entries, so this refresh deleted them from " +
-		"`catalogue/overlay.json`:**\n\n")
+		"`assets/catalogue/overlay.json`:**\n\n")
 
 	for _, d := range after.overlayDone {
 		fmt.Fprintf(b, "- %s\n", d)
