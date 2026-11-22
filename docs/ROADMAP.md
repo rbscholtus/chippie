@@ -96,6 +96,54 @@ To be settled while building, not before:
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.
 
+- **Download sources for the games the library leaves out** (checked
+  2026-11-23). Of chip-8-database's 585 ROMs, Chippie can download 310. The
+  library leaves out the other 275, which have no known source: 172 CHIP-8,
+  53 SUPER-CHIP, 42 XO-CHIP and 7 modern CHIP-8 ROMs. Other emulators'
+  built-in ROMs and the Octojams have 23 of them, maybe 24:
+  - [00SChip8](https://github.com/00laboratories/00SChip8/tree/master/games)'s
+    `games/` is Revival Studios' whole Chip-8 Program Pack (RS-C8000,
+    2011); kripod and dmatlack carry only its CHIP-8 half. It adds the
+    pack's 17 SuperChip games and demos (Revival's Climax Slideshow, Super
+    Trip8 Demo and Super Astro Dodge, Hap's Sokoban and Loopz, SuperWorm
+    V4, Laser, Matches…) and the 00Schip8 Life demo. Add it to
+    `cmd/catalogue-gen`'s `archives`, linking only, as with kripod (no
+    licence for the ROMs).
+  - [Timendus/alien-inv8sion](https://github.com/Timendus/alien-inv8sion)
+    (GPL-3.0, Octojam 8): Alien-Inv8sion (XO-CHIP), as
+    `bin/alien-inv8sion.ch8`. One more `archives` entry, like 3D Viper
+    Maze.
+  - Octojams 6–10 on itch.io ([Octojam 10](https://itch.io/jam/octojam-10/entries),
+    86 entries in all): every other entry is playable already. Dump Trump
+    (Micheal Wales, [Octojam 6](https://itch.io/jam/octojam-6/entries)) is
+    only a "name your own price" download. Fetch it with an itch.io API key
+    ([itch-dl](https://github.com/DragoonAethis/itch-dl)). Browsers can't
+    download from itch.io, so it needs another home: ask the author, e.g.
+    to add it to chip8Archive.
+  - [Octo](https://johnearnest.github.io/Octo/)'s Examples
+    ([examples/](https://github.com/JohnEarnest/Octo/tree/gh-pages/examples),
+    MIT): Deep8, F8Z and Snow Daze, as source only. Assemble them with the
+    pinned Octo (`scripts/build-games.sh`); if the SHA-1s match
+    chip-8-database's, host them like `web/hosted-roms/`.
+  - [binji/raw-wasm](https://github.com/binji/raw-wasm/tree/main/chip8)
+    (MIT): chip-8-database's "Black Lives Matter demo" (Ben Smith, 2020);
+    the 365 bytes in its `index.html` match. Host them.
+
+  Nothing new in [taniarascia/chip8](https://github.com/taniarascia/chip8),
+  [dmatlack/chip8](https://github.com/dmatlack/chip8),
+  [dustinbowers/rust-chip8](https://github.com/dustinbowers/rust-chip8)
+  (its Alien-Inv8sion is Timendus' file),
+  [David Winter's CHIP8 2.2.0](https://www.pong-story.com/chip8/chp8_220.zip)
+  (its SUPER-CHIP games are those we host),
+  [ticalc's chiplib](https://www.ticalc.org/archives/files/fileinfo/74/7492.html)
+  (the same games for the TI-92), or
+  [Cadmium](https://chip8.gulrak.net/cadmium/)'s Library (metadata for the
+  user's own files, without ROMs; it knows the same 275, and 543 ROMs
+  chip-8-database doesn't, mostly ETI-660, VIP machine code, MEGA-CHIP and
+  CHIP-8X). The original Revival pack (`chip8.com/downloads/Chip-8
+  Pack.zip`, "freely distributed in its original form") survives in the
+  [Internet Archive](http://web.archive.org/web/20160514030144/http://chip8.com/downloads/Chip-8%20Pack.zip).
+
 - **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
   entry has a `keys` hint (27 of the 204 downloadable ones), also map the
   arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
