@@ -21,10 +21,10 @@ to WebAssembly, presented as a mid-1970s CRT TV.
   `GOOS=js GOARCH=wasm`), `go test ./...`, `go build ./cmd/chippie`, and
   `./scripts/build.sh && (cd e2e && npx playwright test)` for anything the
   browser sees.
-- **No `net/http` outside `platform/`:** downloads go through
+- **No `net/http` outside `internal/platform/`:** downloads go through
   `platform.Fetch` (it keeps ~1.7 MB gzip out of the WASM).
-- **The `chip8/` package must stay dependency-free and clock-free.**
-- **`syscall/js` only in `platform/`**, always with a native stub.
+- **The `internal/chip8/` package must stay dependency-free and clock-free.**
+- **`syscall/js` only in `internal/platform/`**, always with a native stub.
 - **Never block `Update` or `Draw`.** Async work goes in goroutines with
   channels.
 - **Test against the Timendus suite v4.2** (`third_party/chip8-test-suite`).

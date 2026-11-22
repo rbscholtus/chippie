@@ -63,7 +63,7 @@ a product goal.
 | UI widgets | Our own, drawn with Ebitengine: one touch model (drag to scroll, tap on release, 44 px rows) for the library, settings, knobs and remote. ebitenui was used in the prototype; dropped in M4 (smaller WASM, touch scrolling) |
 | Target | Browser (`GOOS=js GOARCH=wasm`). Native desktop builds for development. |
 | TV look | Mid-1970s TVs from AI-generated artwork (Gemini), plus a CRT shader in Kage. Three skins to choose from (Walnut console, Portable, Slim walnut); the controls are cut from each cabinet image itself. |
-| Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), plus Chippie's overlay (`catalogue/overlay.json`) of changes proposed upstream but not yet merged, each linked to its PR. The goal is an empty overlay; no long-lived fork. |
+| Metadata authority | [chip-8-database](https://github.com/chip-8/chip-8-database), plus Chippie's overlay (`assets/catalogue/overlay.json`) of changes proposed upstream but not yet merged, each linked to its PR. The goal is an empty overlay; no long-lived fork. |
 | ROM files | Downloaded from their original source at runtime. Only the 18 ROMs that can't be fetched from a browser are hosted by us. |
 | Profiles | Platform defaults, then the database's per-ROM overrides, then user settings |
 | SUPER-CHIP | Modern behaviour by default (what the database's quirks describe); the HP48's legacy behaviour is a per-ROM setting (`LegacySuperChip`) |
@@ -149,6 +149,8 @@ page in `web/page.html`.
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
+The packages live in `internal/` (§5).
+
 **Dependency direction:** `app` → `catalogue`, `romstore`, `platform`,
 `chip8`. `chip8` depends on nothing. Only `platform` imports `syscall/js`.
 
@@ -164,45 +166,58 @@ page in `web/page.html`.
 
 ## 5. Repository layout
 
+Go code is in two folders: `cmd/` for the programs and `internal/` for every
+package, so nothing outside this module can import them. Everything compiled
+into the app that isn't code is in `assets/`, with the one other Go file,
+`assets.go`: `go:embed` only reaches files at or below its package's folder.
+The rest of the top level is the browser side (`web/`, `e2e/`), build
+scripts, docs and the test suite.
+
 ```
 chippie/
 ├── go.mod                      # go 1.27.x, the latest patch release
-├── cmd/
+├── cmd/                        # Go: the programs
 │   ├── chippie/                # main: ebiten.RunGame (browser + desktop)
 │   ├── catalogue-gen/          # CI: hash archives → sources.json + coverage report
 │   ├── golden-import/          # test-suite pictures → golden frames
 │   └── skin-gen/               # TV master art + recipe → assets/tv/<skin>/ (§12.1)
-├── chip8/                      # emulator core: stdlib only, no clock, no I/O
-│   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_twopage.go
-│   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
-│   ├── testdata/               # disassembly goldens
-│   └── *_test.go   suite_test.go   perf_test.go
-├── catalogue/                  # metadata + sources + profile resolution
-│   ├── db.go  sources.go  profile.go
-│   ├── snapshot/               # embedded chip-8-database JSON (go:embed)
-│   └── *_test.go
-├── romstore/                   # fetch, verify, cache ROMs
-├── platform/                   # syscall/js lives only here
-│   ├── params_js.go  params_other.go   # URL query / command-line flags
-│   ├── fetch_js.go  fetch_other.go     # fetch() / net/http
-│   ├── storage_js.go  storage_other.go
-│   ├── filepicker_js.go  filepicker_other.go
-│   ├── prefs_js.go  prefs_other.go
-│   └── layout_js.go  layout_other.go   # layout for the browser tests; touch screen?
-├── app/
-│   ├── game.go  game_flow.go   # ebiten.Game; states; layout
-│   ├── tv.go  controls.go      # the TV: layout, art loading, drawing; what the controls do
-│   ├── osd.go  remote.go       # on-screen display; touch remote (hex keypad)
-│   ├── ui.go  picker.go  settings.go  textfield.go   # drawer, settings panel, search field
-│   ├── skin/                   # skin.json: parsing, checks, hit testing, turning maths
-│   ├── crt/                    # *.kage + Go wrappers
-│   ├── input/                  # keyboard → hex keypad
-│   ├── roms/                   # bundled games + test suite
-│   ├── library/                # the library's entries
-│   └── sound/                  # buzzer and XO-CHIP audio, volume
-├── assets/
-│   ├── assets.go               # go:embed of the bundled ROMs and every skin.json
+├── internal/                   # Go: every package
+│   ├── chip8/                  # emulator core: stdlib only, no clock, no I/O
+│   │   ├── machine.go  cpu.go  ops_base.go  ops_schip.go  ops_xochip.go  ops_twopage.go
+│   │   ├── display.go  quirks.go  platform.go  disasm.go  trace.go  fonts.go  rng.go
+│   │   ├── testdata/           # disassembly goldens; golden/: golden frames (.png native
+│   │   │                       # res + .txt); failures/: written on failure (git-ignored)
+│   │   └── *_test.go   suite_test.go   perf_test.go
+│   ├── catalogue/              # metadata + sources + profile resolution (data: assets/catalogue/)
+│   │   ├── db.go  sources.go  profile.go  overlay.go
+│   │   └── *_test.go
+│   ├── romstore/               # fetch, verify, cache ROMs
+│   ├── platform/               # syscall/js lives only here
+│   │   ├── params_js.go  params_other.go   # URL query / command-line flags
+│   │   ├── fetch_js.go  fetch_other.go     # fetch() / net/http
+│   │   ├── storage_js.go  storage_other.go
+│   │   ├── filepicker_js.go  filepicker_other.go
+│   │   ├── prefs_js.go  prefs_other.go
+│   │   ├── textinput_js.go  textinput_other.go   # the search field's keyboard (§13)
+│   │   └── layout_js.go  layout_other.go   # layout for the browser tests; touch screen?
+│   ├── app/
+│   │   ├── game.go  game_flow.go   # ebiten.Game; states; layout
+│   │   ├── tv.go  controls.go      # the TV: layout, art loading, drawing; what the controls do
+│   │   ├── osd.go  remote.go       # on-screen display; touch remote (hex keypad)
+│   │   ├── ui.go  picker.go  settings.go  textfield.go   # drawer, settings panel, search field
+│   │   ├── skin/                   # skin.json: parsing, checks, hit testing, turning maths
+│   │   ├── crt/                    # *.kage + Go wrappers
+│   │   ├── input/                  # keyboard → hex keypad
+│   │   ├── roms/                   # bundled games + test suite
+│   │   ├── library/                # the library's entries
+│   │   └── sound/                  # buzzer and XO-CHIP audio, volume
+│   └── testrig/                # headless runner, golden I/O, image diffs
+├── assets/                     # everything compiled into the app that isn't code
+│   ├── assets.go               # go:embed of the bundled ROMs, every skin.json, the catalogue data
 │   ├── roms/                   # bundled CC0 games + bundled.json (M3)
+│   ├── catalogue/
+│   │   ├── snapshot/           # chip-8-database, chip8Archive, sources.json (catalogue-gen)
+│   │   └── overlay.json        # Chippie's pending changes to chip-8-database (§10)
 │   ├── source/                 # generated master images (git-ignored)
 │   ├── tv/<skin>/              # one folder per TV skin, made by cmd/skin-gen (see §12)
 │   │   ├── recipe.json             # name and measurements in the master (hand-edited)
@@ -210,16 +225,11 @@ chippie/
 │   │   ├── cabinet@{1,2,3}x.jpg  cabinet-mask@{1,2,3}x.png  backdrop.jpg
 │   │   └── channel  speed  volume  tint  power @{1,2,3}x.png
 │   └── LICENSES.md             # origin and licence of every asset
-├── internal/testrig/           # headless runner, golden I/O, image diffs
-├── testdata/
-│   ├── golden/                 # golden frames (.png native res + .txt)
-│   └── failures/               # written on failure (git-ignored)
 ├── third_party/
 │   └── chip8-test-suite/       # git submodule pinned to tag v4.2
 ├── web/
 │   ├── page.html               # loader page (from the prototype); build.sh → web/dist/
-│   ├── hosted-roms/            # 18 ROMs only on Zophar / David Winter's page (+ attribution)
-│   └── (sources.json is embedded: catalogue/snapshot/)
+│   └── hosted-roms/            # 18 ROMs only on Zophar / David Winter's page (+ attribution)
 ├── e2e/                        # Playwright tests (+ fixtures/: CC0 ROM for download tests)
 ├── scripts/
 │   └── build.sh                # wasm + compression + page assembly
@@ -229,6 +239,7 @@ chippie/
 │   ├── crt-shader.md  tv-artwork.md   # the CRT effects; the TV art prompts
 │   ├── plans/                  # milestone plans
 │   ├── upstream/               # proposals to chip-8-database and the test suite
+│   ├── investigations/         # write-ups of bugs that took several rounds
 │   ├── images/                 # screenshots for the README
 │   └── coverage.md             # ROM coverage report (catalogue-gen)
 ├── .github/workflows/
@@ -324,7 +335,7 @@ machine code (`02AC`), clears the screen and falls through to the program at
 0x2C0.
 
 The platform says the ROM uses this patch, so the core can apply it instead
-of running 1802 code (`chip8/ops_twopage.go`):
+of running 1802 code (`internal/chip8/ops_twopage.go`):
 
 - **Start:** when the first instruction is `1260` and 0x202–0x249 hold the
   article's patch, the screen becomes 64×64 and the program continues at
@@ -410,7 +421,7 @@ The emulator works out a profile when a ROM is loaded:
 2. ROM-specific overrides   programs.json → roms[sha1].platforms[0]
                                           → roms[sha1].quirkyPlatforms[platform]
                                           → roms[sha1].tickrate, colors, keys
-3. User overrides           saved per ROM hash (platform/prefs: localStorage)
+3. User overrides           saved per ROM hash (platform.Prefs: localStorage)
 ```
 
 - **chip8Archive quirks:** SUPER-CHIP and XO-CHIP games from chip8Archive were
@@ -522,7 +533,7 @@ current numbers.
 
 ### 9.3 Sources manifest
 
-`catalogue/snapshot/sources.json` is generated by `cmd/catalogue-gen` and
+`assets/catalogue/snapshot/sources.json` is generated by `cmd/catalogue-gen` and
 embedded in the app (no extra download at start-up). It maps each ROM hash to
 every URL it can be downloaded from:
 
@@ -574,7 +585,7 @@ every URL it can be downloaded from:
 
 - **Embedded snapshot:** chip-8-database (`platforms.json`, `quirks.json`,
   `programs.json`, `sha1-hashes.json`) is embedded with `go:embed` under
-  `catalogue/snapshot/`. The app works offline and on first load.
+  `assets/catalogue/snapshot/`. The app works offline and on first load.
 - **Refreshed at startup:** in the background, `catalogue` fetches the latest
   JSON from GitHub (CORS works). It validates the files (they parse, the
   schema version is known, they cross-reference correctly), swaps them in,
@@ -588,22 +599,22 @@ every URL it can be downloaded from:
   candidates for upstream fixes.
 
 
-**The overlay:** Chippie doesn't wait for upstream. `catalogue/overlay.json`
-holds its pending additions and corrections to chip-8-database, in the
-database's own format, each linked to the upstream PR that proposes it (or
-"pending"). It can add platforms (in `platforms.json`'s shape, checked like
-the database's, and only ids `chip8` knows), programs and ROMs, and change
-ROMs; platforms are added first, so ROMs can use them. `catalogue` applies it on top of the snapshot and the runtime
-refresh; `catalogue-gen` applies it too, so its ROMs get download locations.
-Whatever upstream already has, an entry skips, and `catalogue-gen` deletes it
-from `overlay.json`, so the weekly refresh PR carries the cleanup (a change
-counts as done only when upstream has every field it sets; an addition, when
-upstream has its ROMs). The PR's summary lists the upstream PRs concerned:
-marking them merged in [upstream/README.md](upstream/README.md) stays a manual
-step. The PR also regenerates `docs/coverage.md`; after editing
-`overlay.json` by hand, run `catalogue-gen` (or wait for the refresh) to
-regenerate it. The goal is an empty overlay: everything upstream (first
-reached on 2026-11-17).
+**The overlay:** Chippie doesn't wait for upstream.
+`assets/catalogue/overlay.json` holds its pending additions and corrections to
+chip-8-database, in the database's own format, each linked to the upstream PR
+that proposes it (or "pending"). It can add platforms (in `platforms.json`'s
+shape, checked like the database's, and only ids `chip8` knows), programs and
+ROMs, and change ROMs; platforms are added first, so ROMs can use them.
+`catalogue` applies it on top of the snapshot and the runtime refresh;
+`catalogue-gen` applies it too, so its ROMs get download locations. Whatever
+upstream already has, an entry skips, and `catalogue-gen` deletes it from
+`overlay.json`, so the weekly refresh PR carries the cleanup (a change counts
+as done only when upstream has every field it sets; an addition, when upstream
+has its ROMs). The PR's summary lists the upstream PRs concerned: marking them
+merged in [upstream/README.md](upstream/README.md) stays a manual step. The PR
+also regenerates `docs/coverage.md`; after editing `overlay.json` by hand, run
+`catalogue-gen` (or wait for the refresh) to regenerate it. The goal is an
+empty overlay: everything upstream (first reached on 2026-11-17).
 
 ## 11. Presentation: the 1970s TV
 
@@ -643,7 +654,7 @@ light grey studio background that fills the page.
   known limits: [crt-shader.md](crt-shader.md).
 - **"Tuning" static:** a noise shader shown while a ROM downloads.
 
-**The library drawer** (`app/library` model, drawn by `app`):
+**The library drawer** (`internal/app/library` model, drawn by `app`):
 
 - Covers the window. A search field (title, author, year, platform; every
   word must match; short words like `xo`, `schip`, `chip8` and `chip48`
@@ -735,8 +746,9 @@ keyboard and Settings.
 ```
 
 `skin.json` is compiled in (it fixes the layout from the first frame); the
-images are fetched. `app/skin` parses and checks it (everything inside the
-cabinet, nothing overlapping) and does the hit testing and turning maths.
+images are fetched. `internal/app/skin` parses and checks it (everything
+inside the cabinet, nothing overlapping) and does the hit testing and turning
+maths.
 
 **Checking alignment:** `go run ./cmd/skin-gen -preview /tmp/tv.png -angle 30`
 writes the composed TV with the controls turned, the tube hole in green and
@@ -794,23 +806,24 @@ The prompts used for each cabinet, and tips for making new skins, are in
   lighter instead (`Machine.KeysRead`, as on the "Keys it reads" line):
   they light up as the game reads them, and stay lit until the ROM
   restarts. A game that only waits for any key lights none
-  (`remoteLit` in `app/game.go`). The `touchInputMode` hint (e.g. a
+  (`remoteLit` in `internal/app/game.go`). The `touchInputMode` hint (e.g. a
   gamepad layout) isn't used yet.
 
 **Text input:**
 
-- The search field (`app/textfield.go`, from the prototype's `field.go`) uses
-  Ebitengine's `exp/textinput` on touch screens: it brings up the phone's
-  keyboard, and the search includes words still being composed. With a
-  physical keyboard it reads typed characters directly, because the input
-  method's asynchronous session can lose the first keys typed after focusing.
+- The search field (`internal/app/textfield.go`, from the prototype's
+  `field.go`) uses Ebitengine's `exp/textinput` on touch screens: it brings up
+  the phone's keyboard, and the search includes words still being composed.
+  With a physical keyboard it reads typed characters directly, because the
+  input method's asynchronous session can lose the first keys typed after
+  focusing.
 - The field takes the focus when a finger **presses** it, not when the tap
   ends. In the browser, Ebitengine starts the session in the next
   `touchend`/`mouseup`, because iOS Safari opens the keyboard only inside
   a user gesture. Focusing on the tap's end missed that tap's `touchend`,
   so the keyboard came up only on a second tap.
 - **The keyboard is normally open while Ebitengine's hidden textarea has
-  the DOM focus.** The field follows that (`app/textfield.go`), through
+  the DOM focus.** The field follows that (`internal/app/textfield.go`), through
   `platform.TextInputFocused`, which checks for Ebitengine's textarea ids
   (`ebitengine-textinput` and its `-dummy`; internals of Ebitengine
   2.10.6, to check when upgrading):
@@ -838,20 +851,19 @@ The prompts used for each cabinet, and tips for making new skins, are in
     focus. Apart from Ebitengine's own hidden textareas, it's the only DOM
     element over the canvas, and only in this state; Safari doesn't need
     it, because its done button gives the focus up.
-  - **Whether the keyboard is showing** comes from the visible area's
-    height (`platform.VisibleHeight`, the visual viewport). The keyboard
-    counts as shown while that height is below 85 % of the tallest seen in
-    the same device orientation (`keyboardWatch` in `app/textfield.go`).
-    The browsers shrink different things: Safari on iOS only the visual
-    viewport (775 to 426 CSS pixels on an iPhone 16 Plus), Chrome on iOS
-    the whole window (742 to 401). So comparing with the window's height
-    misses Chrome's keyboard, and the window's shape doesn't tell the
-    orientation (`screen.orientation` does). The field looks every frame
-    while it is focused on a touch screen (`watchKeyboard`), so the
-    tallest height is seen on the press that focuses it, before the
-    keyboard opens.
+  - **Whether the keyboard is showing** comes from the visible area's height
+    (`platform.VisibleHeight`, the visual viewport). The keyboard counts as
+    shown while that height is below 85 % of the tallest seen in the same
+    device orientation (`keyboardWatch` in `internal/app/textfield.go`). The
+    browsers shrink different things: Safari on iOS only the visual viewport
+    (775 to 426 CSS pixels on an iPhone 16 Plus), Chrome on iOS the whole
+    window (742 to 401). So comparing with the window's height misses Chrome's
+    keyboard, and the window's shape doesn't tell the orientation
+    (`screen.orientation` does). The field looks every frame while it is
+    focused on a touch screen (`watchKeyboard`), so the tallest height is seen
+    on the press that focuses it, before the keyboard opens.
 
-**Audio (`app/sound`):**
+**Audio (`internal/app/sound`):**
 
 - Ebitengine's `audio` package. The audio context is created on the first
   user gesture (the power button), as browsers require.
@@ -868,8 +880,8 @@ The prompts used for each cabinet, and tips for making new skins, are in
 
 ## 14. Browser integration
 
-Everything browser-specific lives in `platform/`, behind small interfaces,
-with desktop stubs so `go run ./cmd/chippie` works natively:
+Everything browser-specific lives in `internal/platform/`, behind small
+interfaces, with desktop stubs so `go run ./cmd/chippie` works natively:
 
 | Need | Browser implementation |
 |---|---|
@@ -880,9 +892,9 @@ with desktop stubs so `go run ./cmd/chippie` works natively:
 | Network | `platform.Fetch`: `fetch()` through `syscall/js` (Go's `net/http` would add ~1.7 MB gzip); `net/http` natively |
 | Tab hidden | `platform.InFront`: `document.hidden`, to pause (not `ebiten.IsFocused()`, see §8) |
 
-**Rule:** no call into `platform/` ever blocks `Update` or `Draw`. Every
-browser call either returns immediately or runs in a goroutine and reports
-back on a channel.
+**Rule:** no call into `internal/platform/` ever blocks `Update` or `Draw`.
+Every browser call either returns immediately or runs in a goroutine and
+reports back on a channel.
 
 **The loader page** (`web/page.html`, from the prototype):
 - Shows a title and a progress bar while `chippie.wasm` downloads.
@@ -915,7 +927,7 @@ back on a channel.
 `pictures/` are 768×384 with exactly two colours: 12× for 64×32 and 6× for
 128×64. Every 12×12 (or 6×6) block was checked and is a single colour, so they
 convert losslessly into native-resolution 1-bit frames. `cmd/golden-import`
-does this once and writes them to `testdata/golden/`.
+does this once and writes them to `internal/chip8/testdata/golden/`.
 
 - **Pictures with 3+ colours** (`quirks.png`, `chip-8-logo.png`, `beep.png`):
   `golden-import` maps the palette explicitly. For `beep`, the test checks the
@@ -931,8 +943,9 @@ does this once and writes them to `testdata/golden/`.
 
 **On failure:** the rig writes `actual.png`, `diff.png` (8× scale: extra lit
 pixels red, missing ones orange, the rest of the expected frame dimmed) and a
-side-by-side ASCII `diff.txt` to `testdata/failures/<platform>/<golden>/`. CI
-uploads that folder as an artifact. Each run starts by clearing it.
+side-by-side ASCII `diff.txt` to
+`internal/chip8/testdata/failures/<platform>/<golden>/`. CI uploads that
+folder as an artifact. Each run starts by clearing it.
 
 **Test matrix:**
 
@@ -1001,15 +1014,16 @@ build new ones each frame).
 
 **Background work under WebAssembly:** Go has one thread there and doesn't
 preempt, so a goroutine doesn't keep the TV responsive by itself: while it
-computes, `Update` and `Draw` wait. Long jobs (decoding the TV's art, `loadArt`
-in `app/tv.go`) work in steps with a short `time.Sleep` between them, which
-hands control back to the page (`runtime.Gosched` doesn't). Images for
-Ebitengine are built as premultiplied `*image.RGBA`, which
-`ebiten.NewImageFromImage` uploads as they are; any other type is converted
-pixel by pixel on the game goroutine. Before this, switching skins on an
-iPhone froze the menus for 4–6 s.
+computes, `Update` and `Draw` wait. Long jobs (decoding the TV's art,
+`loadArt` in `internal/app/tv.go`) work in steps with a short `time.Sleep`
+between them, which hands control back to the page (`runtime.Gosched`
+doesn't). Images for Ebitengine are built as premultiplied `*image.RGBA`,
+which `ebiten.NewImageFromImage` uploads as they are; any other type is
+converted pixel by pixel on the game goroutine. Before this, switching skins
+on an iPhone froze the menus for 4–6 s.
 
-**Performance tests, in `chip8/perf_test.go` and `app/crt/perf_test.go`:**
+**Performance tests, in `internal/chip8/perf_test.go` and
+`internal/app/crt/perf_test.go`:**
 
 | Test | Kind | Fails CI? |
 |---|---|---|

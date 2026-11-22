@@ -9,7 +9,7 @@
     "go.lintFlags": [],
     "go.lintOnSave": "package",
     "go.testFlags": ["-v"],
-    // Uncomment while editing platform/*_js.go so gopls type-checks the
+    // Uncomment while editing internal/platform/*_js.go so gopls type-checks the
     // js/wasm side instead of the native stubs.
     // "go.toolsEnvVars": { "GOOS": "js", "GOARCH": "wasm" },
     "gopls": {

@@ -29,7 +29,7 @@ linters:
             - "!$test"
           deny:
             - pkg: syscall/js
-              desc: "chip8 is platform-free; syscall/js lives only in platform/"
+              desc: "chip8 is platform-free; syscall/js lives only in internal/platform/"
             - pkg: time
               desc: "chip8 never reads the clock; it advances only through RunFrame"
             - pkg: math/rand
@@ -59,7 +59,7 @@ linters:
             - "!**/platform/**"
           deny:
             - pkg: syscall/js
-              desc: "syscall/js is allowed only in platform/"
+              desc: "syscall/js is allowed only in internal/platform/"
         net-http-only-in-platform:
           list-mode: lax
           files:
@@ -90,7 +90,7 @@ linters:
     rules:
       # An emulator truncates to 8/12/16 bits on purpose (opcodes, registers, addresses).
       - linters: [gosec]
-        path: chip8/
+        path: internal/chip8/
         text: G115
       # Table-driven tests are long and keep their tables and flags at package level.
       - linters: [funlen, gochecknoglobals, goconst]
