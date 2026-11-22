@@ -28,7 +28,7 @@ func TestSummary(t *testing.T) {
 		"| chip8Archive conflicts | 2 | 1 | -1 |",
 		"| a/db | 1111111 | 3333333 |",
 		"| b/roms | 2222222 | unchanged |",
-		"this refresh deleted them from `catalogue/overlay.json`",
+		"this refresh deleted them from `assets/catalogue/overlay.json`",
 		"- add Tick (https://github.com/chip-8/chip-8-database/pull/99)",
 		"**Manual step before merging:** in `docs/upstream/README.md`",
 		"- https://github.com/chip-8/chip-8-database/pull/99\n",
@@ -56,7 +56,7 @@ func TestSummaryFirstRun(t *testing.T) {
 func TestReadState(t *testing.T) {
 	t.Parallel()
 
-	st, ok := readState(filepath.Join("..", "..", "catalogue", "snapshot"))
+	st, ok := readState(filepath.Join("..", "..", "assets", "catalogue", "snapshot"))
 	if !ok {
 		t.Fatal("committed snapshot unreadable")
 	}

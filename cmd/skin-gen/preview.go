@@ -9,7 +9,7 @@ import (
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/f64"
 
-	"github.com/rbscholtus/chippie/app/skin"
+	"github.com/rbscholtus/chippie/internal/app/skin"
 )
 
 // Preview colours: the tube hole and the control outlines.

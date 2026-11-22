@@ -8,7 +8,7 @@ import (
 )
 
 // TestImportMatchesCommittedGoldens re-imports every picture and checks the
-// result is byte-identical to testdata/golden, so the goldens can't drift
+// result is byte-identical to internal/chip8/testdata/golden, so the goldens can't drift
 // from the suite's pictures.
 func TestImportMatchesCommittedGoldens(t *testing.T) {
 	t.Parallel()
@@ -18,7 +18,7 @@ func TestImportMatchesCommittedGoldens(t *testing.T) {
 		t.Skipf("test suite not checked out: %v", err)
 	}
 
-	goldens := filepath.Join("..", "..", "testdata", "golden")
+	goldens := filepath.Join("..", "..", "internal", "chip8", "testdata", "golden")
 
 	out := t.TempDir()
 	if err := run(suite, out); err != nil {

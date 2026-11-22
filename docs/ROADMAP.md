@@ -78,10 +78,10 @@ To be settled while building, not before:
 **Ideas for the end of the project:**
 
 - **Follow up on the upstream submissions** ([upstream/](upstream/README.md);
-  `catalogue/overlay.json`). Answer the maintainers'
+  `assets/catalogue/overlay.json`). Answer the maintainers'
   questions on chip-8-database #29–#34 and chip8-test-suite #38. When
   chip-8-database merges a PR, the weekly refresh lists its overlay entries
-  as done: delete them from `catalogue/overlay.json`. If the test suite's
+  as done: delete them from `assets/catalogue/overlay.json`. If the test suite's
   pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
 - **Upstream proposals, deferred until the maintainers react** (M8 items
   4–6): a standard "where to download" field in chip-8-database, with
@@ -120,7 +120,7 @@ To be settled while building, not before:
   it reads (`EX9E`/`EXA1`), the keys actually held when read (filters out
   keypad scans) and the key that ends an `FX0A` wait. Merge across sessions
   into a JSON file in the user config folder, saved off the `Update` loop via
-  `platform/` (no-op on WASM). Roles (up, fire…) can't be inferred: fill the
-  database-format `keys` block by hand, and export filled entries with a small
-  `cmd/` tool for a chip-8-database PR.
+  `internal/platform/` (no-op on WASM). Roles (up, fire…) can't be inferred:
+  fill the database-format `keys` block by hand, and export filled entries
+  with a small `cmd/` tool for a chip-8-database PR.
 

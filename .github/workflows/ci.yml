@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: golden-failures
-          path: testdata/failures
+          path: internal/chip8/testdata/failures
           if-no-files-found: ignore
           retention-days: 7
       - name: Coverage summary
@@ -72,7 +72,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Short fuzz run
-        run: go test ./chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
+        run: go test ./internal/chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
 
   build:
     name: Build

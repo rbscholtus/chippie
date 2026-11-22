@@ -1,6 +1,6 @@
 # Dependabot: weekly update PRs for the Go modules, the browser tests' npm
 # packages and the GitHub Actions. Security updates (repository settings)
-# come on top, as soon as an advisory appears. prototype/ is left alone.
+# come on top, as soon as an advisory appears.
 version: 2
 updates:
   - package-ecosystem: gomod

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { Page, expect } from "@playwright/test";
 import { PNG } from "pngjs";
 
-// The app's layout and status, as it publishes them (app/game_flow.go
+// The app's layout and status, as it publishes them (internal/app/game_flow.go
 // publishLayout), in real (device) pixels: [x, y, w, h] and [x, y].
 export type Box = [number, number, number, number];
 export type AppLayout = {
@@ -22,7 +22,7 @@ export type AppLayout = {
   };
 };
 
-// The app's states (app/game.go).
+// The app's states (internal/app/game.go).
 export const stateOff = 0, stateRunning = 4;
 
 export async function appLayout(page: Page): Promise<AppLayout> {
@@ -68,7 +68,7 @@ export function gridText(g: Grid): string {
 }
 
 export function golden(name: string): string {
-  return readFileSync(new URL(`../../testdata/golden/${name}.txt`, import.meta.url), "utf8");
+  return readFileSync(new URL(`../../internal/chip8/testdata/golden/${name}.txt`, import.meta.url), "utf8");
 }
 
 // A game is running when the screen shows only the emulated picture (at most
@@ -155,7 +155,7 @@ export async function click(page: Page, x: number, y: number) {
   await page.waitForTimeout(150);
 }
 
-// Touch layout of the drawer in CSS pixels (app/ui.go computeLayout): the
+// Touch layout of the drawer in CSS pixels (internal/app/ui.go computeLayout): the
 // search field (one 44 px row) sits below a debug line and two paddings;
 // half a padding below it, the row of platform filters (one row), then the
 // list. Row 0 is the PLAY heading, row 1 the first ROM ("Load a ROM from

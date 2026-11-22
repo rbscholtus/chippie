@@ -24,11 +24,11 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"github.com/rbscholtus/chippie/app"
-	"github.com/rbscholtus/chippie/app/roms"
-	"github.com/rbscholtus/chippie/catalogue"
-	"github.com/rbscholtus/chippie/platform"
-	"github.com/rbscholtus/chippie/romstore"
+	"github.com/rbscholtus/chippie/internal/app"
+	"github.com/rbscholtus/chippie/internal/app/roms"
+	"github.com/rbscholtus/chippie/internal/catalogue"
+	"github.com/rbscholtus/chippie/internal/platform"
+	"github.com/rbscholtus/chippie/internal/romstore"
 )
 
 const (

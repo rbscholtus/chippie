@@ -110,4 +110,4 @@ test("load a ROM from this device", async ({ page }) => {
 // Dropping a file isn't tested here: Ebitengine reads drops through
 // webkitGetAsEntry(), which returns null for a DataTransfer made in a
 // script. Chippie's side (reading the dropped file) is unit-tested in
-// app/drop_test.go; a real drag and drop is a manual check.
+// internal/app/drop_test.go; a real drag and drop is a manual check.

@@ -20,17 +20,9 @@ Downloadable ROMs in the manifest: 310 of 585 in the database and Chippie's over
 
 ## Chippie's overlay (pending upstream)
 
-Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
+Additions and corrections in `assets/catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
 
-- add platform twoPageChip8: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Astro Dodge Hires: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Maze: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Particle Demo: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Sierpinski: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Stars: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Test: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Hires Worm V4: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
-- add Trip8 Hires Demo: **done: upstream has it, deleted from the overlay** (https://github.com/chip-8/chip-8-database/pull/34)
+Empty.
 
 ## Not in chip-8-database
 

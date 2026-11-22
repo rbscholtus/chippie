@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rbscholtus/chippie/catalogue"
+	"github.com/rbscholtus/chippie/internal/catalogue"
 )
 
 // archive is one ROM collection that catalogue-gen hashes.
@@ -250,7 +250,7 @@ func report(res result, db *catalogue.DB, conflicts []catalogue.Conflict) string
 		len(res.sources.ROMs), db.ROMCount())
 
 	b.WriteString("\n## Chippie's overlay (pending upstream)\n\n")
-	b.WriteString("Additions and corrections in `catalogue/overlay.json`. `catalogue-gen` deletes the " +
+	b.WriteString("Additions and corrections in `assets/catalogue/overlay.json`. `catalogue-gen` deletes the " +
 		"\"done\" ones (upstream has them) from it as it writes this report.\n\n")
 
 	if len(res.overlay) == 0 {

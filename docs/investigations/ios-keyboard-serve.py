@@ -8,8 +8,10 @@ Usage: python3 docs/investigations/ios-keyboard-serve.py <work dir>
 The work dir (outside the repository) holds the other builds, if present:
   pr27-build/   git worktree at 276d074 (Chippie PR #27), ./scripts/build.sh run
   pre27-build/  git worktree at cad8d09 (focus on release), ./scripts/build.sh run
-  prototype/    a copy of prototype/, built with its build.sh, plus
-                web/chippie-gz.wasm copied from web/chippie.wasm.gz
+  prototype/    the prototype from the git tag `prototype`
+                (git archive prototype prototype | tar -x -C <work dir>),
+                built with its build.sh, plus web/chippie-gz.wasm copied
+                from web/chippie.wasm.gz
 Port 8081 serves this repository's web/dist (./scripts/build.sh)."""
 import json
 import os

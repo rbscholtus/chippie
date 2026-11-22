@@ -34,7 +34,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }} # for the API's rate limit; read-only use
         run: go run ./cmd/catalogue-gen -update-pins -summary "$RUNNER_TEMP/summary.md"
       - name: Check the snapshot still loads
-        run: go test ./catalogue/
+        run: go test ./internal/catalogue/
       - name: Report, and open a PR if the snapshot changed
         env:
           GH_TOKEN: ${{ secrets.REFRESH_TOKEN || github.token }}
@@ -42,7 +42,7 @@ jobs:
           summary="$RUNNER_TEMP/summary.md"
           # Only the snapshot and the overlay count: a coverage.md change on
           # its own (e.g. a wording change in the generator) is not worth a PR.
-          if [ -z "$(git status --porcelain -- catalogue/snapshot catalogue/overlay.json)" ]; then
+          if [ -z "$(git status --porcelain -- assets/catalogue/snapshot assets/catalogue/overlay.json)" ]; then
             printf '\nNo changes to the snapshot or the overlay, so no PR.\n' >> "$summary"
             cat "$summary" >> "$GITHUB_STEP_SUMMARY"
             exit 0
@@ -53,7 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add catalogue/snapshot catalogue/overlay.json docs/coverage.md
+          git add assets/catalogue/snapshot assets/catalogue/overlay.json docs/coverage.md
           git commit -m "chore(catalogue): refresh snapshot and sources"
           git push -u origin "$branch"
           gh pr create --title "chore(catalogue): refresh snapshot and sources" --body-file "$summary"
