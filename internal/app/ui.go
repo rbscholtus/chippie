@@ -288,7 +288,7 @@ func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, area image.Rectangle)
 // it has one, otherwise the keys the game has checked so far.
 func (u *ui) keysLine(g *Game) string {
 	if len(g.current.Keys) > 0 {
-		return "Keys: " + input.DescribeHints(g.current.Keys)
+		return "Keys: " + input.DescribeControls(g.current.Keys)
 	}
 
 	mask, anyKey := g.machine.KeysRead()
@@ -417,7 +417,7 @@ func (u *ui) drawDetails(dst *ebiten.Image, e library.Entry) {
 
 	keys := "Keys: shown under the picture once the game reads them."
 	if len(e.Keys) > 0 {
-		keys = "Keys: " + input.DescribeHints(e.Keys)
+		keys = "Keys: " + input.DescribeControls(e.Keys)
 	}
 
 	u.text(dst, u.fit(keys, maxW), x, y, inkColour)

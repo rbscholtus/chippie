@@ -54,6 +54,7 @@ func TestBundledGames(t *testing.T) {
 		"game/glitchGhost": true, "game/danm8ku": true,
 		"game/turnover77": true, "game/octopeg": true,
 		"game/redOctober": true, "game/anEveningToDieFor": true,
+		"game/depot": true,
 	}
 
 	for id, p := range want {
@@ -139,7 +140,7 @@ func TestOfflineAndAliases(t *testing.T) {
 	l := newTestLibrary(t)
 	offline := l.Offline()
 
-	if len(offline) != 14 || !offline["b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379"] {
+	if len(offline) != 15 || !offline["b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379"] {
 		t.Errorf("offline: %d hashes", len(offline))
 	}
 

@@ -14,6 +14,7 @@ import (
 
 	"github.com/rbscholtus/chippie/assets"
 	"github.com/rbscholtus/chippie/internal/app/crt"
+	"github.com/rbscholtus/chippie/internal/app/input"
 	"github.com/rbscholtus/chippie/internal/app/library"
 	"github.com/rbscholtus/chippie/internal/app/roms"
 	"github.com/rbscholtus/chippie/internal/app/skin"
@@ -81,6 +82,8 @@ type Game struct {
 	current    library.Entry
 	currentROM []byte
 	hasROM     bool
+	extras     input.Extras // arrows, Space and Shift for current's keys hint
+	flags      flagSaver    // saves current's flag registers (flags.go)
 
 	renderer *crt.Renderer
 	sound    sound.Output

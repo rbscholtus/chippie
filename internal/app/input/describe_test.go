@@ -43,3 +43,16 @@ func TestDescribeHints(t *testing.T) {
 		t.Errorf("DescribeHints = %q, want %q", got, want)
 	}
 }
+
+func TestDescribeControls(t *testing.T) {
+	t.Parallel()
+
+	got := DescribeControls(map[string]int{"up": 5, "down": 8, "a": 6})
+	if want := "↑ W · ↓ S · A E (or arrows, Space)"; got != want {
+		t.Errorf("DescribeControls = %q, want %q", got, want)
+	}
+
+	if got, want := DescribeControls(map[string]int{"player2A": 1}), "P2 A 1"; got != want {
+		t.Errorf("DescribeControls without extras = %q, want %q", got, want)
+	}
+}

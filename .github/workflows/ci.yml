@@ -60,7 +60,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: golden-failures
-          path: internal/chip8/testdata/failures
+          path: |
+            internal/chip8/testdata/failures
+            games/*/testdata/failures
           if-no-files-found: ignore
           retention-days: 7
       - name: Coverage summary
@@ -73,6 +75,25 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Short fuzz run
         run: go test ./internal/chip8 -run=NONE -fuzz=FuzzRunFrame -fuzztime=30s
+
+  games:
+    name: Games are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: games/package-lock.json
+      - name: Assemble
+        run: ./scripts/build-games.sh
+      - name: Committed ROMs match their source
+        run: |
+          if ! git diff --exit-code -- assets/roms assets/catalogue/overlay.json; then
+            echo "::error::a game's ROM or SHA-1 is stale: run scripts/build-games.sh and commit"
+            exit 1
+          fi
 
   build:
     name: Build

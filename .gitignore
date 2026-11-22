@@ -12,6 +12,7 @@ coverage.html
 *.prof
 *.pprof
 internal/chip8/testdata/failures/
+games/*/testdata/failures/
 vendor/
 
 # ── Web build & browser tests ────────────────────────────────────

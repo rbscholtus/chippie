@@ -13,8 +13,9 @@ import (
 	"slices"
 )
 
-// ROMs holds roms/bundled.json and the ROM files it lists. All are CC0,
-// from John Earnest's chip8Archive.
+// ROMs holds roms/bundled.json and the ROM files it lists. All are CC0:
+// from John Earnest's chip8Archive, and Chippie's own games (built from
+// games/ by scripts/build-games.sh).
 //
 //go:embed roms/bundled.json roms/*.ch8
 var ROMs embed.FS

@@ -364,3 +364,44 @@ func TestFX29BigFontOnSuperChip1(t *testing.T) {
 		}
 	}
 }
+
+// TestFlagsAPI checks what the app saves and restores: Flags, SetFlags and
+// the FX75 counter, which Reset (and so LoadROM) clears.
+func TestFlagsAPI(t *testing.T) {
+	t.Parallel()
+
+	m := New(DefaultProfile(XOChip))
+	m.v[0], m.v[1] = 0xD3, 0x90
+	exec(m, 0xF185) // FX85 loads; it isn't a save
+
+	if m.FlagSaves() != 0 {
+		t.Fatalf("FlagSaves = %d after FX85, want 0", m.FlagSaves())
+	}
+
+	m.v[0], m.v[1] = 0xD3, 0x90
+	exec(m, 0xF175)
+	exec(m, 0xF175)
+
+	if got := m.FlagSaves(); got != 2 {
+		t.Errorf("FlagSaves = %d after two FX75s, want 2", got)
+	}
+
+	if f := m.Flags(); f[0] != 0xD3 || f[1] != 0x90 || f[2] != 0 {
+		t.Errorf("Flags = % X, want D3 90 then zeros", f)
+	}
+
+	saved := [NumFlags]byte{1, 2, 3}
+
+	mustLoad(t, m, program(0xF285)) // LoadROM resets: flags and count cleared
+
+	if m.Flags() != ([NumFlags]byte{}) || m.FlagSaves() != 0 {
+		t.Fatalf("after LoadROM: flags % X, saves %d; want cleared", m.Flags(), m.FlagSaves())
+	}
+
+	m.SetFlags(saved)
+	m.RunFrame() // the ROM loads V0..V2 from the flags
+
+	if m.v[0] != 1 || m.v[1] != 2 || m.v[2] != 3 || m.FlagSaves() != 0 {
+		t.Errorf("V0-V2 = %d %d %d, saves %d; want 1 2 3 from SetFlags, no save", m.v[0], m.v[1], m.v[2], m.FlagSaves())
+	}
+}

@@ -16,13 +16,13 @@ chip-8-database: 521 programs, 585 ROMs.
 | Hosted by Chippie (from Zophar and David Winter) | 18 | 18 | 0 |
 | **All combined** | **310** | **310** | **0** |
 
-Downloadable ROMs in the manifest: 310 of 585 in the database and Chippie's overlay.
+Downloadable ROMs in the manifest: 310 of 586 in the database and Chippie's overlay.
 
 ## Chippie's overlay (pending upstream)
 
 Additions and corrections in `assets/catalogue/overlay.json`. `catalogue-gen` deletes the "done" ones (upstream has them) from it as it writes this report.
 
-Empty.
+- add Depot: not yet proposed upstream
 
 ## Not in chip-8-database
 

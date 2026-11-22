@@ -41,17 +41,38 @@ func DescribeMask(mask uint16) string {
 	return strings.Join(labels, " ")
 }
 
+// Key names in chip-8-database's keys hint, for player 1.
+const (
+	hintUp    = "up"
+	hintDown  = "down"
+	hintLeft  = "left"
+	hintRight = "right"
+	hintA     = "a"
+	hintB     = "b"
+)
+
 // hintNames gives chip-8-database's key names a short label.
 var hintNames = map[string]string{ //nolint:gochecknoglobals // read-only table
-	"up": "↑", "down": "↓", "left": "←", "right": "→", "a": "A", "b": "B",
+	hintUp: "↑", hintDown: "↓", hintLeft: "←", hintRight: "→", hintA: "A", hintB: "B",
 	"player2Up": "P2 ↑", "player2Down": "P2 ↓", "player2Left": "P2 ←", "player2Right": "P2 →",
 	"player2A": "P2 A", "player2B": "P2 B",
 }
 
 // hintOrder sorts hints: directions first, then buttons, then player 2.
 var hintOrder = []string{ //nolint:gochecknoglobals // read-only table
-	"up", "down", "left", "right", "a", "b",
+	hintUp, hintDown, hintLeft, hintRight, hintA, hintB,
 	"player2Up", "player2Down", "player2Left", "player2Right", "player2A", "player2B",
+}
+
+// DescribeControls is DescribeHints plus the extra keys that work too:
+// "↑ W · ↓ S · A E (or arrows, Space)".
+func DescribeControls(keys map[string]int) string {
+	s := DescribeHints(keys)
+	if extra := NewExtras(keys).Describe(); extra != "" {
+		s += " (or " + extra + ")"
+	}
+
+	return s
 }
 
 // DescribeHints turns the database's keys hint (e.g. {"up": 5}) into

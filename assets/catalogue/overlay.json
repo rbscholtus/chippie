@@ -1,5 +1,44 @@
 {
   "platforms": [],
-  "add": [],
+  "add": [
+    {
+      "upstream": "pending",
+      "program": {
+        "title": "Depot",
+        "authors": [
+          "Barend Scholtus",
+          "Claude Opus 5.5"
+        ],
+        "release": "2026",
+        "description": "A lane-crossing game in the spirit of Frogger, set in a parcel depot at night. Hop your courier across the loading yard without being hit by forklifts and trolleys, ride the pallets over the sorting chute, and deliver the parcel to the lit hatch before the time bar runs out. Only one hatch is lit at a time, and from round 3 it moves if you're slow, so plan your route. Fill all four hatches to clear the round; every round is faster. Your best score is saved. Chippie's own game, written in Octo for XO-CHIP.",
+        "roms": {
+          "268de0f4c377e4e41a5bca78f5f82cf826d91a64": {
+            "file": "depot.ch8",
+            "platforms": [
+              "xochip"
+            ],
+            "tickrate": 500,
+            "colors": {
+              "pixels": [
+                "#1b2330",
+                "#e8a33d",
+                "#f4f1e8",
+                "#ff6a2b"
+              ],
+              "buzzer": "#2a3442",
+              "silence": "#1b2330"
+            },
+            "keys": {
+              "up": 5,
+              "left": 7,
+              "down": 8,
+              "right": 9,
+              "a": 6
+            }
+          }
+        }
+      }
+    }
+  ],
   "change": []
 }

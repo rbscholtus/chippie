@@ -73,10 +73,17 @@ Z X C V         A 0 B F
 
 Under the TV, Chippie shows which keys the running game uses. Where
 chip-8-database knows a game's controls, it lists them (and the on-screen
-remote highlights them). Otherwise Chippie watches the game: every key it
-checks is added to a "Keys it reads" line, and lit on the remote, so after
-a few seconds of play you can see its controls. A game that waits for any
-key says so.
+remote highlights them), and the arrow keys, Space and Shift work too: the
+arrows for the game's directions, Space and Shift for its two buttons.
+Otherwise Chippie watches the game: every key it checks is added to a
+"Keys it reads" line, and lit on the remote, so after a few seconds of play
+you can see its controls. A game that waits for any key says so.
+
+### Saved high scores
+
+Games that save data the CHIP-8 way (SUPER-CHIP and XO-CHIP's flag
+registers), such as Depot's best score, keep it in your browser, so it's
+still there next time.
 
 ### The library
 
@@ -147,13 +154,14 @@ chip-8-database and the test suite ([docs/upstream/](docs/upstream/README.md)).
 
 **Done:** the emulator core for seven platforms with screenshot tests, the
 browser app, the library and download sources, SUPER-CHIP, XO-CHIP, the 1970s
-TV with touch support, the upstream contributions (milestones M1–M8), and
-the COSMAC VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (M10).
+TV with touch support, the upstream contributions (milestones M1–M8),
+Depot, an XO-CHIP game of our own bundled with Chippie, with arrow keys for
+games whose controls are known and saved high scores (M9), and the COSMAC
+VIP's 64×64 2 Page Display ("Hires CHIP-8"), with its 8 known ROMs (M10).
 
 **Next:**
 
-- **Depot**, an XO-CHIP game of our own, bundled with Chippie (M9).
-- Arrow keys for games whose controls are known.
+- Proposing Depot to chip-8-database and chip8Archive.
 - Favourite games, and one library entry per program.
 
 The full list, with open questions, is in [docs/ROADMAP.md](docs/ROADMAP.md).

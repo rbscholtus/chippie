@@ -7,7 +7,8 @@ is in [DESIGN.md](DESIGN.md).
 
 Detailed plans for M1–M4: [M1-M4.md](plans/M1-M4.md). For M5
 and M7: [M5-M7.md](plans/M5-M7.md). For M6 and M8:
-[M6-M8.md](plans/M6-M8.md). For M10: [M10-hires.md](plans/M10-hires.md). The order is M5, M7, M6, M8;
+[M6-M8.md](plans/M6-M8.md). For M9, our own game: [M9-game.md](plans/M9-game.md). For M10:
+[M10-hires.md](plans/M10-hires.md). The order is M5, M7, M6, M8;
 M7 does not depend on M6, and M8 does not depend on M6.
 
 | # | Milestone | Done when |
@@ -20,10 +21,10 @@ M7 does not depend on M6, and M8 does not depend on M6.
 | M6 | The 1970s TV | Generated art in, `skin.json`, knobs (click/drag/wheel), power animation, OSD, remote on touch devices, HiDPI layout, CRT at 60 FPS on iPhone |
 | M7 | XO-CHIP | Quirks + scrolling tests for XO-CHIP; pattern audio |
 | M8 | Upstream | PRs/issues to chip-8-database and the test suite submitted ([upstream/](upstream/README.md)) |
-| M9 | Our own game (in progress) | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
+| M9 | Our own game | Depot (XO-CHIP, Octo) bundled and tested; arrow keys for ROMs with a `keys` hint; flag registers saved between sessions |
 | M10 | Hires CHIP-8 | The 64×64 COSMAC VIP mode implemented and tested; its 8 known ROMs in the library and playable ([plan](plans/M10-hires.md), [below](#hires-chip-8)) |
 
-M1–M8 and M10 are done; M1–M8 are deployed.
+M1–M10 are done; M1–M8 are deployed.
 
 ## Platforms
 
@@ -96,11 +97,13 @@ To be settled while building, not before:
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.
 
-- **Arrow keys for games with a keys hint.** For ROMs whose chip-8-database
-  entry has a `keys` hint (27 of the 204 downloadable ones), also map the
-  arrow keys to its up/down/left/right and Space/Shift to `a`/`b`, next to the
-  usual 1234/QWER/ASDF/ZXCV layout. Hints with 0x10 added mean a second
-  keypad; show those properly instead of "?".
+- **Second-keypad hints.** Arrow keys, Space and Shift for games with a
+  `keys` hint were done in M9 (DESIGN §13). Hints with 0x10 added mean a
+  second keypad: show those properly instead of "?", if any turn up (none
+  in the database as of 2026-11-17).
+- **Forget a game's saved data.** Chippie keeps each ROM's flag registers
+  (DESIGN §13), e.g. Depot's best score. A button in the game's details
+  could clear them.
 - **A realistic switch-off** (2026-11-22). Real CRTs don't squash to a line
   and then a dot over half a second: the sweep dies within a few frames, and
   on sets without a spot killer (most before the late 1970s) the still-hot

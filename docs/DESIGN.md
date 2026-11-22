@@ -214,7 +214,7 @@ chippie/
 │   └── testrig/                # headless runner, golden I/O, image diffs
 ├── assets/                     # everything compiled into the app that isn't code
 │   ├── assets.go               # go:embed of the bundled ROMs, every skin.json, the catalogue data
-│   ├── roms/                   # bundled CC0 games + bundled.json (M3)
+│   ├── roms/                   # bundled CC0 games (chip8Archive's and Depot) + bundled.json (M3)
 │   ├── catalogue/
 │   │   ├── snapshot/           # chip-8-database, chip8Archive, sources.json (catalogue-gen)
 │   │   └── overlay.json        # Chippie's pending changes to chip-8-database (§10)
@@ -225,6 +225,9 @@ chippie/
 │   │   ├── cabinet@{1,2,3}x.jpg  cabinet-mask@{1,2,3}x.png  backdrop.jpg
 │   │   └── channel  speed  volume  tint  power @{1,2,3}x.png
 │   └── LICENSES.md             # origin and licence of every asset
+├── games/                      # Chippie's own games, in Octo (CC0); built into assets/roms/
+│   ├── README.md  LICENSE  package.json   # how to build; the pinned Octo assembler
+│   └── depot/                  # Depot (M9): depot.8o, its README, headless tests + goldens
 ├── third_party/
 │   └── chip8-test-suite/       # git submodule pinned to tag v4.2
 ├── web/
@@ -232,7 +235,8 @@ chippie/
 │   └── hosted-roms/            # 18 ROMs only on Zophar / David Winter's page (+ attribution)
 ├── e2e/                        # Playwright tests (+ fixtures/: CC0 ROM for download tests)
 ├── scripts/
-│   └── build.sh                # wasm + compression + page assembly
+│   ├── build.sh                # wasm + compression + page assembly
+│   └── build-games.sh          # games/*/*.8o → assets/roms/*.ch8, updates their SHA-1s
 ├── docs/
 │   ├── DESIGN.md               # this document
 │   ├── ROADMAP.md              # milestones, open questions, ideas
@@ -790,7 +794,11 @@ The prompts used for each cabinet, and tips for making new skins, are in
 - Read in `Update` with `ebiten.IsKeyPressed` and passed to
   `machine.SetKey` before `RunFrame`.
 - If the database has a `keys` hint for a ROM, the remote highlights only
-  those keys.
+  those keys, and extra keys work next to the usual layout: the arrow keys
+  press the hinted `up`/`down`/`left`/`right` keys, Space presses `a` and
+  Shift `b` (`input.Extras`). Hints for a second keypad (0x10 and up) and
+  player 2 get no extra keys. The keys line says which extras work, e.g.
+  "Keys: ↑ W · ↓ S · A E (or arrows, Space)".
 - `Fx0A` follows the original behaviour: it waits for a key to be pressed and
   then released. Timers keep counting down while it waits.
 
@@ -808,6 +816,34 @@ The prompts used for each cabinet, and tips for making new skins, are in
   restarts. A game that only waits for any key lights none
   (`remoteLit` in `internal/app/game.go`). The `touchInputMode` hint (e.g. a
   gamepad layout) isn't used yet.
+
+**Saved flag registers (M9):**
+
+Programs keep data between runs in the flag registers (`FX75` saves V0..VX
+there, `FX85` loads them): SUPER-CHIP has 8, XO-CHIP 16. Octo keeps them
+between sessions, and so does Chippie, per ROM, so a game's high score
+(Depot's best score, for one) survives a reload.
+
+- **Core:** `Machine.Flags`, `Machine.SetFlags`, and `Machine.FlagSaves`,
+  a count of `FX75`s since the last reset, so the app notices a save
+  without comparing the bytes every frame. `Reset` clears all three; the
+  core stays clock-free and does no I/O.
+- **Where they're stored: the preferences** (`platform.Prefs`, so
+  `localStorage` in the browser and the config-folder JSON natively), key
+  `flags/<sha1>`, the 16 bytes in hex; no key means all zero. Decided in M9
+  step 8 instead of the planned IndexedDB store: 16 bytes per ROM is a
+  preference-sized value, `Prefs` already falls back to memory when storage
+  is blocked, and it needs no database version bump. Like the other
+  preferences, they're per device and go when the site's data is cleared.
+- **When they're written** (`internal/app/flags.go`): only when the bytes differ
+  from what is stored, and at most once a second, because some ROMs use
+  the flags as scratch space and run `FX75` every frame. A pending save is
+  written at once when the game pauses (drawer, settings, power, focus
+  lost, halt) and before another ROM starts.
+- **Restored** right after `LoadROM`, before the first frame, for every
+  ROM. Changing the platform or quirks restarts the ROM the same way, so
+  its saved flags come back too.
+- **Not yet:** a way to forget a game's saved data (ROADMAP).
 
 **Text input:**
 
@@ -886,7 +922,7 @@ interfaces, with desktop stubs so `go run ./cmd/chippie` works natively:
 | Need | Browser implementation |
 |---|---|
 | ROM and metadata cache | IndexedDB, through `syscall/js`, wrapped in goroutines and channels (from the prototype) |
-| Small preferences | `localStorage` (synchronous; wrapped so the app works when storage is blocked) |
+| Small preferences, and games' saved flag registers (§13) | `localStorage` (synchronous; wrapped so the app works when storage is blocked) |
 | "Load ROM from device" | A hidden `<input type="file">` created from Go. Its `change` event reads the file with `arrayBuffer()` and sends the bytes on a channel. This is the async case that was hard in the Rust version; goroutines make it a few lines. Not offered on phones and tablets (`(pointer: coarse)`): iOS opens the file chooser only inside the tap, which the app handles a frame later, and ROM files are rarely kept on a phone. |
 | Drag-and-drop ROMs | `ebiten.DroppedFiles()`, no JS needed |
 | Network | `platform.Fetch`: `fetch()` through `syscall/js` (Go's `net/http` would add ~1.7 MB gzip); `net/http` natively |
