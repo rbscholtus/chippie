@@ -1,6 +1,6 @@
 # ROM coverage
 
-Generated 2026-11-15T01:26:02Z by `cmd/catalogue-gen`.
+Generated 2026-11-23T14:37:21Z by `cmd/catalogue-gen`.
 
 chip-8-database: 521 programs, 585 ROMs.
 
