@@ -24,7 +24,7 @@ it to the next weekly refresh.
 | 06 | [Four alternate ROMs](06-alternate-roms.md) | chip-8-database | PR | [#32](https://github.com/chip-8/chip-8-database/pull/32), merged 2026-11-15 |
 | 07 | [A 2 Page Display (64×64) platform](07-hires-platform.md) | chip-8-database | issue | [#33](https://github.com/chip-8/chip-8-database/issues/33), [follow-up](https://github.com/chip-8/chip-8-database/issues/33#issuecomment-6925757552) posted 2026-11-17; closed as completed with #34 |
 | 08 | [Add the 8 2 Page Display programs](08-hires-roms.md) | chip-8-database | PR (with the platform) | [#34](https://github.com/chip-8/chip-8-database/pull/34), updated for the 2 Page Display; merged 2026-11-16 (UTC) |
-| 09 | [Keys hints for nine ROMs, notes for four](09-keys-hints.md) | chip-8-database | PR | draft |
+| 09 | [Keys hints for nine ROMs, notes for four](09-keys-hints.md) | chip-8-database | PR | [#36](https://github.com/chip-8/chip-8-database/pull/36), open |
 
 **Deferred until the maintainers react to #29–#31 (owner's decision,
 2026-11-15):** issues proposing a "where to download" field, asking where

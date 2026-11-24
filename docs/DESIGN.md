@@ -465,14 +465,14 @@ are tuned so games feel right.
   frame is shown for 2 or 3 refreshes; the phosphor afterglow hides this. If
   it's ever noticeable, `ebiten.SetTPS(ebiten.SyncWithFPS)` can lock updates
   to the refresh when it's a multiple of ~60 Hz.
-- **Pausing:** the TV pauses when the tab is hidden and while the library or
-  settings are open. Switched off, it stops; switching on restarts the game
-  (§11). In the browser it keeps
-  running when the page is visible but another window has the focus:
-  `ebiten.IsFocused()` also asks `document.hasFocus()`, which iOS Safari
-  can report as false while the page is in front, and games stopped a few
-  seconds after they started (`platform.InFront`). Natively, it pauses
-  when the window loses focus.
+- **Pausing:** the TV pauses when the tab is hidden, while the library or
+  settings are open, and at the speed knob's bottom stop (or `\`, §11).
+  Switched off, it stops; switching on restarts the game (§11). In the
+  browser it keeps running when the page is visible but another window has
+  the focus: `ebiten.IsFocused()` also asks `document.hasFocus()`, which
+  iOS Safari can report as false while the page is in front, and games
+  stopped a few seconds after they started (`platform.InFront`). Natively,
+  it pauses when the window loses focus.
 
 ## 9. Game library
 
@@ -645,7 +645,7 @@ light grey studio background that fills the page.
 |---|---|---|
 | Power rocker | Off: the CRT collapses and the emulator stops, the pilot lamp goes out. Any click, tap or key switches on again, and the game restarts from the beginning (reset, loaded again, run), like a console switched off and on. A game still downloading starts when it arrives. | P |
 | Channel dial (VHF, `U 2–13`, 13 click-stops) | Next/previous game in the library's current list (its search), skipping games that can't play yet. The OSD shows the game's channel number: its place in that list. | PageUp / PageDown |
-| Speed knob (UHF fine tuning) | Instructions per frame, the settings panel's speed steps; saved per ROM | `[` / `]` |
+| Speed knob (UHF fine tuning) | Instructions per frame, the settings panel's speed steps; saved per ROM. Below the slowest step, its last stop pauses: the machine stops (timers and sound too) and the OSD shows PAUSED until it resumes. A step up resumes at the game's speed. The pause isn't saved; starting a game, or switching on, resumes | `[` / `]`; `\` pauses or resumes without moving the speed |
 | Volume knob | Buzzer and XO-CHIP audio volume, 0 = mute; saved | `-` / `=` |
 | Tint knob | ROM colours → white → amber → green → Octo; saved per ROM | T |
 | "< ROM list" under the TV | Opens the game library; shown while the TV is off too, and a tap there switches on into the library | Esc |

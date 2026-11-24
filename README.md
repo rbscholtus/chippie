@@ -51,7 +51,7 @@ Click or tap a knob to turn it one step, drag it, or use the mouse wheel.
 |---|---|---|
 | Power switch | Switches the TV off and stops the game; any key switches it on again, and the game restarts, like a console switched off and on | P |
 | Channel dial | Next or previous game in the ROM list (following your search and filter) | PageUp / PageDown |
-| Fine-tuning knob | Emulation speed (instructions per frame), saved per game | `[` / `]` |
+| Fine-tuning knob | Emulation speed (instructions per frame), saved per game; its lowest stop pauses the game | `[` / `]`, and `\` pauses or resumes |
 | Volume knob | Volume; all the way down mutes | `-` / `=` |
 | Tint knob | The game's own colours, white, amber, green or Octo colours, saved per game | T |
 | "< ROM list" | The game library | Esc |

@@ -3,9 +3,9 @@
 - **Where:** PR to [chip-8/chip-8-database](https://github.com/chip-8/chip-8-database),
   from branch `keys-hints` of the owner's fork, based on `master`. It only
   adds `keys` and `description` fields to ROMs the database already has.
-- **Status:** draft, not submitted.
+- **Status:** submitted 2026-11-24: [chip-8-database#36](https://github.com/chip-8/chip-8-database/pull/36).
 - **Overlay entries:** the ten "change" entries in
-  `assets/catalogue/overlay.json` (all "pending").
+  `assets/catalogue/overlay.json`, linked to #36.
 
 ## What and why
 
@@ -55,7 +55,8 @@ other descriptions do ("Press 5 to begin").
   Dodge, whose hint comes from Revival's notes for both versions).
 - [x] The keys each program reads, checked headless (Climax: 5 only;
   Matches: 1, 2 and 3 at the start; Loopz: 7, 8, C, D, 6 and 5).
-- [ ] Text below approved by the owner.
+- [x] Text below approved (the owner, 2026-11-24: "chip-8-database PR is
+  approved by me").
 
 ## The PR
 
@@ -64,8 +65,10 @@ other descriptions do ("Press 5 to begin").
 **Body:**
 
 > This adds `keys` hints to nine ROMs, and a `description` to four whose
-> controls don't fit the hint's names or that need a note. All were played,
-> and agree with the authors' notes where there are any:
+> controls don't fit the hint's names or that need a note. All but the
+> CHIP-8 Astro Dodge were played (its hint is from Revival's notes, which
+> cover both versions), and they agree with the authors' notes where there
+> are any:
 >
 > - **Sokoban** (hap): 5/8/7/9 move, A selects a floor and undoes a move,
 >   0 restarts (hap's notes).

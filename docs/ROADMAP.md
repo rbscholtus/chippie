@@ -78,11 +78,12 @@ To be settled while building, not before:
 **Ideas for the end of the project:**
 
 - **Follow up on the upstream submissions** ([upstream/](upstream/README.md);
-  `assets/catalogue/overlay.json`). Answer the maintainers'
-  questions on chip-8-database #29–#34 and chip8-test-suite #38. When
-  chip-8-database merges a PR, the weekly refresh lists its overlay entries
-  as done: delete them from `assets/catalogue/overlay.json`. If the test suite's
-  pictures are fixed, drop `cmd/golden-import`'s four pixel corrections.
+  `assets/catalogue/overlay.json`). Answer the maintainers' questions on
+  chip-8-database #29–#34 and #36 (keys hints and notes), and
+  chip8-test-suite #38. When chip-8-database merges a PR, the weekly
+  refresh lists its overlay entries as done: delete them from
+  `assets/catalogue/overlay.json`. If the test suite's pictures are fixed,
+  drop `cmd/golden-import`'s four pixel corrections.
 - **Upstream proposals, deferred until the maintainers react** (M8 items
   4–6): a standard "where to download" field in chip-8-database, with
   Chippie's `sources.json` as an example; asking where its ~230 unsourced

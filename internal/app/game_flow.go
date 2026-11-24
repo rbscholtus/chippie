@@ -128,6 +128,8 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
 	g.starts++
+	g.paused = false
+	g.osd.hold()
 	g.syncSpeedKnob()
 	g.message = ""
 	g.state = stateRunning
@@ -191,7 +193,7 @@ func (g *Game) saveOverrides(p chip8.Profile) {
 
 // runFrame runs one emulated frame, unless the game should pause.
 func (g *Game) runFrame() {
-	if !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
+	if g.paused || !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
 		input.Release(g.machine)
 		g.sound.SetBuzzer(false)
 
@@ -800,6 +802,7 @@ type pageStatus struct {
 	Filter  string  `json:"filter"` // the library's platform filter ("" for All)
 	Listed  int     `json:"listed"` // games in the library's list now
 	Starts  int     `json:"starts"` // games started (run) since the page loaded; a restart counts
+	Paused  bool    `json:"paused"` // the speed knob's bottom stop, or \
 }
 
 // status is the current pageStatus.
@@ -814,7 +817,7 @@ func (g *Game) status() pageStatus {
 	return pageStatus{
 		State: int(g.state), Title: title, Channel: c.channel, Volume: c.volume, Tint: c.tint,
 		Speed: g.machine.Profile().TicksPerFrame, Skin: g.tv.dir,
-		Filter: g.picker.family.Key(), Listed: len(g.picker.entries), Starts: g.starts,
+		Filter: g.picker.family.Key(), Listed: len(g.picker.entries), Starts: g.starts, Paused: g.paused,
 	}
 }
 

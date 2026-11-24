@@ -59,6 +59,29 @@ test("the power switch and P switch off; a key switches back on and restarts the
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
 });
 
+test("\\ pauses and resumes; [ past the slowest speed pauses, and ] resumes", async ({ page }) => {
+  await startGame(page);
+  const paused = async () => (await appLayout(page)).status.paused;
+  const { speed } = (await appLayout(page)).status;
+
+  await press(page, "Backslash");
+  await expect.poll(paused, { intervals: [300] }).toBe(true);
+  await press(page, "Backslash");
+  await expect.poll(paused, { intervals: [300] }).toBe(false);
+  expect((await appLayout(page)).status.speed).toBe(speed); // the pause leaves the speed alone
+
+  for (let i = 0; i < 25; i++) {
+    await press(page, "BracketLeft"); // more steps than the knob has
+  }
+
+  await expect.poll(paused, { intervals: [300] }).toBe(true);
+  expect((await appLayout(page)).status.speed).toBe(1);
+
+  await press(page, "BracketRight");
+  await expect.poll(paused, { intervals: [300] }).toBe(false);
+  expect((await appLayout(page)).status.speed).toBe(1);
+});
+
 test("T turns the tint knob", async ({ page }) => {
   await startGame(page);
 

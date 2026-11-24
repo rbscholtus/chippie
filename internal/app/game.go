@@ -82,7 +82,8 @@ type Game struct {
 	current    library.Entry
 	currentROM []byte
 	hasROM     bool
-	starts     int // games started (run), for the page status
+	starts     int  // games started (run), for the page status
+	paused     bool // the speed knob's bottom stop (setPaused)
 
 	renderer *crt.Renderer
 	sound    sound.Output

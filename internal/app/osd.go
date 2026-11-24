@@ -42,8 +42,9 @@ type osd struct {
 	img      *ebiten.Image
 
 	lines []string
-	bar   float64 // with a bar: its value, 0 to 1; otherwise negative
-	left  int     // ticks until it disappears
+	held  []string // shown whenever nothing else is, until released (PAUSED)
+	bar   float64  // with a bar: its value, 0 to 1; otherwise negative
+	left  int      // ticks until it disappears, or 0 for held lines
 	dirty bool
 }
 
@@ -82,8 +83,19 @@ func (o *osd) showBar(label string, value float64) {
 	o.lines, o.bar, o.left, o.dirty = []string{label}, value, osdTicks, true
 }
 
-// clear removes the display at once.
+// hold shows lines until hold is called again (with none, to release
+// them); what show displays meanwhile goes over them for a while.
+func (o *osd) hold(lines ...string) {
+	o.held = lines
+	if o.left == 0 {
+		o.lines, o.bar, o.dirty = lines, -1, true
+	}
+}
+
+// clear removes the display at once, held lines too.
 func (o *osd) clear() {
+	o.held = nil
+
 	if len(o.lines) > 0 {
 		o.lines, o.left, o.dirty = nil, 0, true
 	}
@@ -94,7 +106,7 @@ func (o *osd) update() {
 	if o.left > 0 {
 		o.left--
 		if o.left == 0 {
-			o.lines, o.dirty = nil, true
+			o.lines, o.bar, o.dirty = o.held, -1, true
 		}
 	}
 
