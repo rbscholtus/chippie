@@ -93,6 +93,20 @@ To be settled while building, not before:
   An issue there, after play-testing Chipcross and Piper.
 - **XO-CHIP scrolling reference pictures** for the test suite, which has
   none (Chippie generates its own).
+- **The Octojam source is gone** (found 2026-11-24).
+  [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator)
+  returns 404: deleted or made private. The 68 Octojam games Chippie links
+  from its `roms/octojam` folder (pinned at `7a80535`) stay in the library
+  but no longer download, unless already cached; 66 have no other source.
+  `catalogue-gen` fails on it, so `docs/coverage.md` wasn't regenerated in
+  Chippie PR #39, and the weekly refresh fails from 2026-11-30. The owner
+  was emailed on 2026-11-25 (at the address in their public commits),
+  asking to make the repository public again or to put its `roms` folder
+  somewhere public; the owner of Chippie wants to wait a few days for a
+  reply. Then either point `octojam-itch` in `cmd/catalogue-gen` at the
+  new home, or remove the source and its games. Meanwhile, `catalogue-gen`
+  could skip a source it can't reach and keep its entries from the last
+  snapshot, so the refresh keeps working.
 - **One entry per program in the library.** Programs with several ROMs
   (e.g. Guess the Number) are listed once per ROM, which adds near-identical
   rows. List the database's first ROM only, and offer the others in Settings.

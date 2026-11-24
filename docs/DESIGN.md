@@ -490,7 +490,7 @@ Every ROM in each source was hashed (SHA-1) and looked up in chip-8-database:
 | [David Winter's page](https://www.pong-story.com/chip8/) (`chp8_220.zip`, `loopz.zip`) | 40 | 40 | 0 | **No.** Zip-packed, no CORS. 6 are new; the rest match kripod. |
 | [mattmikolay/chip-8](https://github.com/mattmikolay/chip-8) (MIT) | 6 | 4 | 2 | Yes (GitHub raw, CORS `*`) |
 | Timendus [3d-viper-maze](https://github.com/Timendus/3d-viper-maze), [3d-vipr-maze](https://github.com/Timendus/3d-vipr-maze) (GPL-3.0) | 3 | 3 | 0 | Yes (GitHub raw, CORS `*`) |
-| Octojam 6–10 games from itch.io, via [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator) (no licence) | 68 | 42 | 26 | Yes (GitHub raw, CORS `*`) |
+| Octojam 6–10 games from itch.io, via [maxisimonazzi/chip8-emulator](https://github.com/maxisimonazzi/chip8-emulator) (no licence) | 68 | 42 | 26 | **Gone** since 2026-11-24 (404; see ROADMAP). Was GitHub raw, CORS `*` |
 | Revival Studios' Chip-8 Program Pack (2011), via [00laboratories/00SChip8](https://github.com/00laboratories/00SChip8/tree/master/games) (no licence for the ROMs) | 177 | 141 | 36 | Yes (GitHub raw, CORS `*`) |
 | Timendus [alien-inv8sion](https://github.com/Timendus/alien-inv8sion) (GPL-3.0) | 1 | 1 | 0 | Yes (GitHub raw, CORS `*`) |
 | **All combined** | **~310** | **268** | **42** | |
@@ -525,7 +525,8 @@ ROADMAP's "Download sources" item has the other collections checked.
   kripod (no licence; each game belongs to its author), which adds 40
   playable ROMs. Its other 26 aren't in chip-8-database yet: candidates for
   M8. chip8Archive (also shown at beyondloom.com/octo) holds the earlier
-  jams.
+  jams. The repository has been gone since 2026-11-24
+  ([ROADMAP](ROADMAP.md), "The Octojam source is gone").
 - **The 14 ROMs missing from the database** are `dinorun`, `mato8`, `mrworm`
   and `tick` (chip8Archive), `Guess (alt)` (same file as Zophar/c8games
   `GUESS`), `Rush Hour (alt)`, and 8 "hires" ROMs from kripod. Most of the
