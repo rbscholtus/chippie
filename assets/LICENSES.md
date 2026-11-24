@@ -113,8 +113,10 @@ authors' `.DOC` notes, into `roms/hosted/` next to the app.
 - **chip8Archive** `programs.json`: CC0 1.0.
 
 ROMs in the library are not shipped: they are downloaded from their original
-archives (chip8Archive, kripod/chip8-roms, the Timendus test suite and 3D
-maze repositories (GPL-3.0), Matthew Mikolay's chip-8 repository (MIT), and
-the Octojam games that maxisimonazzi/chip8-emulator extracted from itch.io,
-which carry no licence and belong to their authors) at pinned
-commits and cached in the browser, apart from the hosted ROMs above.
+archives (chip8Archive, kripod/chip8-roms, the Timendus test suite, 3D maze
+and Alien-Inv8sion repositories (GPL-3.0), Matthew Mikolay's chip-8
+repository (MIT), Revival Studios' Chip-8 Program Pack as 00SChip8 ships it,
+and the Octojam games that maxisimonazzi/chip8-emulator extracted from
+itch.io; the pack's and the Octojam games carry no licence and belong to
+their authors) at pinned commits and cached in the browser, apart from the
+hosted ROMs above.

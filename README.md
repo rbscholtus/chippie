@@ -133,8 +133,9 @@ original home and checks it against the SHA-1 hash in chip-8-database.
 | [chip8Archive](https://johnearnest.github.io/chip8Archive/) (John Earnest, Octojam games) | CC0 |
 | [kripod/chip8-roms](https://github.com/kripod/chip8-roms) | none stated; each game belongs to its author |
 | [Octojam games from itch.io](https://github.com/maxisimonazzi/chip8-emulator), via maxisimonazzi/chip8-emulator | none stated; each game belongs to its author |
+| [Revival Studios' Chip-8 Program Pack](https://github.com/00laboratories/00SChip8/tree/master/games) (2011), via 00laboratories/00SChip8: SuperChip games and demos | none stated; each game belongs to its author, and the pack may be freely distributed in its original form |
 | [Matthew Mikolay's CHIP-8 programs](https://github.com/mattmikolay/chip-8) | MIT |
-| Timendus's [CHIP-8 test suite](https://github.com/Timendus/chip8-test-suite) and 3D mazes | GPL-3.0 |
+| Timendus's [CHIP-8 test suite](https://github.com/Timendus/chip8-test-suite), 3D mazes and [Alien-Inv8sion](https://github.com/Timendus/alien-inv8sion) | GPL-3.0 |
 | 18 ROMs from [Zophar](https://www.zophar.net/pdroms/chip8.html) and [David Winter's page](https://www.pong-story.com/chip8/), hosted by Chippie because browsers can't download them there | public domain / freeware ([attribution](web/hosted-roms/README.md)) |
 
 A few CC0 games are built in, so there is something to play before anything
