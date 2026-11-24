@@ -44,14 +44,16 @@ test("the wheel over the volume knob changes the volume", async ({ page }) => {
   await expect.poll(async () => (await appLayout(page)).status.volume, { intervals: [300] }).not.toBe(before);
 });
 
-test("the power switch and P switch off; a key switches back on", async ({ page }) => {
+test("the power switch and P switch off; a key switches back on and restarts the game", async ({ page }) => {
   await startGame(page);
+  const { starts, title } = (await appLayout(page)).status;
 
   await click(page, ...(await control(page, "power")));
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
 
   await press(page, "x");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateRunning);
+  expect((await appLayout(page)).status).toMatchObject({ starts: starts + 1, title });
 
   await press(page, "p");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);

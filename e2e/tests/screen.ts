@@ -18,7 +18,7 @@ export type AppLayout = {
   filters: Record<string, [number, number]>; // filter chip ("" = All) → centre
   status: {
     state: number; title: string; channel: number; volume: number; tint: number; speed: number; skin: string;
-    filter: string; listed: number;
+    filter: string; listed: number; starts: number;
   };
 };
 

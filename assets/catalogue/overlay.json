@@ -1,5 +1,107 @@
 {
   "platforms": [],
   "add": [],
-  "change": []
+  "change": [
+    {
+      "upstream": "pending",
+      "sha1": "c7c59b38129fdcec5bb0775a9a141b6ba936e706",
+      "keys": {
+        "up": 5,
+        "down": 8,
+        "left": 7,
+        "right": 9,
+        "a": 10,
+        "b": 0
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "3c444e43e5f02dac4324b7b24cd38ef4938a4b56",
+      "keys": {
+        "up": 12,
+        "down": 13,
+        "left": 7,
+        "right": 8,
+        "a": 6,
+        "b": 5
+      },
+      "description": "The HP48 original. On the calculator, its launcher chose the level and stored it in the RPL user flags with two check bytes ($AA), which the program reads with F285; without them, it exits at once (00FD). Hap's 2006 version adds a difficulty select and runs on any SUPER-CHIP interpreter. Keys: 7 and 8 move left and right, C and D up and down, 6 turns, 5 drops and confirms."
+    },
+    {
+      "upstream": "pending",
+      "sha1": "a2788177b820a28cd27e6d2d180340cb7f4948fb",
+      "keys": {
+        "up": 12,
+        "down": 13,
+        "left": 7,
+        "right": 8,
+        "a": 6,
+        "b": 5
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "c2a361700209116a300457eacbf33a8c40c01b83",
+      "keys": {
+        "up": 2,
+        "down": 8,
+        "left": 4,
+        "right": 6,
+        "a": 5
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "ac621d9fcada302ba6965768229ef130630bc525",
+      "keys": {
+        "up": 2,
+        "down": 8,
+        "left": 4,
+        "right": 6,
+        "a": 5
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "2d415bf1f31777b22ad73208c4d1ad27d5d4f367",
+      "keys": {
+        "up": 2,
+        "down": 8,
+        "left": 4,
+        "right": 6
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "9d9f88509b5033152b7b49d2c7ea3c3c5fce2bd6",
+      "keys": {
+        "a": 5
+      },
+      "description": "Key 5 shows the next picture."
+    },
+    {
+      "upstream": "pending",
+      "sha1": "6bb78d8a0aba93ea18eabdd0134cbdccd1dc2d16",
+      "keys": {
+        "a": 5
+      },
+      "description": "Key 5 shows the next picture."
+    },
+    {
+      "upstream": "pending",
+      "sha1": "24ef21009527ee674de44ccb37e37081654883f9",
+      "keys": {
+        "up": 5,
+        "down": 8,
+        "left": 7,
+        "right": 9,
+        "a": 6
+      }
+    },
+    {
+      "upstream": "pending",
+      "sha1": "24fd50a95b84e3a42e336a06567a9752f17b9979",
+      "description": "Keys 1 and 3 set fewer or more matches, and 2 starts the game. Player 1 takes 1, 2 or 3 matches with keys 4, 5 and 6; player 2 with keys 7, 8 and 9."
+    }
+  ]
 }

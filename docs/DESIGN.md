@@ -465,8 +465,9 @@ are tuned so games feel right.
   frame is shown for 2 or 3 refreshes; the phosphor afterglow hides this. If
   it's ever noticeable, `ebiten.SetTPS(ebiten.SyncWithFPS)` can lock updates
   to the refresh when it's a multiple of ~60 Hz.
-- **Pausing:** the TV pauses when the tab is hidden, when it's switched off,
-  and while the library or settings are open. In the browser it keeps
+- **Pausing:** the TV pauses when the tab is hidden and while the library or
+  settings are open. Switched off, it stops; switching on restarts the game
+  (§11). In the browser it keeps
   running when the page is visible but another window has the focus:
   `ebiten.IsFocused()` also asks `document.hasFocus()`, which iOS Safari
   can report as false while the page is in front, and games stopped a few
@@ -613,13 +614,16 @@ every URL it can be downloaded from:
 chip-8-database, in the database's own format, each linked to the upstream PR
 that proposes it (or "pending"). It can add platforms (in `platforms.json`'s
 shape, checked like the database's, and only ids `chip8` knows), programs and
-ROMs, and change ROMs; platforms are added first, so ROMs can use them.
+ROMs, and change ROMs (title, authors, release, platforms, quirks,
+tickrate, rotation, the `keys` hint, which it replaces whole, and the ROM's
+own `description`); platforms are added first, so ROMs can use them.
 `catalogue` applies it on top of the snapshot and the runtime refresh;
 `catalogue-gen` applies it too, so its ROMs get download locations. Whatever
 upstream already has, an entry skips, and `catalogue-gen` deletes it from
 `overlay.json`, so the weekly refresh PR carries the cleanup (a change counts
-as done only when upstream has every field it sets; an addition, when upstream
-has its ROMs). The PR's summary lists the upstream PRs concerned: marking them
+as done only when upstream has every field it sets, a description word for
+word: if upstream rewords one, delete the entry by hand; an addition, when
+upstream has its ROMs). The PR's summary lists the upstream PRs concerned: marking them
 merged in [upstream/README.md](upstream/README.md) stays a manual step. The PR
 also regenerates `docs/coverage.md`; after editing `overlay.json` by hand, run
 `catalogue-gen` (or wait for the refresh) to regenerate it. The goal is an
@@ -639,7 +643,7 @@ light grey studio background that fills the page.
 
 | Control | Function | Keys |
 |---|---|---|
-| Power rocker | Off: the CRT collapses and the game pauses, the pilot lamp goes out. Any click, tap or key switches on again. | P |
+| Power rocker | Off: the CRT collapses and the emulator stops, the pilot lamp goes out. Any click, tap or key switches on again, and the game restarts from the beginning (reset, loaded again, run), like a console switched off and on. A game still downloading starts when it arrives. | P |
 | Channel dial (VHF, `U 2–13`, 13 click-stops) | Next/previous game in the library's current list (its search), skipping games that can't play yet. The OSD shows the game's channel number: its place in that list. | PageUp / PageDown |
 | Speed knob (UHF fine tuning) | Instructions per frame, the settings panel's speed steps; saved per ROM | `[` / `]` |
 | Volume knob | Buzzer and XO-CHIP audio volume, 0 = mute; saved | `-` / `=` |
@@ -676,8 +680,10 @@ light grey studio background that fills the page.
   device. Where space is tight the counts go, then SUPER-CHIP becomes SCHIP.
   The channel dial steps through the filtered list, so it then stays within
   one platform.
-- On wide screens a details pane beside the list: description, authors,
-  year, platform, and whether it plays offline or downloads.
+- On wide screens a details pane beside the list: description (the ROM's
+  own notes first, e.g. what this version changed or its controls, then the
+  program's), authors, year, platform, and whether it plays offline or
+  downloads.
 - **Picking a game closes the drawer**, shows "tuning in" static while it
   downloads, and starts it. (The prototype's list stayed open because it was
   a permanent panel.)
@@ -798,8 +804,12 @@ The prompts used for each cabinet, and tips for making new skins, are in
 - The default layout is the usual `1234/QWER/ASDF/ZXCV` → `123C/456D/789E/A0BF`.
 - Read in `Update` with `ebiten.IsKeyPressed` and passed to
   `machine.SetKey` before `RunFrame`.
-- If the database has a `keys` hint for a ROM, the remote highlights only
-  those keys.
+- If the database has a `keys` hint for a ROM, the line under the TV names
+  its keys ("Keys: ↑ W · ↓ S · A E"), then any other keys the game has read
+  ("· also F V"), so a hint never hides a key the game uses. Without a hint
+  it lists the keys read ("Keys it reads: …"). A game with a hint that reads
+  all 16 keys is scanning the keypad, which says nothing: then only the hint
+  shows (`input.AlsoRead`).
 - `Fx0A` follows the original behaviour: it waits for a key to be pressed and
   then released. Timers keep counting down while it waits.
 
@@ -810,9 +820,8 @@ The prompts used for each cabinet, and tips for making new skins, are in
   keypad appears below the TV in portrait, or beside it in landscape.
 - Multi-touch is supported (`ebiten.AppendTouchIDs`), so two keys can be held
   at once.
-- Keys in the database's `keys` hint are lighter. Without a hint (or with
-  only second-keypad keys), the keys the game has checked so far are
-  lighter instead (`Machine.KeysRead`, as on the "Keys it reads" line):
+- Keys in the database's `keys` hint are lighter, and so are the other keys
+  the game has checked so far (`Machine.KeysRead`, as on the keys line):
   they light up as the game reads them, and stay lit until the ROM
   restarts. A game that only waits for any key lights none
   (`remoteLit` in `internal/app/game.go`). The `touchInputMode` hint (e.g. a

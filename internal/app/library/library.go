@@ -45,7 +45,8 @@ type Entry struct {
 	Rotation    int            // degrees clockwise the picture is turned (screenRotation)
 	Family      Family         // the platform's family, for the filter
 
-	search string // lower-case text the search matches against
+	search  string // lower-case text the search matches against
+	program string // its program's key (programKey): entries that share it are versions of one game
 }
 
 // Playable reports whether Chippie can run the entry's platform yet.
@@ -111,8 +112,8 @@ func newEntry(c *catalogue.Catalogue, rom *catalogue.ROM, title string, offline 
 
 	e := Entry{
 		SHA1: rom.SHA1, Title: title, Authors: rom.Program.Authors, Release: rom.Program.Release,
-		Description: Reflow(rom.Program.Description), Platform: p, Offline: offline, Keys: rom.Keys,
-		Rotation: rom.ScreenRotation,
+		Description: description(rom), Platform: p, Offline: offline, Keys: rom.Keys,
+		Rotation: rom.ScreenRotation, program: programKey(rom.Program),
 	}
 	if !p.Implemented() {
 		e.Group = ComingSoon
@@ -139,6 +140,33 @@ func LocalEntry(c *catalogue.Catalogue, sha1, fileName string) Entry {
 	e.search = strings.ToLower(fileName)
 
 	return e
+}
+
+// programKey identifies a program: its lowest ROM SHA-1, which doesn't
+// change when the catalogue is parsed again (its ROMs come in map order).
+func programKey(prog *catalogue.Program) string {
+	key := ""
+	for _, rom := range prog.ROMs {
+		if key == "" || rom.SHA1 < key {
+			key = rom.SHA1
+		}
+	}
+
+	return key
+}
+
+// description is what the details show about a ROM: its own notes (e.g.
+// what this version changed, or its controls), then its program's.
+func description(rom *catalogue.ROM) string {
+	parts := make([]string, 0, 2) //nolint:mnd // the ROM's and the program's
+
+	for _, d := range []string{rom.Description, rom.Program.Description} {
+		if strings.TrimSpace(d) != "" {
+			parts = append(parts, strings.Trim(Reflow(d), "\n")) // blank lines only: art keeps its indent
+		}
+	}
+
+	return strings.Join(parts, "\n\n")
 }
 
 func sortEntries(es []Entry) {
@@ -188,6 +216,18 @@ func matchesAll(s string, words []string) bool {
 	}
 
 	return true
+}
+
+// OtherVersion returns a playable entry of the same game as e (a ROM of
+// the same program) other than e itself, if es has one.
+func OtherVersion(es []Entry, e Entry) (Entry, bool) {
+	for _, o := range es {
+		if o.program != "" && o.program == e.program && o.SHA1 != e.SHA1 && o.Playable() {
+			return o, true
+		}
+	}
+
+	return Entry{}, false
 }
 
 // Find returns the entry with the given SHA-1.

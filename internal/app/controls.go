@@ -381,8 +381,9 @@ func (g *Game) paletteWithTint(sha1 string) crt.Palette {
 	return g.paletteFor(sha1)
 }
 
-// powerOff switches the TV off: the picture collapses and the game pauses.
-// Any click, tap or key switches it back on (Update, stateOff).
+// powerOff switches the TV off: the picture collapses and the emulator
+// stops. Any click, tap or key switches it back on (Update, stateOff), and
+// the game restarts (switchOn).
 func (g *Game) powerOff() {
 	g.state = stateOff
 	g.sound.SetBuzzer(false)

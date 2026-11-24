@@ -61,7 +61,20 @@ type OverlayChange struct {
 	QuirkyPlatforms map[string]map[string]bool `json:"quirkyPlatforms,omitempty"`
 	Tickrate        int                        `json:"tickrate,omitempty"`
 	ScreenRotation  int                        `json:"screenRotation,omitempty"` // 0: not changed
+	Keys            map[string]int             `json:"keys,omitempty"`           // the whole hint, replaced
+	Description     string                     `json:"description,omitempty"`    // the ROM's own, not the program's
 }
+
+// hintNames are the names a keys hint may use, as in chip-8-database's
+// schema: a value of 0x10 or more is a key on a second keypad.
+var hintNames = map[string]bool{ //nolint:gochecknoglobals // read-only table
+	"up": true, "down": true, "left": true, "right": true, "a": true, "b": true,
+	"player2Up": true, "player2Down": true, "player2Left": true, "player2Right": true,
+	"player2A": true, "player2B": true,
+}
+
+// maxHintKey is the highest key a hint can name: F on the second keypad.
+const maxHintKey = 0x1F
 
 // OverlayStatus is what one entry did.
 type OverlayStatus struct {
@@ -133,12 +146,28 @@ func ParseOverlay(data []byte) (*Overlay, error) {
 			return nil, err
 		}
 
-		if !sha1Pattern.MatchString(c.SHA1) {
-			return nil, fmt.Errorf("%w: overlay change: %q is not a lower-case SHA-1", ErrInvalid, c.SHA1)
+		if err := checkChange(c); err != nil {
+			return nil, err
 		}
 	}
 
 	return &o, nil
+}
+
+// checkChange checks a change's SHA-1 and keys hint, which need nothing
+// from the database.
+func checkChange(c OverlayChange) error {
+	if !sha1Pattern.MatchString(c.SHA1) {
+		return fmt.Errorf("%w: overlay change: %q is not a lower-case SHA-1", ErrInvalid, c.SHA1)
+	}
+
+	for name, key := range c.Keys {
+		if !hintNames[name] || key < 0 || key > maxHintKey {
+			return fmt.Errorf("%w: overlay change %s: keys hint %q: %d", ErrInvalid, c.SHA1, name, key)
+		}
+	}
+
+	return nil
 }
 
 // ApplyOverlay adds and changes what the overlay says, skipping whatever
@@ -291,6 +320,9 @@ func (db *DB) applyChange(c OverlayChange) (OverlayStatus, error) {
 	set("tickrate", c.Tickrate > 0, c.Tickrate == rom.Tickrate, func() { rom.Tickrate = c.Tickrate })
 	set("screenRotation", c.ScreenRotation != 0, c.ScreenRotation == rom.ScreenRotation,
 		func() { rom.ScreenRotation = c.ScreenRotation })
+	set("keys", c.Keys != nil, reflect.DeepEqual(c.Keys, rom.Keys), func() { rom.Keys = c.Keys })
+	set("description", c.Description != "", c.Description == rom.Description,
+		func() { rom.Description = c.Description })
 
 	st := OverlayStatus{
 		Upstream: c.Upstream, What: "change " + rom.Program.Title, Done: len(fields) == 0,
@@ -334,7 +366,7 @@ func (db *DB) checkROM(rom *ROM) error {
 // newROM builds a ROM from its programs.json entry.
 func newROM(hash string, rr rawROM, prog *Program) *ROM {
 	return &ROM{
-		SHA1: strings.ToLower(hash), File: rr.File, Platforms: rr.Platforms,
+		SHA1: strings.ToLower(hash), File: rr.File, Description: rr.Description, Platforms: rr.Platforms,
 		QuirkyPlatforms: rr.QuirkyPlatforms, Tickrate: rr.Tickrate, Colors: rr.Colors,
 		Keys: rr.Keys, TouchInputMode: rr.TouchInputMode, ScreenRotation: rr.ScreenRotation, Program: prog,
 	}
