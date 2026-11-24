@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -126,6 +127,9 @@ func (g *Game) run(e library.Entry, rom []byte) error {
 	g.renderer.SetPicture(pictureIn(g.tv.lay.tube, e.Rotation))
 
 	g.current, g.currentROM, g.hasROM = e, rom, true
+	g.starts++
+	g.paused = false
+	g.osd.hold()
 	g.syncSpeedKnob()
 	g.message = ""
 	g.state = stateRunning
@@ -189,7 +193,7 @@ func (g *Game) saveOverrides(p chip8.Profile) {
 
 // runFrame runs one emulated frame, unless the game should pause.
 func (g *Game) runFrame() {
-	if !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
+	if g.paused || !shouldRun(g.state, platform.InFront(ebiten.IsFocused()), g.machine.Halted()) {
 		input.Release(g.machine)
 		g.sound.SetBuzzer(false)
 
@@ -205,8 +209,25 @@ func (g *Game) runFrame() {
 	g.renderer.Update(g.machine.Display())
 
 	if err := g.machine.State().Err; err != nil {
-		g.message = "Halted: " + err.Error() + ". Open the ROM list or settings below."
+		g.message = haltMessage(g.current, g.picker.all, err)
 	}
+}
+
+// haltMessage says why the game e stopped. A program that quits (00FD)
+// did nothing wrong, so that is said plainly; if it has another version in
+// the library (all), the message points to it, since some quit at once
+// (e.g. the HP48 original of Loopz, which needs its calculator launcher).
+// The message stands in for the title, so it doesn't repeat it.
+func haltMessage(e library.Entry, all []library.Entry, err error) string {
+	if !errors.Is(err, chip8.ErrProgramExit) {
+		return "Halted: " + err.Error() + ". Open the ROM list or settings below."
+	}
+
+	if other, ok := library.OtherVersion(all, e); ok {
+		return "The game quit (00FD). The ROM list has another version: " + other.Title
+	}
+
+	return "The game quit (00FD). Switch the TV off and on to restart it."
 }
 
 func (g *Game) updateRunning(in pointerInput) {
@@ -680,16 +701,22 @@ func (g *Game) reloadSkin() {
 	g.message = err.Error()
 }
 
-// switchOn switches the TV on: back to the game if there is one, else the
-// library.
+// switchOn switches the TV on. Like a console switched off and on, the
+// machine restarts: the game it had starts again from the beginning. A
+// game still downloading starts when it arrives; without a game, the
+// library opens.
 func (g *Game) switchOn() {
-	if g.hasROM {
-		g.state = stateRunning
-
-		return
+	switch {
+	case g.loading != nil:
+		g.state = stateLoading
+	case g.hasROM:
+		if err := g.run(g.current, g.currentROM); err != nil {
+			g.message = err.Error()
+			g.openPicker()
+		}
+	default:
+		g.openPicker()
 	}
-
-	g.openPicker()
 }
 
 // switchOnAt switches the TV on from a press or key. A press on the
@@ -774,6 +801,8 @@ type pageStatus struct {
 	Skin    string  `json:"skin"`   // the TV skin's folder
 	Filter  string  `json:"filter"` // the library's platform filter ("" for All)
 	Listed  int     `json:"listed"` // games in the library's list now
+	Starts  int     `json:"starts"` // games started (run) since the page loaded; a restart counts
+	Paused  bool    `json:"paused"` // the speed knob's bottom stop, or \
 }
 
 // status is the current pageStatus.
@@ -788,7 +817,7 @@ func (g *Game) status() pageStatus {
 	return pageStatus{
 		State: int(g.state), Title: title, Channel: c.channel, Volume: c.volume, Tint: c.tint,
 		Speed: g.machine.Profile().TicksPerFrame, Skin: g.tv.dir,
-		Filter: g.picker.family.Key(), Listed: len(g.picker.entries),
+		Filter: g.picker.family.Key(), Listed: len(g.picker.entries), Starts: g.starts, Paused: g.paused,
 	}
 }
 

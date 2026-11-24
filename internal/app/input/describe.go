@@ -41,6 +41,35 @@ func DescribeMask(mask uint16) string {
 	return strings.Join(labels, " ")
 }
 
+// everyKey is the whole keypad, a bit per hex key.
+const everyKey = 1<<len(keyLabels) - 1
+
+// HintMask returns the keypad keys a keys hint names (bit k for hex key k).
+// Keys on a second keypad (0x10 and up) aren't on it.
+func HintMask(hints map[string]int) uint16 {
+	var mask uint16
+
+	for _, hex := range hints {
+		if hex >= 0 && hex < len(keyLabels) {
+			mask |= 1 << hex
+		}
+	}
+
+	return mask
+}
+
+// AlsoRead returns the keys a game has read (read, from Machine.KeysRead)
+// that its hint (from HintMask) doesn't name, so a hint never hides a key
+// the game uses. A game with a hint that has read every key is scanning the
+// keypad, which says nothing about its controls: then there are none.
+func AlsoRead(hint, read uint16) uint16 {
+	if hint != 0 && read == everyKey {
+		return 0
+	}
+
+	return read &^ hint
+}
+
 // hintNames gives chip-8-database's key names a short label.
 var hintNames = map[string]string{ //nolint:gochecknoglobals // read-only table
 	"up": "↑", "down": "↓", "left": "←", "right": "→", "a": "A", "b": "B",

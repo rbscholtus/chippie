@@ -213,6 +213,10 @@ func TestOverlayRejects(t *testing.T) {
 		"upper-case hash": `{"add": [{"upstream": "pending", "program": {"title": "X", "roms": {"` +
 			strings.ToUpper("abcdef") + newHash[6:] + `": {}}}}]}`,
 		"change no hash": `{"change": [{"upstream": "pending", "sha1": "x"}]}`,
+		"keys hint name not in the schema": `{"change": [{"upstream": "pending", "sha1": "` + newHash +
+			`", "keys": {"start": 5}}]}`,
+		"keys hint beyond the second keypad": `{"change": [{"upstream": "pending", "sha1": "` + newHash +
+			`", "keys": {"up": 32}}]}`,
 		"platform chip8 doesn't know": `{"platforms": [{"upstream": "pending",
 			"platform": {"id": "nope", "name": "Nope", "defaultTickrate": 15}}]}`,
 		"platform without a name": `{"platforms": [{"upstream": "pending",
@@ -359,6 +363,28 @@ func TestOverlayChangesProgramFields(t *testing.T) {
 
 	if rom, _ := db.ROM(glitchGhost); rom.Program.Release != "2015" || len(rom.Program.Authors) != 2 {
 		t.Errorf("program not changed: %+v", rom.Program)
+	}
+
+	if status, _ = db.ApplyOverlay(o); !status[0].Done {
+		t.Error("applied twice: not reported done")
+	}
+}
+
+func TestOverlayChangesKeysAndDescription(t *testing.T) {
+	t.Parallel()
+
+	db := loadSnapshot(t).DB
+	o := mustOverlay(t, `{"change": [{"upstream": "pending", "sha1": "`+glitchGhost+`",
+		"keys": {"up": 5, "a": 6, "player2Up": 21}, "description": "Key 6 jumps."}]}`)
+
+	status, err := db.ApplyOverlay(o)
+	if err != nil || status[0].Done || !strings.Contains(status[0].What, "keys, description") {
+		t.Fatalf("change: %v %+v", err, status)
+	}
+
+	rom, _ := db.ROM(glitchGhost)
+	if rom.Keys["a"] != 6 || rom.Keys["player2Up"] != 0x15 || rom.Description != "Key 6 jumps." {
+		t.Errorf("ROM not changed: keys %v, description %q", rom.Keys, rom.Description)
 	}
 
 	if status, _ = db.ApplyOverlay(o); !status[0].Done {

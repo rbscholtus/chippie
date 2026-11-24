@@ -14,6 +14,7 @@ import (
 
 	"github.com/rbscholtus/chippie/assets"
 	"github.com/rbscholtus/chippie/internal/app/crt"
+	"github.com/rbscholtus/chippie/internal/app/input"
 	"github.com/rbscholtus/chippie/internal/app/library"
 	"github.com/rbscholtus/chippie/internal/app/roms"
 	"github.com/rbscholtus/chippie/internal/app/skin"
@@ -81,6 +82,8 @@ type Game struct {
 	current    library.Entry
 	currentROM []byte
 	hasROM     bool
+	starts     int  // games started (run), for the page status
+	paused     bool // the speed knob's bottom stop (setPaused)
 
 	renderer *crt.Renderer
 	sound    sound.Output
@@ -362,22 +365,12 @@ func (g *Game) keysHint() uint16 {
 	return remoteLit(g.current.Keys, read)
 }
 
-// remoteLit chooses the keys the remote lights: the database's keys hint
-// if the game has one, otherwise the keys the game has checked so far
-// (read, from Machine.KeysRead), which fill in as it plays. A game that
-// only waits for any key reads none, so nothing is lit.
+// remoteLit chooses the keys the remote lights: the database's keys hint,
+// if the game has one, and the other keys the game has checked so far (read,
+// from Machine.KeysRead, as input.AlsoRead filters them), which fill in as
+// it plays. A game that only waits for any key reads none.
 func remoteLit(hints map[string]int, read uint16) uint16 {
-	var mask uint16
+	hint := input.HintMask(hints)
 
-	for _, hex := range hints {
-		if hex >= 0 && hex < chip8.NumKeys {
-			mask |= 1 << hex
-		}
-	}
-
-	if mask != 0 {
-		return mask
-	}
-
-	return read
+	return hint | input.AlsoRead(hint, read)
 }

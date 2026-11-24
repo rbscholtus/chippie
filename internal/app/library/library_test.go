@@ -12,6 +12,8 @@ const (
 	glitchGhost = "2cdcb3c29a5f013a991db5909ca8e18e27b3c42b"
 	clockVIP    = "016345d75eef34448840845a9590d41e6bfdf46a" // needs hybridVIP, not implemented
 	ibmTest     = "b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379"
+	loopzHP48   = "3c444e43e5f02dac4324b7b24cd38ef4938a4b56" // Andreas Daumann's original, 1993
+	loopzHap    = "a2788177b820a28cd27e6d2d180340cb7f4948fb" // hap's, with difficulty select
 )
 
 func snapshot(t *testing.T) *catalogue.Catalogue {
@@ -169,5 +171,42 @@ func TestSubtitleAndLocal(t *testing.T) {
 
 	if Playable.Name() == ComingSoon.Name() {
 		t.Error("group names should differ")
+	}
+}
+
+func TestOtherVersion(t *testing.T) {
+	t.Parallel()
+
+	es := Build(snapshot(t), nil)
+
+	hp48, ok := Find(es, loopzHP48)
+	if !ok {
+		t.Fatal("Loopz (1993) isn't in the library")
+	}
+
+	if other, ok := OtherVersion(es, hp48); !ok || other.SHA1 != loopzHap {
+		t.Errorf("Loopz (1993): other version %q, %v; want hap's", other.SHA1, ok)
+	}
+
+	ibm, _ := Find(es, ibmTest)
+	if other, ok := OtherVersion(es, ibm); ok {
+		t.Errorf("IBM logo has one ROM, yet another version: %s", other.Title)
+	}
+
+	if _, ok := OtherVersion(es, LocalEntry(nil, strings.Repeat("0", 40), "mine.ch8")); ok {
+		t.Error("an unknown local ROM has no other versions")
+	}
+}
+
+func TestDescriptionHasTheROMsNotesFirst(t *testing.T) {
+	t.Parallel()
+
+	hap, ok := Find(Build(snapshot(t), nil), loopzHap)
+	if !ok {
+		t.Fatal("hap's Loopz isn't in the library")
+	}
+
+	if !strings.HasPrefix(hap.Description, "difficulty select for Loopz, by hap") {
+		t.Errorf("hap's Loopz: description starts %.40q, want the ROM's own notes", hap.Description)
 	}
 }

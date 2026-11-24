@@ -285,17 +285,19 @@ func (u *ui) drawRunningStatus(dst *ebiten.Image, g *Game, area image.Rectangle)
 }
 
 // keysLine describes the running game's controls: the database's hint if
-// it has one, otherwise the keys the game has checked so far.
+// it has one, then the other keys the game has checked so far (all of them
+// without a hint), so the hint never hides a key the game uses.
 func (u *ui) keysLine(g *Game) string {
-	if len(g.current.Keys) > 0 {
-		return "Keys: " + input.DescribeHints(g.current.Keys)
-	}
-
-	mask, anyKey := g.machine.KeysRead()
+	read, anyKey := g.machine.KeysRead()
+	also := input.AlsoRead(input.HintMask(g.current.Keys), read)
 
 	switch {
-	case mask != 0:
-		return "Keys it reads: " + input.DescribeMask(mask)
+	case len(g.current.Keys) > 0 && also != 0:
+		return "Keys: " + input.DescribeHints(g.current.Keys) + " · also " + input.DescribeMask(also)
+	case len(g.current.Keys) > 0:
+		return "Keys: " + input.DescribeHints(g.current.Keys)
+	case also != 0:
+		return "Keys it reads: " + input.DescribeMask(also)
 	case anyKey:
 		return "Press any key (1–4, Q–R, A–F, Z–V)"
 	default:

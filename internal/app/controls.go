@@ -76,7 +76,7 @@ var tints = []tintPreset{ //nolint:gochecknoglobals // read-only table
 type controlState struct {
 	channel int     // click-stops the channel dial has turned
 	volume  float64 // 0 to 1
-	speed   float64 // the speed knob's position, 0 to 1
+	speed   float64 // the speed knob's position, 0 (paused) to 1
 	tint    int     // index into tints
 	on      bool    // the power switch
 }
@@ -184,7 +184,7 @@ func (g *Game) dragControl(in pointerInput) {
 		g.setVolume(g.tv.controls.volume + gr.dragY/knobDragRange)
 		gr.dragY = 0
 	case controlSpeed:
-		per := knobDragRange / float64(len(speedSteps)-1)
+		per := knobDragRange / float64(len(speedSteps)) // the steps and the pause
 		for ; gr.dragY >= per; gr.dragY -= per {
 			g.stepSpeed(1)
 		}
@@ -246,8 +246,8 @@ func (g *Game) controlWheel(pos image.Point) {
 	}
 }
 
-// controlKeys: PageUp/PageDown channel, -/= volume, [/] speed, T tint,
-// P power. None of these is on the CHIP-8 keypad.
+// controlKeys: PageUp/PageDown channel, -/= volume, [/] speed, \ pause,
+// T tint, P power. None of these is on the CHIP-8 keypad.
 func (g *Game) controlKeys() {
 	switch {
 	case inpututil.IsKeyJustPressed(ebiten.KeyPageUp):
@@ -262,6 +262,8 @@ func (g *Game) controlKeys() {
 		g.stepSpeed(1)
 	case pressedOrRepeat(ebiten.KeyBracketLeft):
 		g.stepSpeed(-1)
+	case inpututil.IsKeyJustPressed(ebiten.KeyBackslash):
+		g.setPaused(!g.paused)
 	case inpututil.IsKeyJustPressed(ebiten.KeyT):
 		g.stepTint(1)
 	case inpututil.IsKeyJustPressed(ebiten.KeyP):
@@ -320,13 +322,29 @@ func (g *Game) loadVolume() {
 }
 
 // stepSpeed moves the running game's speed one step, like the settings
-// panel's speed row, and saves it with the game's settings.
+// panel's speed row, and saves it with the game's settings. Below the
+// slowest speed is the knob's last stop, the pause; a step up from there
+// resumes at the game's speed.
 func (g *Game) stepSpeed(dir int) {
 	if !g.hasROM {
 		return
 	}
 
 	p := g.machine.Profile()
+
+	switch {
+	case g.paused:
+		if dir > 0 {
+			g.setPaused(false)
+		}
+
+		return
+	case dir < 0 && p.TicksPerFrame <= speedSteps[0]:
+		g.setPaused(true)
+
+		return
+	}
+
 	p.TicksPerFrame = stepSpeed(p.TicksPerFrame, dir)
 	g.machine.SetTicksPerFrame(p.TicksPerFrame)
 	g.saveOverrides(p)
@@ -334,8 +352,15 @@ func (g *Game) stepSpeed(dir int) {
 	g.osd.show(fmt.Sprintf("SPEED %d", p.TicksPerFrame))
 }
 
-// syncSpeedKnob turns the speed knob to the running game's speed.
+// syncSpeedKnob turns the speed knob to the running game's speed, or to
+// its bottom stop while paused.
 func (g *Game) syncSpeedKnob() {
+	if g.paused {
+		g.tv.controls.speed = 0
+
+		return
+	}
+
 	n := g.machine.Profile().TicksPerFrame
 	i := slices.IndexFunc(speedSteps, func(s int) bool { return s >= n })
 
@@ -343,7 +368,29 @@ func (g *Game) syncSpeedKnob() {
 		i = len(speedSteps) - 1
 	}
 
-	g.tv.controls.speed = float64(i) / float64(len(speedSteps)-1)
+	g.tv.controls.speed = float64(i+1) / float64(len(speedSteps)) // stop 0 is the pause
+}
+
+// setPaused pauses or resumes the running game (the speed knob's bottom
+// stop, or \). The machine stops entirely, timers and sound too. The
+// game's speed stays as it was, and nothing is saved, so a game never
+// starts paused: starting one (run) resumes.
+func (g *Game) setPaused(on bool) {
+	if !g.hasROM || on == g.paused {
+		return
+	}
+
+	g.paused = on
+	g.syncSpeedKnob()
+
+	if on {
+		g.osd.hold("PAUSED")
+
+		return
+	}
+
+	g.osd.hold()
+	g.osd.show(fmt.Sprintf("SPEED %d", g.machine.Profile().TicksPerFrame))
 }
 
 // stepTint moves the tint knob, wrapping, and applies and saves it for the
@@ -381,8 +428,9 @@ func (g *Game) paletteWithTint(sha1 string) crt.Palette {
 	return g.paletteFor(sha1)
 }
 
-// powerOff switches the TV off: the picture collapses and the game pauses.
-// Any click, tap or key switches it back on (Update, stateOff).
+// powerOff switches the TV off: the picture collapses and the emulator
+// stops. Any click, tap or key switches it back on (Update, stateOff), and
+// the game restarts (switchOn).
 func (g *Game) powerOff() {
 	g.state = stateOff
 	g.sound.SetBuzzer(false)

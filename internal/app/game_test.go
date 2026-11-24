@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/rbscholtus/chippie/internal/app/library"
+	"github.com/rbscholtus/chippie/internal/catalogue"
 	"github.com/rbscholtus/chippie/internal/chip8"
 )
 
@@ -459,6 +460,78 @@ func TestFilterChipsLayout(t *testing.T) {
 	}
 }
 
+// TestKeysLine checks that the keys line adds the keys a game reads to its
+// hint, and lists them alone without one.
+func TestKeysLine(t *testing.T) {
+	t.Parallel()
+
+	// 6006 E09E 1202: read key 6 (E) over and over.
+	readsE := []byte{0x60, 0x06, 0xE0, 0x9E, 0x12, 0x02}
+	wasd := map[string]int{"up": 5, "left": 7, "down": 8, "right": 9}
+
+	tests := []struct {
+		name  string
+		hints map[string]int
+		rom   []byte
+		want  string
+	}{
+		{"the hint and a key beyond it", wasd, readsE, "Keys: ↑ W · ↓ S · ← A · → D · also E"},
+		{"the hint, before the game reads a key", wasd, nil, "Keys: ↑ W · ↓ S · ← A · → D"},
+		{"no hint: the keys read", nil, readsE, "Keys it reads: E"},
+		{"no hint, nothing read", nil, nil, ""},
+	}
+
+	for _, tt := range tests {
+		g := &Game{machine: chip8.New(chip8.DefaultProfile(chip8.ModernChip8))}
+		g.current.Keys = tt.hints
+
+		if tt.rom != nil {
+			if err := g.machine.LoadROM(tt.rom); err != nil {
+				t.Fatal(err)
+			}
+
+			g.machine.RunFrame()
+		}
+
+		if got := (&ui{}).keysLine(g); got != tt.want {
+			t.Errorf("%s: %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestHaltMessage(t *testing.T) {
+	t.Parallel()
+
+	c, err := catalogue.LoadSnapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	all := library.Build(c, nil)
+	loopz, _ := library.Find(all, "3c444e43e5f02dac4324b7b24cd38ef4938a4b56") // the HP48 original
+	ibm, _ := library.Find(all, "b9bbc12cee3f7b9d3b1f69161f7d7a2d86953379")
+
+	tests := []struct {
+		name string
+		e    library.Entry
+		err  error
+		want string
+	}{
+		{
+			"quit, with another version", loopz, chip8.ErrProgramExit,
+			"The game quit (00FD). The ROM list has another version: Loopz (Loopz (with difficulty select)",
+		},
+		{"quit, the only version", ibm, chip8.ErrProgramExit, "The game quit (00FD). Switch the TV off and on"},
+		{"an error", ibm, chip8.ErrUnknownOpcode, "Halted: " + chip8.ErrUnknownOpcode.Error()},
+	}
+
+	for _, tt := range tests {
+		if got := haltMessage(tt.e, all, tt.err); !strings.HasPrefix(got, tt.want) {
+			t.Errorf("%s: %q, want it to start %q", tt.name, got, tt.want)
+		}
+	}
+}
+
 func TestRemoteLit(t *testing.T) {
 	t.Parallel()
 
@@ -470,7 +543,9 @@ func TestRemoteLit(t *testing.T) {
 		read  uint16
 		want  uint16
 	}{
-		{"hint wins", map[string]int{"up": 1, "a": 0xA}, read, 1<<1 | 1<<0xA},
+		{"the hint and the keys read", map[string]int{"up": 1, "a": 0xA}, read, 1<<1 | 1<<0xA | read},
+		{"the hint, before any key is read", map[string]int{"up": 1, "a": 0xA}, 0, 1<<1 | 1<<0xA},
+		{"the hint, when the game scans the keypad", map[string]int{"up": 1}, 0xFFFF, 1 << 1},
 		{"no hint: the keys read", nil, read, read},
 		{"empty hint: the keys read", map[string]int{}, read, read},
 		{"hint only for a second keypad: the keys read", map[string]int{"up": 0x15}, read, read},

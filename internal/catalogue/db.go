@@ -71,6 +71,7 @@ type Program struct {
 type ROM struct {
 	SHA1            string
 	File            string
+	Description     string                     // notes on this ROM only; the program has its own
 	Platforms       []string                   // supported platforms, best first
 	QuirkyPlatforms map[string]map[string]bool // per platform: quirks that differ from its defaults
 	Tickrate        int                        // 0: use the platform's
@@ -106,6 +107,7 @@ type (
 	}
 	rawROM struct {
 		File            string                     `json:"file"`
+		Description     string                     `json:"description"`
 		Platforms       []string                   `json:"platforms"`
 		QuirkyPlatforms map[string]map[string]bool `json:"quirkyPlatforms"`
 		Tickrate        int                        `json:"tickrate"`

@@ -35,6 +35,11 @@ const (
 // emulated frame.
 const PhosphorDecay = 0.82
 
+// settleFrames is how many phosphor passes a change gets, so a full glow
+// fades out (PhosphorDecay^32 × 255 < 0.5) even when no new frames come,
+// e.g. while the game is paused and the on-screen display changes.
+const settleFrames = 32
+
 // framesPerSecond converts ticks to seconds for the flicker.
 const framesPerSecond = 60
 
@@ -56,6 +61,7 @@ type Renderer struct {
 	picture image.Rectangle // the emulated picture within it; empty = all of it
 	overlay *ebiten.Image   // the on-screen display, screen-sized; may be nil
 	dirty   bool            // a new frame or overlay hasn't gone through the phosphor yet
+	settle  int             // phosphor passes still to run, so old glow fades out
 
 	upOpts      ebiten.DrawImageOptions
 	overOpts    ebiten.DrawImageOptions
@@ -246,12 +252,19 @@ func (r *Renderer) Draw(dst *ebiten.Image, tick uint64) {
 			r.up.DrawImage(r.overlay, &r.overOpts)
 		}
 
-		// Phosphor: new glow = max(current picture, previous glow × decay).
+		r.dirty = false
+		r.settle = settleFrames
+	}
+
+	// Phosphor: new glow = max(current picture, previous glow × decay). It
+	// runs on after the last change until the old glow is gone; one pass
+	// alone would leave it at 82% (e.g. old text under new, while paused).
+	if r.settle > 0 {
+		r.settle--
 		prev := r.phos[r.cur]
 		r.cur ^= 1
 		r.phosOpts.Images[0], r.phosOpts.Images[1] = r.up, prev
 		r.phos[r.cur].DrawRectShader(r.screen.Dx(), r.screen.Dy(), r.phosphor, &r.phosOpts)
-		r.dirty = false
 	}
 
 	r.crtOpts.Uniforms["Time"] = float32(tick) / framesPerSecond

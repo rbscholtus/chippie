@@ -128,3 +128,13 @@ func TestPlaceFrame(t *testing.T) {
 		}
 	}
 }
+
+// TestSettleFramesFadeAFullGlow checks that the passes run after a change
+// take a full glow below half a step of 8-bit colour, so nothing is left.
+func TestSettleFramesFadeAFullGlow(t *testing.T) {
+	t.Parallel()
+
+	if left := math.Pow(PhosphorDecay, settleFrames) * 0xFF; left >= 0.5 {
+		t.Errorf("after %d passes, a full glow is still %.2f of 255", settleFrames, left)
+	}
+}

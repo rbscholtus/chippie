@@ -44,17 +44,42 @@ test("the wheel over the volume knob changes the volume", async ({ page }) => {
   await expect.poll(async () => (await appLayout(page)).status.volume, { intervals: [300] }).not.toBe(before);
 });
 
-test("the power switch and P switch off; a key switches back on", async ({ page }) => {
+test("the power switch and P switch off; a key switches back on and restarts the game", async ({ page }) => {
   await startGame(page);
+  const { starts, title } = (await appLayout(page)).status;
 
   await click(page, ...(await control(page, "power")));
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
 
   await press(page, "x");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateRunning);
+  expect((await appLayout(page)).status).toMatchObject({ starts: starts + 1, title });
 
   await press(page, "p");
   await expect.poll(async () => (await appLayout(page)).status.state, { intervals: [300] }).toBe(stateOff);
+});
+
+test("\\ pauses and resumes; [ past the slowest speed pauses, and ] resumes", async ({ page }) => {
+  await startGame(page);
+  const paused = async () => (await appLayout(page)).status.paused;
+  const { speed } = (await appLayout(page)).status;
+
+  await press(page, "Backslash");
+  await expect.poll(paused, { intervals: [300] }).toBe(true);
+  await press(page, "Backslash");
+  await expect.poll(paused, { intervals: [300] }).toBe(false);
+  expect((await appLayout(page)).status.speed).toBe(speed); // the pause leaves the speed alone
+
+  for (let i = 0; i < 25; i++) {
+    await press(page, "BracketLeft"); // more steps than the knob has
+  }
+
+  await expect.poll(paused, { intervals: [300] }).toBe(true);
+  expect((await appLayout(page)).status.speed).toBe(1);
+
+  await press(page, "BracketRight");
+  await expect.poll(paused, { intervals: [300] }).toBe(false);
+  expect((await appLayout(page)).status.speed).toBe(1);
 });
 
 test("T turns the tint knob", async ({ page }) => {
