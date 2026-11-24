@@ -48,16 +48,18 @@ func TestDimIsPremultiplied(t *testing.T) {
 	}
 }
 
-// TestOSDHold checks that held lines (PAUSED) stay, come back after
-// something shown over them, and go when released.
+// TestOSDHold checks that held lines (PAUSED) replace what's shown at
+// once, stay, come back after something shown over them, and go when
+// released.
 func TestOSDHold(t *testing.T) {
 	t.Parallel()
 
 	o := &osd{bar: -1}
+	o.show("SPEED 1")
 	o.hold("PAUSED")
 
-	if len(o.lines) != 1 || o.lines[0] != "PAUSED" {
-		t.Fatalf("held: %v", o.lines)
+	if len(o.lines) != 1 || o.lines[0] != "PAUSED" || o.left != 0 {
+		t.Fatalf("held: %v, %d ticks left; want PAUSED in place of SPEED", o.lines, o.left)
 	}
 
 	o.showBar("VOLUME", 0.5)

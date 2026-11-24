@@ -14,7 +14,11 @@ the plain, pixel-exact picture, which the tests use.
    display (channel, volume, tint, speed) is drawn on top here, so it goes
    through the same effects.
 2. **Phosphor** (`phosphor.kage`): new glow = the larger of the current
-   picture and the previous glow × 0.82, once per emulated frame.
+   picture and the previous glow × 0.82, once per emulated frame. After the
+   last change it runs on for 32 frames, until the old glow is gone, so a
+   still picture settles: while the game is paused or has quit, the
+   on-screen display changes without new frames, and one pass alone would
+   leave the old text at 82% under the new.
 3. **CRT** (`crt.kage`): everything else, every displayed frame.
 
 ## Effects

@@ -83,12 +83,13 @@ func (o *osd) showBar(label string, value float64) {
 	o.lines, o.bar, o.left, o.dirty = []string{label}, value, osdTicks, true
 }
 
-// hold shows lines until hold is called again (with none, to release
-// them); what show displays meanwhile goes over them for a while.
+// hold shows lines at once, in place of anything shown, and keeps them
+// until hold is called again (with none, to release them); what show
+// displays meanwhile goes over them for a while.
 func (o *osd) hold(lines ...string) {
 	o.held = lines
-	if o.left == 0 {
-		o.lines, o.bar, o.dirty = lines, -1, true
+	if len(lines) > 0 || o.left == 0 {
+		o.lines, o.bar, o.left, o.dirty = lines, -1, 0, true
 	}
 }
 
